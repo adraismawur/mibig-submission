@@ -1,0 +1,1 @@
+module mibig/submission
