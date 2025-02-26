@@ -1,7 +1,7 @@
 package main
 
-import "fmt"
+import "log"
 
 func main() {
-	fmt.Println("Starting MIBiG submission platform API")
+	log.Println("Starting MIBiG submission portal")
 }
