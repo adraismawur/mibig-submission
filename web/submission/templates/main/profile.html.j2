@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block body %}
+
+<div class="content">
+    Hello {{ current_user.info.name }}.
+
+    {{ macros.simple_divform(form, is_reviewer=False) }}
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block body %}
+
+<div class="content">
+    <div class="form-wrapper">
+        <h3>Log in to the MIBiG Submission system</h3>
+        {{ macros.simple_divform(form) }}
+
+        <div style="margin: 15px">
+            <a class="btn btn-light" href="/auth/reset-my-password">Reset my password</a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

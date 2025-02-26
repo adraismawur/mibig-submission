@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block header %}
+<h2 class="edit-header">Editing {{ bgc_id }}</h2>
+{% endblock %}
+
+{% block body %}
+<div class="form-wrapper">
+    <h4>What would you like to edit?</h4>
+    {{ macros.simple_divform(form) }}
+</div>
+<div class="container">
+    <a href="{{ url_for('main.index') }}"><button class="btn btn-outline-secondary">Back to entry selection</button></a>
+</div>
+{% endblock %}

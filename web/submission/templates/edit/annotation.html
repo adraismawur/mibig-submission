@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block header %}
+<h2 class="edit-header">Editing {{ bgc_id }}</h2>
+
+{% endblock %}
+
+{% block body %}
+<div class="form-wrapper">
+
+    <h4>Enter gene annotation information</h4>
+    {{ macros.simple_divform(form, is_reviewer=is_reviewer, reviewed=reviewed) }}
+
+</div>
+<div class="container">
+    <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id) }}"><button id="back-btn" class="btn btn-outline-secondary">Back
+            to
+            overview</button></a>
+</div>
+{% endblock %}
