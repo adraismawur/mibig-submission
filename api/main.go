@@ -1,9 +1,9 @@
 package main
 
 import (
+	"github.com/adraismawur/mibig-submission/endpoints"
 	"github.com/gin-gonic/gin"
 	"log"
-	"mibig/submission/endpoints"
 	"os"
 )
 

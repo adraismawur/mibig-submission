@@ -1,4 +1,4 @@
-module mibig/submission
+module github.com/adraismawur/mibig-submission
 
 go 1.18
 
