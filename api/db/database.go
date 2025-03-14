@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 	"github.com/adraismawur/mibig-submission/config"
+	"github.com/adraismawur/mibig-submission/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -41,6 +42,9 @@ func Connect() *gorm.DB {
 	}
 
 	dbLog.Println("Database connection established")
+
+	dbLog.Println("Migrating models")
+	models.Migrate(db)
 
 	return db
 }
