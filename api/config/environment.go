@@ -18,7 +18,7 @@ var defaults = map[string]string{
 	"DB_HOST":    "localhost",
 	"DB_PORT":    "5432",
 	"DB_DBNAME":  "mibig_submission",
-	"DB_USER":    "postgresql",
+	"DB_USER":    "postgres",
 	"DB_PASS":    "",
 }
 var envLog = log.New(os.Stdout, "[env] ", log.Lmsgprefix)
