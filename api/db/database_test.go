@@ -10,9 +10,9 @@ import (
 func TestConnectDefaults(t *testing.T) {
 	config.Init()
 
-	Connect()
+	db := Connect()
 
-	assert.NotNil(t, DB)
+	assert.NotNil(t, db)
 }
 
 func TestConnectPostgres(t *testing.T) {
@@ -22,9 +22,9 @@ func TestConnectPostgres(t *testing.T) {
 
 	config.Init()
 
-	Connect()
+	db := Connect()
 
-	assert.NotNil(t, DB, "DB using postgres dialect should not be nil")
+	assert.NotNil(t, db, "DB using postgres dialect should not be nil")
 }
 
 func TestConnectUnsupported(t *testing.T) {

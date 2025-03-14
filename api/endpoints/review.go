@@ -1,29 +1,38 @@
 package endpoints
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+)
 
-func GetReviewRoutes() []Route {
-	return []Route{
-		{
-			Method:  "GET",
-			Path:    "/review",
-			Handler: getReview,
-		},
-		{
-			Method:  "POST",
-			Path:    "/review",
-			Handler: postReview,
+func GetReviewEndpoint(db *gorm.DB) Endpoint {
+	return Endpoint{
+		Routes: []Route{
+			{
+				Method: "GET",
+				Path:   "/review",
+				Handler: func(c *gin.Context) {
+					getReview(db, c)
+				},
+			},
+			{
+				Method: "POST",
+				Path:   "/review",
+				Handler: func(c *gin.Context) {
+					postReview(db, c)
+				},
+			},
 		},
 	}
 }
 
-func getReview(c *gin.Context) {
+func getReview(db *gorm.DB, c *gin.Context) {
 	c.JSON(200, gin.H{
 		"message": "get review",
 	})
 }
 
-func postReview(c *gin.Context) {
+func postReview(db *gorm.DB, c *gin.Context) {
 	c.JSON(200, gin.H{
 		"message": "post review",
 	})

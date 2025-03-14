@@ -10,13 +10,12 @@ import (
 	"os"
 )
 
-var DB *gorm.DB
-var dbLog = log.New(os.Stdout, "[db] ", log.LstdFlags)
-
-func Connect() {
+func Connect() *gorm.DB {
+	dbLog := log.New(os.Stdout, "[db] ", log.LstdFlags)
 	dbLog.Println("Opening database connection")
 
 	var err error
+	var db *gorm.DB
 
 	dialect := config.Envs["DB_DIALECT"]
 	dbLog.Println("Dialect: ", dialect)
@@ -30,9 +29,9 @@ func Connect() {
 			config.Envs["DB_USER"],
 			config.Envs["DB_PASS"],
 		)
-		DB, err = gorm.Open(postgres.Open(connectionUrl))
+		db, err = gorm.Open(postgres.Open(connectionUrl))
 	} else if dialect == "sqlite" {
-		DB, err = gorm.Open(sqlite.Open(config.Envs["DB_PATH"]))
+		db, err = gorm.Open(sqlite.Open(config.Envs["DB_PATH"]))
 	} else {
 		dbLog.Panicf("Unsupported database dialect: %s", dialect)
 	}
@@ -40,4 +39,8 @@ func Connect() {
 	if err != nil {
 		dbLog.Panicf("Failed to connect to database: %v", err)
 	}
+
+	dbLog.Println("Database connection established")
+
+	return db
 }

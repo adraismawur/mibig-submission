@@ -1,6 +1,12 @@
 package endpoints
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+)
+
+type Endpoint struct {
+	Routes []Route
+}
 
 type Route struct {
 	Method  string

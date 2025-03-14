@@ -1,51 +1,64 @@
 package endpoints
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+)
 
-func GetSubmissionRoutes() []Route {
-	return []Route{
-		{
-			Method:  "CREATE",
-			Path:    "/submission",
-			Handler: createSubmission,
-		},
-		{
-			Method:  "GET",
-			Path:    "/submission",
-			Handler: getSubmission,
-		},
-		{
-			Method:  "UPDATE",
-			Path:    "/submission",
-			Handler: updateSubmission,
-		},
-		{
-			Method:  "DELETE",
-			Path:    "/submission",
-			Handler: deleteSubmission,
+func GetSubmissionEndpoint(db *gorm.DB) Endpoint {
+	return Endpoint{
+		Routes: []Route{
+			{
+				Method: "CREATE",
+				Path:   "/submission",
+				Handler: func(c *gin.Context) {
+					createSubmission(db, c)
+				},
+			},
+			{
+				Method: "GET",
+				Path:   "/submission",
+				Handler: func(c *gin.Context) {
+					getSubmission(db, c)
+				},
+			},
+			{
+				Method: "UPDATE",
+				Path:   "/submission",
+				Handler: func(c *gin.Context) {
+					updateSubmission(db, c)
+				},
+			},
+			{
+				Method: "DELETE",
+				Path:   "/submission",
+				Handler: func(c *gin.Context) {
+					deleteSubmission(db, c)
+				},
+			},
 		},
 	}
 }
 
-func createSubmission(c *gin.Context) {
+func createSubmission(db *gorm.DB, c *gin.Context) {
 	c.JSON(200, gin.H{
 		"message": "create submission",
 	})
 }
 
-func getSubmission(c *gin.Context) {
+func getSubmission(db *gorm.DB, c *gin.Context) {
 	c.JSON(200, gin.H{
 		"message": "get submission",
 	})
 }
 
-func updateSubmission(c *gin.Context) {
+func updateSubmission(db *gorm.DB, c *gin.Context) {
 	c.JSON(200, gin.H{
 		"message": "update submission",
 	})
 }
 
-func deleteSubmission(c *gin.Context) {
+func deleteSubmission(db *gorm.DB, c *gin.Context) {
 	c.JSON(200, gin.H{
 		"message": "delete submission",
 	})
