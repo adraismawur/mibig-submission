@@ -7,19 +7,17 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"log"
-	"os"
+	"log/slog"
 )
 
 func Connect() *gorm.DB {
-	dbLog := log.New(os.Stdout, "[db] ", log.LstdFlags)
-	dbLog.Println("Opening database connection")
+	slog.Info("[db] Opening database connection")
 
 	var err error
 	var db *gorm.DB
 
 	dialect := config.Envs["DB_DIALECT"]
-	dbLog.Println("Dialect: ", dialect)
+	slog.Info("[db] Dialect: ", dialect)
 
 	if dialect == "postgres" {
 		connectionUrl := fmt.Sprintf(
@@ -34,16 +32,18 @@ func Connect() *gorm.DB {
 	} else if dialect == "sqlite" {
 		db, err = gorm.Open(sqlite.Open(config.Envs["DB_PATH"]))
 	} else {
-		dbLog.Panicf("Unsupported database dialect: %s", dialect)
+		slog.Error(fmt.Sprintf("Unsupported database dialect: %s", dialect))
+		panic(fmt.Sprintf("Unsupported database dialect: %s", dialect))
 	}
 
 	if err != nil {
-		dbLog.Panicf("Failed to connect to database: %v", err)
+		slog.Error("[db] Failed to connect to database: %v", err)
+		panic(err)
 	}
 
-	dbLog.Println("Database connection established")
+	slog.Info("[db] Database connection established")
 
-	dbLog.Println("Migrating models")
+	slog.Info("[db] Migrating models")
 	models.Migrate(db)
 
 	return db

@@ -1,7 +1,8 @@
 package config
 
 import (
-	"log"
+	"fmt"
+	"log/slog"
 	"os"
 )
 
@@ -21,10 +22,9 @@ var defaults = map[string]string{
 	"DB_USER":    "postgres",
 	"DB_PASS":    "",
 }
-var envLog = log.New(os.Stdout, "[env] ", log.Lmsgprefix)
 
 func Init() {
-	envLog.Println("Environment variables:")
+	slog.Info("[env] Environment variables:")
 
 	Envs = make(map[string]string)
 	// replace with actual values from system environment
@@ -35,6 +35,6 @@ func Init() {
 		} else {
 			Envs[name] = defaults[name]
 		}
-		envLog.Printf("%s: %s\n", name, Envs[name])
+		slog.Info(fmt.Sprintf("%s: %s", name, Envs[name]))
 	}
 }

@@ -1,37 +1,36 @@
 package main
 
 import (
+	"fmt"
 	"github.com/adraismawur/mibig-submission/config"
 	"github.com/adraismawur/mibig-submission/db"
 	"github.com/adraismawur/mibig-submission/endpoints"
 	"github.com/gin-gonic/gin"
-	"log"
-	"os"
+	"log/slog"
 )
 
 func main() {
 	// setup logging
-	mainLog := log.New(os.Stdout, "[main] ", log.LstdFlags)
-	mainLog.Println("Starting MIBiG submission portal API")
+	slog.Info("Starting MIBiG submission portal API")
 
 	// setup environment
-	mainLog.Println("Setting up environment")
+	slog.Info("Setting up environment")
 	config.Init()
 
-	mainLog.Println("Setting up database")
+	slog.Info("Setting up database")
 	// setup database
 	dbConnection := db.Connect()
 
-	mainLog.Println("Setting up router")
+	slog.Info("Setting up router")
 	// setup router
 	router := gin.Default()
 
-	mainLog.Println("Registering endpoints")
+	slog.Info("Registering endpoints")
 	endpoints.RegisterEndpoints(router, dbConnection)
 
-	mainLog.Println("Starting server")
+	slog.Info("Starting server")
 	err := router.Run(":8080")
 	if err != nil {
-		mainLog.Fatalf("Failed to start server: %v", err)
+		slog.Error(fmt.Sprintf("Failed to start server: %v", err))
 	}
 }
