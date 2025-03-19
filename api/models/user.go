@@ -6,13 +6,26 @@ import (
 	"log/slog"
 )
 
+type Role int
+
+const (
+	Admin Role = iota
+	Submitter
+	Reviewer
+)
+
 type User struct {
 	gorm.Model `json:"-"`
 	Email      string   `json:"email"`
 	Password   string   `json:"-"`
 	Active     bool     `json:"active"`
-	Role       UserRole `json:"role"`
+	Role       Role     `json:"role"`
 	Info       UserInfo `json:"info"`
+}
+
+func HasRole(db *gorm.DB, user User, role Role) bool {
+	tx := db.First(&UserInfo{}, "user_id = ? AND role = ?", user.ID, role)
+	return tx.RowsAffected > 0
 }
 
 type UserRequest struct {
@@ -31,25 +44,6 @@ func CheckPassword(in string, against string) bool {
 	err = bcrypt.CompareHashAndPassword([]byte(against), hash)
 
 	return true
-}
-
-type Role int
-
-const (
-	Admin Role = iota
-	Submitter
-	Reviewer
-)
-
-type UserRole struct {
-	gorm.Model `json:"-"`
-	UserID     uint `json:"user_id"`
-	Role       Role `json:"role"`
-}
-
-func HasRole(db *gorm.DB, user User, role Role) bool {
-	tx := db.First(&UserRole{}, "user_id = ? AND role = ?", user.ID, role)
-	return tx.RowsAffected > 0
 }
 
 type UserInfo struct {

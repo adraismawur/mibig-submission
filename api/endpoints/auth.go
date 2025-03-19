@@ -1,9 +1,15 @@
 package endpoints
 
 import (
+	"fmt"
+	"github.com/adraismawur/mibig-submission/config"
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
+	"log/slog"
+	"strconv"
+	"time"
 )
 
 func GetAuthEndpoint(db *gorm.DB) Endpoint {
@@ -35,6 +41,7 @@ func login(db *gorm.DB, c *gin.Context) {
 
 	if tx.RowsAffected == 0 {
 		c.JSON(401, gin.H{"error": "Invalid credentials"})
+		slog.Info(fmt.Sprintf("User %s not found", userRequest.Email))
 		return
 	}
 
@@ -43,5 +50,30 @@ func login(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{"token": "token"})
+	issuedAt := time.Now().Unix()
+	lifetime, err := strconv.ParseInt(config.Envs["JWT_LIFETIME"], 10, 64)
+	expirationTime := issuedAt + lifetime
+
+	if err != nil {
+		slog.Error(fmt.Sprintf("[db] [env] Error parsing JWT lifetime '%s'", config.Envs["JWT_LIFETIME"]))
+		c.JSON(500, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
+		"email": user.Email,
+		"role":  user.Role,
+		"iat":   issuedAt,
+		"exp":   expirationTime,
+	})
+
+	tokenString, err := token.SignedString([]byte(config.Envs["JWT_SECRET"]))
+
+	if err != nil {
+		slog.Error(fmt.Sprintf("Error signing token: %s", err))
+		c.JSON(500, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	c.JSON(200, gin.H{"token": tokenString})
 }

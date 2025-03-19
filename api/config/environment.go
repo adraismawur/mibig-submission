@@ -14,13 +14,15 @@ type EnvVar struct {
 var Envs map[string]string
 
 var defaults = map[string]string{
-	"DB_DIALECT": "sqlite",
-	"DB_PATH":    "/tmp/test.db",
-	"DB_HOST":    "localhost",
-	"DB_PORT":    "5432",
-	"DB_DBNAME":  "mibig_submission",
-	"DB_USER":    "postgres",
-	"DB_PASS":    "",
+	"DB_DIALECT":   "sqlite",
+	"DB_PATH":      "/tmp/test.db",
+	"DB_HOST":      "localhost",
+	"DB_PORT":      "5432",
+	"DB_DBNAME":    "mibig_submission",
+	"DB_USER":      "postgres",
+	"DB_PASS":      "",
+	"JWT_SECRET":   "CHANGEME",
+	"JWT_LIFETIME": "86400",
 }
 
 func Init() {
