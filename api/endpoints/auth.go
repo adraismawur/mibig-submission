@@ -52,9 +52,9 @@ func login(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	issuedAt := time.Now().Unix()
+	issuedAt := time.Now()
 	lifetime, err := strconv.ParseInt(config.Envs["JWT_LIFETIME"], 10, 64)
-	expirationTime := issuedAt + lifetime
+	expirationTime := issuedAt.Add(time.Duration(lifetime) * time.Second)
 
 	if err != nil {
 		slog.Error(fmt.Sprintf("[db] [env] Error parsing JWT lifetime '%s'", config.Envs["JWT_LIFETIME"]))
@@ -62,12 +62,20 @@ func login(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
-		"email": user.Email,
-		"role":  user.Role,
-		"iat":   issuedAt,
-		"exp":   expirationTime,
-	})
+	claims := models.Token{
+		user.Email,
+		user.Role,
+		jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+			IssuedAt:  jwt.NewNumericDate(issuedAt),
+			NotBefore: jwt.NewNumericDate(issuedAt),
+			Issuer:    "mibig-submission-be",
+			Subject:   user.Email,
+			Audience:  []string{"mibig-submission-fe"},
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
 
 	tokenString, err := token.SignedString([]byte(config.Envs["JWT_SECRET"]))
 
