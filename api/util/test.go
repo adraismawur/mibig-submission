@@ -2,7 +2,6 @@ package util
 
 import (
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/adraismawur/mibig-submission/models"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -29,8 +28,6 @@ func CreateMockDB() (*gorm.DB, sqlmock.Sqlmock) {
 		slog.Error("[test] Could not open mock database connection")
 		panic(err)
 	}
-
-	models.Migrate(gormDB)
 
 	return gormDB, mock
 }
