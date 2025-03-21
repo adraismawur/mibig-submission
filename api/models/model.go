@@ -1,3 +1,4 @@
+// Package models contains the models for the application in use with gorm.
 package models
 
 import (

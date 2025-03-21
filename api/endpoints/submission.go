@@ -5,6 +5,9 @@ import (
 	"gorm.io/gorm"
 )
 
+// GetSubmissionEndpoint returns the submission endpoint.
+// This endpoint will implement creating and updating submissions, as well as perform some
+// specific checks on submissions.
 func GetSubmissionEndpoint(db *gorm.DB) Endpoint {
 	return Endpoint{
 		Routes: []Route{

@@ -12,6 +12,7 @@ import (
 	"strings"
 )
 
+// CreateMockDB creates a mock database connection for testing purposes
 func CreateMockDB() (*gorm.DB, sqlmock.Sqlmock) {
 	db, mock, err := sqlmock.New()
 
@@ -34,6 +35,7 @@ func CreateMockDB() (*gorm.DB, sqlmock.Sqlmock) {
 	return gormDB, mock
 }
 
+// CreateMockGinJsonRequest creates a mock gin context with a JSON POST request for testing purposes
 func CreateMockGinJsonRequest(json string) *gin.Context {
 	c, _ := gin.CreateTestContext(httptest.NewRecorder())
 	c.Request = httptest.NewRequest("POST", "/login", nil)

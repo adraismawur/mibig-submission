@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+// GetAuthEndpoint returns the auth endpoint, which is responsible for specifically handling authentication.
+// This means acquiring a token (logging in) and refreshing a token.
 func GetAuthEndpoint(db *gorm.DB) Endpoint {
 	return Endpoint{
 		Routes: []Route{
@@ -77,3 +79,5 @@ func login(db *gorm.DB, c *gin.Context) {
 
 	c.JSON(200, gin.H{"token": tokenString})
 }
+
+// TODO: Implement refresh token

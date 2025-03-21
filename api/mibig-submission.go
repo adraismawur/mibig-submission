@@ -1,3 +1,4 @@
+// Package main contains only the main function, which is the entry point of the application.
 package main
 
 import (
@@ -9,6 +10,7 @@ import (
 	"log/slog"
 )
 
+// main is the entry point of the application
 func main() {
 	// setup logging
 	slog.Info("Starting MIBiG submission portal API")

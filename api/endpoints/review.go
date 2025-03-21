@@ -5,6 +5,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// GetReviewEndpoint returns the review endpoint. This endpoint will implement adding, updating, and deleting reviews.
 func GetReviewEndpoint(db *gorm.DB) Endpoint {
 	return Endpoint{
 		Routes: []Route{

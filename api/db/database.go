@@ -1,3 +1,4 @@
+// Package db provides a method to connect to a database using GORM.
 package db
 
 import (
@@ -10,6 +11,9 @@ import (
 	"log/slog"
 )
 
+// Connect uses GORM to connect to a database based on the environment variables.
+// This function relies on the user to have set the environment variables correctly.
+// The function will panic if the dialect is not supported.
 func Connect() *gorm.DB {
 	slog.Info("[db] Opening database connection")
 
@@ -19,6 +23,8 @@ func Connect() *gorm.DB {
 	dialect := config.Envs["DB_DIALECT"]
 	slog.Info("[db] Dialect: ", dialect)
 
+	// We want to be specific about what we are expecting to use
+	// Postgres for production and SQLite for testing
 	if dialect == "postgres" {
 		connectionUrl := fmt.Sprintf(
 			"host=%s port=%s dbname=%s user=%s password=%s sslmode=disable",
