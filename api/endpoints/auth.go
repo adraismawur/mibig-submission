@@ -29,8 +29,8 @@ func GetAuthEndpoint(db *gorm.DB) Endpoint {
 }
 
 func login(db *gorm.DB, c *gin.Context) {
-	var userRequest models.UserRequest
-	err := c.BindJSON(&userRequest)
+	var loginRequest models.LoginRequest
+	err := c.BindJSON(&loginRequest)
 
 	if err != nil {
 		c.JSON(400, gin.H{"error": "Invalid request"})
@@ -39,15 +39,15 @@ func login(db *gorm.DB, c *gin.Context) {
 
 	user := models.User{}
 
-	tx := db.First(&user, "email = ?", userRequest.Email)
+	tx := db.First(&user, "email = ?", loginRequest.Email)
 
 	if tx.RowsAffected == 0 {
 		c.JSON(401, gin.H{"error": "Invalid credentials"})
-		slog.Info(fmt.Sprintf("User %s not found", userRequest.Email))
+		slog.Info(fmt.Sprintf("User %s not found", loginRequest.Email))
 		return
 	}
 
-	if !models.CheckPassword(userRequest.Password, user.Password) {
+	if !models.CheckPassword(loginRequest.Password, user.Password) {
 		c.JSON(401, gin.H{"error": "Invalid credentials"})
 		return
 	}

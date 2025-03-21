@@ -31,8 +31,8 @@ func HasRole(db *gorm.DB, user User, role Role) bool {
 	return tx.RowsAffected > 0
 }
 
-// UserRequest type that represents a user request given by a client through a POST request
-type UserRequest struct {
+// LoginRequest type that represents a user request given by a client through a POST request
+type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }

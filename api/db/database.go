@@ -21,7 +21,7 @@ func Connect() *gorm.DB {
 	var db *gorm.DB
 
 	dialect := config.Envs["DB_DIALECT"]
-	slog.Info("[db] Dialect: ", dialect)
+	slog.Info(fmt.Sprintf("[db] Dialect: %s", dialect))
 
 	// We want to be specific about what we are expecting to use
 	// Postgres for production and SQLite for testing
@@ -43,7 +43,7 @@ func Connect() *gorm.DB {
 	}
 
 	if err != nil {
-		slog.Error("[db] Failed to connect to database: %v", err)
+		slog.Error(fmt.Sprintf("[db] Failed to connect to database: %s", err))
 		panic(err)
 	}
 
