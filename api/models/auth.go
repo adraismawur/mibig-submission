@@ -13,18 +13,18 @@ type Token struct {
 	jwt.RegisteredClaims
 }
 
-func ParseToken(token string) Token {
+func ParseToken(token string) (Token, error) {
 	parsedToken, err := jwt.ParseWithClaims(token, &Token{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(config.Envs["JWT_SECRET"]), nil
 	})
 
 	if err != nil {
 		slog.Error(fmt.Sprintf("[auth] Error parsing token: %s", err))
-		panic(err)
+		return Token{}, err
 	}
 
 	if claims, ok := parsedToken.Claims.(*Token); ok && parsedToken.Valid {
-		return *claims
+		return *claims, nil
 	}
 
 	slog.Error(fmt.Sprintf("[auth] Error parsing token: Could not parse claims type"))

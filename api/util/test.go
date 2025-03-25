@@ -32,6 +32,14 @@ func CreateMockDB() (*gorm.DB, sqlmock.Sqlmock) {
 	return gormDB, mock
 }
 
+// CreateMockGinGetRequest creates a mock gin context with a GET request for testing purposes
+func CreateMockGinGetRequest(path string) *gin.Context {
+	c, _ := gin.CreateTestContext(httptest.NewRecorder())
+	c.Request = httptest.NewRequest("GET", path, nil)
+
+	return c
+}
+
 // CreateMockGinJsonRequest creates a mock gin context with a JSON POST request for testing purposes
 func CreateMockGinJsonRequest(json string) *gin.Context {
 	c, _ := gin.CreateTestContext(httptest.NewRecorder())

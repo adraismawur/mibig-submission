@@ -3,13 +3,10 @@ package db
 import (
 	"github.com/adraismawur/mibig-submission/config"
 	"github.com/stretchr/testify/assert"
-	"os"
 	"testing"
 )
 
 func TestConnectDefaults(t *testing.T) {
-	config.Init()
-
 	db := Connect()
 
 	assert.NotNil(t, db)
@@ -17,10 +14,8 @@ func TestConnectDefaults(t *testing.T) {
 
 func TestConnectPostgres(t *testing.T) {
 	// set environment variables
-	os.Setenv("DB_DIALECT", "postgres")
-	os.Setenv("DB_USER", "postgres")
-
-	config.Init()
+	config.Envs["DB_DIALECT"] = "postgres"
+	config.Envs["DB_USER"] = "postgres"
 
 	db := Connect()
 
@@ -29,9 +24,7 @@ func TestConnectPostgres(t *testing.T) {
 
 func TestConnectUnsupported(t *testing.T) {
 	// set environment variables
-	os.Setenv("DB_DIALECT", "unsupported")
-
-	config.Init()
+	config.Envs["DB_DIALECT"] = "unsupported"
 
 	assert.Panics(t, func() {
 		Connect()

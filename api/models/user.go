@@ -11,8 +11,8 @@ type Role int
 
 const (
 	Admin Role = iota
-	Submitter
 	Reviewer
+	Submitter
 )
 
 // User model that represents a singular user

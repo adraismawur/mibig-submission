@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/adraismawur/mibig-submission/db"
 	"github.com/adraismawur/mibig-submission/endpoints"
+	"github.com/adraismawur/mibig-submission/middleware"
 	"github.com/gin-gonic/gin"
 	"log/slog"
 )
@@ -21,6 +22,9 @@ func main() {
 	slog.Info("Setting up router")
 	// setup router
 	router := gin.Default()
+
+	slog.Info("Registering middleware")
+	router.Use(middleware.AuthMiddleware())
 
 	slog.Info("Registering endpoints")
 	endpoints.RegisterEndpointHandlers(router, dbConnection)
