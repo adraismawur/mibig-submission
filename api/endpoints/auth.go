@@ -8,6 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 	"log/slog"
+	"net/http"
 	"strconv"
 	"time"
 )
@@ -37,7 +38,7 @@ func login(db *gorm.DB, c *gin.Context) {
 	err := c.BindJSON(&loginRequest)
 
 	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 
@@ -46,13 +47,13 @@ func login(db *gorm.DB, c *gin.Context) {
 	tx := db.First(&user, "email = ?", loginRequest.Email)
 
 	if tx.RowsAffected == 0 {
-		c.JSON(401, gin.H{"error": "Invalid credentials"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		slog.Info(fmt.Sprintf("User %s not found", loginRequest.Email))
 		return
 	}
 
 	if !models.CheckPassword(loginRequest.Password, user.Password) {
-		c.JSON(401, gin.H{"error": "Invalid credentials"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
 
@@ -62,7 +63,7 @@ func login(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		slog.Error(fmt.Sprintf("[db] [env] Error parsing JWT lifetime '%s'", config.Envs["JWT_LIFETIME"]))
-		c.JSON(500, gin.H{"error": "Internal server error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
 
@@ -85,11 +86,11 @@ func login(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		slog.Error(fmt.Sprintf("Error signing token: %s", err))
-		c.JSON(500, gin.H{"error": "Internal server error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
 
-	c.JSON(200, gin.H{"token": tokenString})
+	c.JSON(http.StatusOK, gin.H{"token": tokenString})
 }
 
 // TODO: Implement refresh token

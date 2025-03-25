@@ -3,6 +3,7 @@ package endpoints
 import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"net/http"
 )
 
 func init() {
@@ -48,25 +49,25 @@ func GenerateSubmissionEndpoint(db *gorm.DB) Endpoint {
 }
 
 func createSubmission(db *gorm.DB, c *gin.Context) {
-	c.JSON(200, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"message": "create submission",
 	})
 }
 
 func getSubmission(db *gorm.DB, c *gin.Context) {
-	c.JSON(200, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"message": "get submission",
 	})
 }
 
 func updateSubmission(db *gorm.DB, c *gin.Context) {
-	c.JSON(200, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"message": "update submission",
 	})
 }
 
 func deleteSubmission(db *gorm.DB, c *gin.Context) {
-	c.JSON(200, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"message": "delete submission",
 	})
 }

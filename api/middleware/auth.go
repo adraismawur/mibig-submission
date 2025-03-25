@@ -4,6 +4,7 @@ import (
 	"github.com/adraismawur/mibig-submission/endpoints"
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 var protectedRoutes []endpoints.Route
@@ -29,7 +30,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 func validateAuthHeader(c *gin.Context) {
 	if c.GetHeader("Authorization") == "" {
-		c.JSON(401, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
@@ -38,21 +39,21 @@ func validateAuthHeader(c *gin.Context) {
 	validBearer := len(c.GetHeader("Authorization")) > len(expectedPrefix) && c.GetHeader("Authorization")[:len(expectedPrefix)] == expectedPrefix
 
 	if !validBearer {
-		c.JSON(401, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
 	token := c.GetHeader("Authorization")[len(expectedPrefix):]
 
 	if token == "" {
-		c.JSON(401, gin.H{"error": "Invalid token"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 		return
 	}
 
 	_, err := models.ParseToken(token)
 
 	if err != nil {
-		c.JSON(401, gin.H{"error": "Invalid token"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 		return
 	}
 }

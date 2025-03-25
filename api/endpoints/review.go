@@ -3,6 +3,7 @@ package endpoints
 import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"net/http"
 )
 
 func init() {
@@ -32,13 +33,13 @@ func GenerateReviewEndpoint(db *gorm.DB) Endpoint {
 }
 
 func getReview(db *gorm.DB, c *gin.Context) {
-	c.JSON(200, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"message": "get review",
 	})
 }
 
 func postReview(db *gorm.DB, c *gin.Context) {
-	c.JSON(200, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"message": "post review",
 	})
 }
