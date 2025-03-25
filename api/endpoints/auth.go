@@ -12,9 +12,13 @@ import (
 	"time"
 )
 
-// GetAuthEndpoint returns the auth endpoint, which is responsible for specifically handling authentication.
+func init() {
+	RegisterEndpointGenerator(GenerateAuthEndpoint)
+}
+
+// GenerateAuthEndpoint returns the auth endpoint, which is responsible for specifically handling authentication.
 // This means acquiring a token (logging in) and refreshing a token.
-func GetAuthEndpoint(db *gorm.DB) Endpoint {
+func GenerateAuthEndpoint(db *gorm.DB) Endpoint {
 	return Endpoint{
 		Routes: []Route{
 			{

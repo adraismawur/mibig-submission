@@ -5,8 +5,12 @@ import (
 	"gorm.io/gorm"
 )
 
-// GetUserEndpoint returns the user endpoint. This endpoint will implement creating, updating, and deleting users.
-func GetUserEndpoint(db *gorm.DB) Endpoint {
+func init() {
+	RegisterEndpointGenerator(GenerateUser)
+}
+
+// GenerateUser returns the user endpoint. This endpoint will implement creating, updating, and deleting users.
+func GenerateUser(db *gorm.DB) Endpoint {
 	return Endpoint{
 		Routes: []Route{
 			{
