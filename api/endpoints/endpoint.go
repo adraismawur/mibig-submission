@@ -22,15 +22,15 @@ type Endpoint struct {
 	Routes []Route
 }
 
-// RegisterEndpoints registers all the routes from all modules of the API
+// RegisterEndpointHandlers registers all the routes from all modules of the API
 // this is done after all generators have been added
 // since the generators are added in init functions, this function should be called after all
 // modules have been imported
 // Typically this is done in the main function
-func RegisterEndpoints(router *gin.Engine, db *gorm.DB) {
+func RegisterEndpointHandlers(router *gin.Engine, db *gorm.DB) {
 	for _, generator := range endpointGenerators {
 		endpoint := generator(db)
-		registerRoutes(router, endpoint.Routes)
+		registerRouteHandlers(router, endpoint.Routes)
 	}
 }
 
@@ -41,7 +41,7 @@ type Route struct {
 	Handler func(c *gin.Context)
 }
 
-func registerRoutes(router *gin.Engine, routes []Route) {
+func registerRouteHandlers(router *gin.Engine, routes []Route) {
 	for _, route := range routes {
 		router.Handle(route.Method, route.Path, route.Handler)
 	}

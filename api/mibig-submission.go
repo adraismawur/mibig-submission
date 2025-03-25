@@ -23,7 +23,7 @@ func main() {
 	router := gin.Default()
 
 	slog.Info("Registering endpoints")
-	endpoints.RegisterEndpoints(router, dbConnection)
+	endpoints.RegisterEndpointHandlers(router, dbConnection)
 
 	slog.Info("Starting server")
 	err := router.Run(":8080")
