@@ -1,4 +1,4 @@
-// Package endpointGenerators contains all the endpointGenerators of the API
+// Package endpoints contains all the endpointGenerators of the API
 package endpoints
 
 import (
