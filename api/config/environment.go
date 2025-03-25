@@ -27,9 +27,9 @@ var Envs = map[string]string{
 	"JWT_LIFETIME": "86400",
 }
 
-// Init initializes the Envs map with the environment variables,
+// init initializes the Envs map with the environment variables,
 // replacing any default values with actual values from the system environment.
-func Init() {
+func init() {
 	slog.Info("[env] Environment variables:")
 
 	// replace with actual values from system environment
@@ -40,7 +40,7 @@ func Init() {
 			slog.Info(fmt.Sprintf("%s: %s (DEFAULT)", name, Envs[name]))
 			continue
 		}
-		
+
 		Envs[name] = sysValue
 
 		slog.Info(fmt.Sprintf("%s: %s", name, Envs[name]))

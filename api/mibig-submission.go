@@ -3,7 +3,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/adraismawur/mibig-submission/config"
 	"github.com/adraismawur/mibig-submission/db"
 	"github.com/adraismawur/mibig-submission/endpoints"
 	"github.com/gin-gonic/gin"
@@ -14,10 +13,6 @@ import (
 func main() {
 	// setup logging
 	slog.Info("Starting MIBiG submission portal API")
-
-	// setup environment
-	slog.Info("Setting up environment")
-	config.Init()
 
 	slog.Info("Setting up database")
 	// setup database
