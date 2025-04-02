@@ -1,19 +1,22 @@
 package middleware
 
 import (
+	"github.com/adraismawur/mibig-submission/config"
 	"github.com/adraismawur/mibig-submission/endpoints"
+	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/util"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"
 )
 
-func TestAuthMiddleware(t *testing.T) {
+func TestAuthMiddlewareNoToken(t *testing.T) {
 	AddProtectedRoute(endpoints.Route{
 		Method:  http.MethodGet,
 		Path:    "/test",
 		Handler: nil,
-	})
+	}, models.Admin)
 
 	c := util.CreateMockGinGetRequest("/test")
 
@@ -21,4 +24,96 @@ func TestAuthMiddleware(t *testing.T) {
 	middleware(c)
 
 	assert.Equal(t, http.StatusUnauthorized, c.Writer.Status(), "Status code should be 401")
+}
+
+func TestAuthMiddlewareValidToken(t *testing.T) {
+	AddProtectedRoute(endpoints.Route{
+		Method:  http.MethodGet,
+		Path:    "/test",
+		Handler: nil,
+	}, models.Admin)
+
+	c := util.CreateMockGinGetRequest("/test")
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, models.Token{
+		Email:            "",
+		Role:             models.Admin,
+		RegisteredClaims: jwt.RegisteredClaims{},
+	})
+
+	signedToken, _ := token.SignedString([]byte(config.Envs["JWT_SECRET"]))
+
+	c.Request.Header.Add("Authorization", "Bearer "+signedToken)
+
+	middleware := AuthMiddleware()
+	middleware(c)
+
+	assert.Equal(t, http.StatusOK, c.Writer.Status(), "Status code should be 200")
+}
+
+func TestAuthMiddlewareWrongSecret(t *testing.T) {
+	AddProtectedRoute(endpoints.Route{
+		Method:  http.MethodGet,
+		Path:    "/test",
+		Handler: nil,
+	}, models.Admin)
+
+	c := util.CreateMockGinGetRequest("/test")
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, models.Token{
+		Email:            "",
+		Role:             models.Admin,
+		RegisteredClaims: jwt.RegisteredClaims{},
+	})
+
+	signedToken, _ := token.SignedString([]byte("wrong secret"))
+
+	c.Request.Header.Add("Authorization", "Bearer "+signedToken)
+
+	middleware := AuthMiddleware()
+	middleware(c)
+
+	assert.Equal(t, http.StatusUnauthorized, c.Writer.Status(), "Status code should be 401")
+}
+
+func TestAuthMiddlewareMissingToken(t *testing.T) {
+	AddProtectedRoute(endpoints.Route{
+		Method:  http.MethodGet,
+		Path:    "/test",
+		Handler: nil,
+	}, models.Admin)
+
+	c := util.CreateMockGinGetRequest("/test")
+
+	c.Request.Header.Add("Authorization", "Bearer ")
+
+	middleware := AuthMiddleware()
+	middleware(c)
+
+	assert.Equal(t, http.StatusUnauthorized, c.Writer.Status(), "Status code should be 401")
+}
+
+func TestAuthMiddlewareWrongRole(t *testing.T) {
+	AddProtectedRoute(endpoints.Route{
+		Method:  http.MethodGet,
+		Path:    "/test",
+		Handler: nil,
+	}, models.Admin)
+
+	c := util.CreateMockGinGetRequest("/test")
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, models.Token{
+		Email:            "",
+		Role:             models.Submitter,
+		RegisteredClaims: jwt.RegisteredClaims{},
+	})
+
+	signedToken, _ := token.SignedString([]byte(config.Envs["JWT_SECRET"]))
+
+	c.Request.Header.Add("Authorization", "Bearer "+signedToken)
+
+	middleware := AuthMiddleware()
+	middleware(c)
+
+	assert.Equal(t, http.StatusOK, c.Writer.Status(), "Status code should be 403")
 }
