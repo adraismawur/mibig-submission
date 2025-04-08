@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"github.com/adraismawur/mibig-submission/config"
-	"github.com/adraismawur/mibig-submission/endpoints"
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/util"
 	"github.com/golang-jwt/jwt/v5"
@@ -12,13 +11,9 @@ import (
 )
 
 func TestAuthMiddlewareNoToken(t *testing.T) {
-	AddProtectedRoute(endpoints.Route{
-		Method:  http.MethodGet,
-		Path:    "/test",
-		Handler: nil,
-	}, models.Admin)
+	AddProtectedRoute(http.MethodGet, "/test", models.Admin)
 
-	c := util.CreateMockGinGetRequest("/test")
+	c, _ := util.CreateMockGinGetRequest("/test")
 
 	middleware := AuthMiddleware()
 	middleware(c)
@@ -27,13 +22,9 @@ func TestAuthMiddlewareNoToken(t *testing.T) {
 }
 
 func TestAuthMiddlewareValidToken(t *testing.T) {
-	AddProtectedRoute(endpoints.Route{
-		Method:  http.MethodGet,
-		Path:    "/test",
-		Handler: nil,
-	}, models.Admin)
+	AddProtectedRoute(http.MethodGet, "/test", models.Admin)
 
-	c := util.CreateMockGinGetRequest("/test")
+	c, _ := util.CreateMockGinGetRequest("/test")
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, models.Token{
 		Email:            "",
@@ -52,13 +43,9 @@ func TestAuthMiddlewareValidToken(t *testing.T) {
 }
 
 func TestAuthMiddlewareWrongSecret(t *testing.T) {
-	AddProtectedRoute(endpoints.Route{
-		Method:  http.MethodGet,
-		Path:    "/test",
-		Handler: nil,
-	}, models.Admin)
+	AddProtectedRoute(http.MethodGet, "/test", models.Admin)
 
-	c := util.CreateMockGinGetRequest("/test")
+	c, _ := util.CreateMockGinGetRequest("/test")
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, models.Token{
 		Email:            "",
@@ -77,13 +64,9 @@ func TestAuthMiddlewareWrongSecret(t *testing.T) {
 }
 
 func TestAuthMiddlewareMissingToken(t *testing.T) {
-	AddProtectedRoute(endpoints.Route{
-		Method:  http.MethodGet,
-		Path:    "/test",
-		Handler: nil,
-	}, models.Admin)
+	AddProtectedRoute(http.MethodGet, "/test", models.Admin)
 
-	c := util.CreateMockGinGetRequest("/test")
+	c, _ := util.CreateMockGinGetRequest("/test")
 
 	c.Request.Header.Add("Authorization", "Bearer ")
 
@@ -94,13 +77,9 @@ func TestAuthMiddlewareMissingToken(t *testing.T) {
 }
 
 func TestAuthMiddlewareWrongRole(t *testing.T) {
-	AddProtectedRoute(endpoints.Route{
-		Method:  http.MethodGet,
-		Path:    "/test",
-		Handler: nil,
-	}, models.Admin)
+	AddProtectedRoute(http.MethodGet, "/test", models.Admin)
 
-	c := util.CreateMockGinGetRequest("/test")
+	c, _ := util.CreateMockGinGetRequest("/test")
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, models.Token{
 		Email:            "",
@@ -115,5 +94,5 @@ func TestAuthMiddlewareWrongRole(t *testing.T) {
 	middleware := AuthMiddleware()
 	middleware(c)
 
-	assert.Equal(t, http.StatusOK, c.Writer.Status(), "Status code should be 403")
+	assert.Equal(t, http.StatusForbidden, c.Writer.Status(), "Status code should be 403")
 }

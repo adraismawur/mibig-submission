@@ -7,11 +7,11 @@ import (
 )
 
 func init() {
-	RegisterEndpointGenerator(GenerateReviewEndpoint)
+	RegisterEndpointGenerator(ReviewEndpoint)
 }
 
-// GenerateReviewEndpoint returns the review endpoint. This endpoint will implement adding, updating, and deleting reviews.
-func GenerateReviewEndpoint(db *gorm.DB) Endpoint {
+// ReviewEndpoint returns the review endpoint. This endpoint will implement adding, updating, and deleting reviews.
+func ReviewEndpoint(db *gorm.DB) Endpoint {
 	return Endpoint{
 		Routes: []Route{
 			{

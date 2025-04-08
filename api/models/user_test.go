@@ -16,8 +16,6 @@ func TestCheckPassword(t *testing.T) {
 func TestHasRole(t *testing.T) {
 	db, mock := util.CreateMockDB()
 
-	Migrate(db)
-
 	expectedRows := mock.NewRows([]string{"role"}).
 		AddRow(Admin)
 

@@ -7,13 +7,13 @@ import (
 )
 
 func init() {
-	RegisterEndpointGenerator(GenerateSubmissionEndpoint)
+	RegisterEndpointGenerator(SubmissionEndpoint)
 }
 
-// GenerateSubmissionEndpoint returns the submission endpoint.
+// SubmissionEndpoint returns the submission endpoint.
 // This endpoint will implement creating and updating submissions, as well as perform some
 // specific checks on submissions.
-func GenerateSubmissionEndpoint(db *gorm.DB) Endpoint {
+func SubmissionEndpoint(db *gorm.DB) Endpoint {
 	return Endpoint{
 		Routes: []Route{
 			{

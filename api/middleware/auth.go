@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"github.com/adraismawur/mibig-submission/endpoints"
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -11,9 +10,9 @@ import (
 // key is in the form "method:path"
 var routeMap = make(map[string]models.Role)
 
-func AddProtectedRoute(route endpoints.Route, role models.Role) {
+func AddProtectedRoute(method string, path string, role models.Role) {
 	// add the route to the map
-	key := route.Method + ":" + route.Path
+	key := method + ":" + path
 	routeMap[key] = role
 }
 
@@ -35,13 +34,14 @@ func AuthMiddleware() gin.HandlerFunc {
 		var token models.Token
 
 		if !validateAuthHeader(c, &token) {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			c.Abort()
+			return
 		}
 
 		if token.Role != expectedRole {
 			c.JSON(http.StatusForbidden, gin.H{"error": "Invalid role"})
 			c.Abort()
+			return
 		}
 
 		c.Next()
@@ -72,9 +72,10 @@ func validateAuthHeader(c *gin.Context, token *models.Token) bool {
 
 	parsedToken, err := models.ParseToken(bearerToken)
 
-	token = &parsedToken
+	*token = parsedToken
 
 	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 		return false
 	}
 

@@ -10,9 +10,9 @@ import (
 type Role int
 
 const (
-	Admin Role = iota
+	Submitter Role = iota
 	Reviewer
-	Submitter
+	Admin
 )
 
 // User model that represents a singular user
@@ -23,6 +23,12 @@ type User struct {
 	Active     bool     `json:"active"`
 	Role       Role     `json:"role"`
 	Info       UserInfo `json:"info"`
+}
+
+type UserRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Role     Role   `json:"role"`
 }
 
 // HasRole returns true if a user has a specific role
