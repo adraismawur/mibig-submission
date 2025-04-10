@@ -65,10 +65,9 @@ func UserEndpoint(db *gorm.DB) Endpoint {
 
 func createUser(db *gorm.DB, c *gin.Context) {
 	// bind json
-
-	var request models.UserRequest
+	var request models.User
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		panic(err.Error())
 		return
 	}
 
@@ -85,37 +84,44 @@ func createUser(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	// check if user already exists
-	var user = models.User{}
-	exists := db.First(&user, "email = ?", request.Email).RowsAffected > 0
+	// check if user exists
+	exists, err := models.GetUserExistsByEmail(db, request.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
 	if exists {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User with this email already exists"})
 		return
 	}
 
-	db.Create(&user)
+	err = models.CreateUser(db, request.Email, request.Password, request.Role)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User created"})
 }
 
 func getUsers(db *gorm.DB, c *gin.Context) {
-	var users []models.User
-
 	// get optional query parameters
-	limit, err := strconv.ParseInt(c.Query("limit"), 10, 64)
+	limit, err := strconv.ParseInt(c.Query("limit"), 10, 32)
 	if err != nil {
 		limit = DEFAULT_GET_LIMIT
 	}
 
-	offset, err := strconv.ParseInt(c.Query("offset"), 10, 64)
+	offset, err := strconv.ParseInt(c.Query("offset"), 10, 32)
 	if err != nil {
 		offset = 0
 	}
 
-	// get users from db
-	tx := db.Limit(int(limit)).Offset(int(offset)).Find(&users)
+	users, err := models.GetUsers(db, int(offset), int(limit))
 
-	if tx.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": tx.Error.Error()})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -123,8 +129,6 @@ func getUsers(db *gorm.DB, c *gin.Context) {
 }
 
 func getUserWithId(db *gorm.DB, c *gin.Context) {
-	var user models.User
-
 	// get id from url
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -132,9 +136,14 @@ func getUserWithId(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	tx := db.First(&user, "users.id = ?", id)
+	user, err := models.GetUser(db, id)
 
-	if tx.RowsAffected == 0 {
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if user == nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
@@ -143,9 +152,42 @@ func getUserWithId(db *gorm.DB, c *gin.Context) {
 }
 
 func updateUser(db *gorm.DB, c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "update user",
-	})
+	// get id from url
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid id"})
+		return
+	}
+
+	// check if user exists
+	user, err := models.GetUser(db, id)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if user == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User does not exist"})
+		return
+	}
+
+	// bind request
+	err = c.BindJSON(&user)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = models.UpdateUser(db, id, user)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User updated"})
 }
 
 func deleteUser(db *gorm.DB, c *gin.Context) {

@@ -1,14 +1,15 @@
 package endpoints
 
 import (
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/util"
 	"github.com/gin-gonic/gin"
 	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
 	"net/http"
-	"regexp"
 	"testing"
+	"time"
 )
 
 func TestCreateUserBadData(t *testing.T) {
@@ -75,11 +76,11 @@ func TestCreateUserInvalidRole(t *testing.T) {
 func TestCreateUserAlreadyExists(t *testing.T) {
 	db, mock := util.CreateMockDB()
 
-	expectedRows := mock.NewRows([]string{"email", "password", "role"}).
-		AddRow("test@localhost", "test", 2)
+	expectedResult := sqlmock.NewResult(1, 1)
 
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users"`)).
-		WillReturnRows(expectedRows)
+	mock.ExpectExec("SELECT.*").
+		WithArgs("test@localhost").
+		WillReturnResult(expectedResult)
 
 	c, r := util.CreateMockGinJsonRequestWithRecorder("{\"email\": \"test@localhost\", \"password\": \"test\", \"role\": 2}")
 
@@ -95,9 +96,25 @@ func TestCreateUserAlreadyExists(t *testing.T) {
 }
 
 func TestCreateUser(t *testing.T) {
-	db, _ := util.CreateMockDB()
+	db, mock := util.CreateMockDB()
 
-	c := util.CreateMockGinJsonRequest("{\"email\": \"test@localhost\", \"password\": \"test\", \"role\": 2}")
+	// creating first checks if the user exists. this should return false
+	expectedResult := sqlmock.NewResult(1, 0)
+
+	mock.ExpectExec("SELECT.*").
+		WithArgs("test@localhost").
+		WillReturnResult(expectedResult)
+
+	expectedRows := mock.NewRows([]string{"email", "role"}).
+		AddRow("test@localhost", 2)
+
+	mock.ExpectBegin()
+	mock.ExpectQuery(`INSERT INTO "users"`).
+		WithArgs(util.AnyTime{}, util.AnyTime{}, nil, "test@localhost", util.AnyString{}, true, 2).
+		WillReturnRows(expectedRows)
+	mock.ExpectCommit()
+
+	c, r := util.CreateMockGinJsonRequestWithRecorder("{\"email\": \"test@localhost\", \"password\": \"test\", \"role\": 2}")
 
 	c.Request.Method = "POST"
 	c.Request.URL.Path = "/user"
@@ -105,6 +122,7 @@ func TestCreateUser(t *testing.T) {
 	createUser(db, c)
 
 	assert.Equal(t, http.StatusOK, c.Writer.Status(), "Status code should be 200")
+	assert.Contains(t, r.Body.String(), "User created", "Response should contain 'User created'")
 }
 
 func TestGetUsers(t *testing.T) {
@@ -143,7 +161,7 @@ func TestGetUserWithId(t *testing.T) {
 		AddRow("test@localhost", "test", 2)
 
 	mock.ExpectQuery(`SELECT \* FROM "users"`).
-		WithArgs(1, 1).
+		WithArgs(1).
 		WillReturnRows(expectedRows)
 
 	c, r := util.CreateMockGinGetRequest("/user/1")
@@ -171,7 +189,7 @@ func TestGetUserWithIdNotFound(t *testing.T) {
 
 	// should return no rows
 	mock.ExpectQuery(`SELECT \* FROM "users"`).
-		WithArgs(2, 1).
+		WithArgs(2).
 		WillReturnRows(mock.NewRows([]string{"email", "password", "role"}))
 
 	c, r := util.CreateMockGinGetRequest("/user/2")
@@ -188,4 +206,66 @@ func TestGetUserWithIdNotFound(t *testing.T) {
 
 	response := r.Body.String()
 	assert.Contains(t, response, "User not found", "Response should contain 'User not found'")
+}
+
+func TestUpdateUser(t *testing.T) {
+	db, mock := util.CreateMockDB()
+
+	// creating first gets the existing user. existing user is an admin
+	expectedRows := sqlmock.NewRows([]string{"createdat", "updatedat", "id", "email", "password", "active", "role"})
+	expectedRows.AddRow(time.Now(), time.Now(), 1, "test@localhost", "test", true, models.Admin)
+
+	mock.ExpectQuery(`SELECT \* FROM "users"`).WithArgs(1).WillReturnRows(expectedRows)
+
+	// updating the user. this sets the user to be a submitter
+	mock.ExpectBegin()
+	mock.ExpectExec("UPDATE \"users\" SET").
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	// setting the user to be submitter
+	c, r := util.CreateMockGinJsonRequestWithRecorder("{\"email\": \"test@localhost\", \"role\": 0}")
+
+	c.Request.Method = "PUT"
+	c.Request.URL.Path = "/user/1"
+
+	c.Params = []gin.Param{
+		{
+			Key:   "id",
+			Value: "1",
+		},
+	}
+
+	updateUser(db, c)
+
+	// response 200
+	assert.Equal(t, http.StatusOK, c.Writer.Status(), "Status code should be 200. Response")
+	assert.Contains(t, r.Body.String(), "User updated", "Response should contain 'User updated'")
+}
+
+func TestUpdateUserDoesNotExist(t *testing.T) {
+	db, mock := util.CreateMockDB()
+
+	// creating first gets the existing user. existing user is an admin
+	expectedRows := sqlmock.NewRows([]string{"createdat", "updatedat", "id", "email", "password", "active", "role"})
+
+	mock.ExpectQuery(`SELECT \* FROM "users"`).WithArgs(1).WillReturnRows(expectedRows)
+
+	c, r := util.CreateMockGinJsonRequestWithRecorder("{\"email\": \"test@localhost\", \"role\": 0}")
+
+	c.Request.Method = "PUT"
+	c.Request.URL.Path = "/user/1"
+
+	c.Params = []gin.Param{
+		{
+			Key:   "id",
+			Value: "1",
+		},
+	}
+
+	updateUser(db, c)
+
+	// response 404
+	assert.Equal(t, http.StatusNotFound, c.Writer.Status(), "Status code should be 404")
+	assert.Contains(t, r.Body.String(), "User does not exist", "Response should contain 'User does not exist'")
 }

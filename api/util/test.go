@@ -1,10 +1,12 @@
 package util
 
 import (
+	"database/sql/driver"
 	"github.com/DATA-DOG/go-sqlmock"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log/slog"
+	"time"
 )
 
 // CreateMockDB creates a mock database connection for testing purposes
@@ -26,4 +28,18 @@ func CreateMockDB() (*gorm.DB, sqlmock.Sqlmock) {
 	}
 
 	return gormDB, mock
+}
+
+type AnyTime struct{}
+
+func (a AnyTime) Match(v driver.Value) bool {
+	_, ok := v.(time.Time)
+	return ok
+}
+
+type AnyString struct{}
+
+func (a AnyString) Match(v driver.Value) bool {
+	_, ok := v.(string)
+	return ok
 }
