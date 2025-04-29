@@ -13,7 +13,7 @@ import (
 func TestAuthMiddlewareNoToken(t *testing.T) {
 	AddProtectedRoute(http.MethodGet, "/test", models.Admin)
 
-	c, _ := util.CreateMockGinGetRequest("/test")
+	c, _ := util.CreateTestGinGetRequest("/test")
 
 	middleware := AuthMiddleware()
 	middleware(c)
@@ -24,7 +24,7 @@ func TestAuthMiddlewareNoToken(t *testing.T) {
 func TestAuthMiddlewareValidToken(t *testing.T) {
 	AddProtectedRoute(http.MethodGet, "/test", models.Admin)
 
-	c, _ := util.CreateMockGinGetRequest("/test")
+	c, _ := util.CreateTestGinGetRequest("/test")
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, models.Token{
 		Email:            "",
@@ -45,7 +45,7 @@ func TestAuthMiddlewareValidToken(t *testing.T) {
 func TestAuthMiddlewareWrongSecret(t *testing.T) {
 	AddProtectedRoute(http.MethodGet, "/test", models.Admin)
 
-	c, _ := util.CreateMockGinGetRequest("/test")
+	c, _ := util.CreateTestGinGetRequest("/test")
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, models.Token{
 		Email:            "",
@@ -66,7 +66,7 @@ func TestAuthMiddlewareWrongSecret(t *testing.T) {
 func TestAuthMiddlewareMissingToken(t *testing.T) {
 	AddProtectedRoute(http.MethodGet, "/test", models.Admin)
 
-	c, _ := util.CreateMockGinGetRequest("/test")
+	c, _ := util.CreateTestGinGetRequest("/test")
 
 	c.Request.Header.Add("Authorization", "Bearer ")
 
@@ -79,7 +79,7 @@ func TestAuthMiddlewareMissingToken(t *testing.T) {
 func TestAuthMiddlewareWrongRole(t *testing.T) {
 	AddProtectedRoute(http.MethodGet, "/test", models.Admin)
 
-	c, _ := util.CreateMockGinGetRequest("/test")
+	c, _ := util.CreateTestGinGetRequest("/test")
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, models.Token{
 		Email:            "",
@@ -100,7 +100,7 @@ func TestAuthMiddlewareWrongRole(t *testing.T) {
 func TestAuthMiddlewareParameterizedRoute(t *testing.T) {
 	AddProtectedRoute(http.MethodGet, "/test/:id", models.Admin)
 
-	c, _ := util.CreateMockGinGetRequest("/test/1")
+	c, _ := util.CreateTestGinGetRequest("/test/1")
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, models.Token{
 		Email:            "",
@@ -121,7 +121,7 @@ func TestAuthMiddlewareParameterizedRoute(t *testing.T) {
 func TestAuthMiddlewareParameterizedRouteWrongRole(t *testing.T) {
 	AddProtectedRoute(http.MethodGet, "/test/:id", models.Admin)
 
-	c, _ := util.CreateMockGinGetRequest("/test/1")
+	c, _ := util.CreateTestGinGetRequest("/test/1")
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, models.Token{
 		Email:            "",

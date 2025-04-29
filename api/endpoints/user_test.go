@@ -7,15 +7,46 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 	"net/http"
 	"testing"
 	"time"
 )
 
+var testDb *gorm.DB
+
+const numTestUsers = 10
+
+var testUsers []models.User
+
+func TestMain(m *testing.M) {
+	// setup
+	testDb = util.CreateTestDB()
+	models.Migrate(testDb)
+
+	// create some test users
+
+	for i := 0; i < numTestUsers; i++ {
+		user := models.User{
+			Email:    util.GenerateRandomEmail(),
+			Password: "test",
+			Active:   true,
+			Role:     models.Admin,
+		}
+		testDb.Create(&user)
+		testUsers = append(testUsers, user)
+	}
+
+	m.Run()
+
+	// teardown
+	testDb.Exec(`DELETE FROM users WHERE true`)
+}
+
 func TestCreateUserBadData(t *testing.T) {
 	db, _ := util.CreateMockDB()
 
-	c := util.CreateMockGinJsonRequest("{}")
+	c := util.CreateTestGinJsonRequest("{}")
 
 	c.Request.Method = "POST"
 	c.Request.URL.Path = "/user"
@@ -28,7 +59,7 @@ func TestCreateUserBadData(t *testing.T) {
 func TestCreateUserNoEmail(t *testing.T) {
 	db, _ := util.CreateMockDB()
 
-	c, r := util.CreateMockGinJsonRequestWithRecorder("{\"email\": \"\", \"password\": \"test\", \"role\": 2}")
+	c, r := util.CreateTestGinJsonRequestWithRecorder("{\"email\": \"\", \"password\": \"test\", \"role\": 2}")
 
 	c.Request.Method = "POST"
 	c.Request.URL.Path = "/user"
@@ -44,7 +75,7 @@ func TestCreateUserNoEmail(t *testing.T) {
 func TestCreateUserNoPassword(t *testing.T) {
 	db, _ := util.CreateMockDB()
 
-	c, r := util.CreateMockGinJsonRequestWithRecorder("{\"email\": \"test@localhost\", \"password\": \"\", \"role\": 2}")
+	c, r := util.CreateTestGinJsonRequestWithRecorder("{\"email\": \"test@localhost\", \"password\": \"\", \"role\": 2}")
 
 	c.Request.Method = "POST"
 	c.Request.URL.Path = "/user"
@@ -60,7 +91,7 @@ func TestCreateUserNoPassword(t *testing.T) {
 func TestCreateUserInvalidRole(t *testing.T) {
 	db, _ := util.CreateMockDB()
 
-	c, r := util.CreateMockGinJsonRequestWithRecorder("{\"email\": \"test@localhost\", \"password\": \"test\", \"role\": -1}")
+	c, r := util.CreateTestGinJsonRequestWithRecorder("{\"email\": \"test@localhost\", \"password\": \"test\", \"role\": -1}")
 
 	c.Request.Method = "POST"
 	c.Request.URL.Path = "/user"
@@ -82,7 +113,7 @@ func TestCreateUserAlreadyExists(t *testing.T) {
 		WithArgs("test@localhost").
 		WillReturnResult(expectedResult)
 
-	c, r := util.CreateMockGinJsonRequestWithRecorder("{\"email\": \"test@localhost\", \"password\": \"test\", \"role\": 2}")
+	c, r := util.CreateTestGinJsonRequestWithRecorder("{\"email\": \"test@localhost\", \"password\": \"test\", \"role\": 2}")
 
 	c.Request.Method = "POST"
 	c.Request.URL.Path = "/user"
@@ -114,7 +145,7 @@ func TestCreateUser(t *testing.T) {
 		WillReturnRows(expectedRows)
 	mock.ExpectCommit()
 
-	c, r := util.CreateMockGinJsonRequestWithRecorder("{\"email\": \"test@localhost\", \"password\": \"test\", \"role\": 2}")
+	c, r := util.CreateTestGinJsonRequestWithRecorder("{\"email\": \"test@localhost\", \"password\": \"test\", \"role\": 2}")
 
 	c.Request.Method = "POST"
 	c.Request.URL.Path = "/user"
@@ -137,10 +168,10 @@ func TestGetUsers(t *testing.T) {
 		expectedRows.AddRow(randomEmail, "test", 2)
 	}
 
-	mock.ExpectQuery(`SELECT \* FROM "users"`).
+	mock.ExpectQuery(`SELECT .* FROM "users"`).
 		WillReturnRows(expectedRows)
 
-	c, r := util.CreateMockGinGetRequest("/user")
+	c, r := util.CreateTestGinGetRequest("/user")
 
 	getUsers(db, c)
 
@@ -160,11 +191,11 @@ func TestGetUserWithId(t *testing.T) {
 	expectedRows := mock.NewRows([]string{"email", "password", "role"}).
 		AddRow("test@localhost", "test", 2)
 
-	mock.ExpectQuery(`SELECT \* FROM "users"`).
+	mock.ExpectQuery(`SELECT .* FROM "users"`).
 		WithArgs(1).
 		WillReturnRows(expectedRows)
 
-	c, r := util.CreateMockGinGetRequest("/user/1")
+	c, r := util.CreateTestGinGetRequest("/user/1")
 	c.Params = []gin.Param{
 		{
 			Key:   "id",
@@ -188,11 +219,11 @@ func TestGetUserWithIdNotFound(t *testing.T) {
 	db, mock := util.CreateMockDB()
 
 	// should return no rows
-	mock.ExpectQuery(`SELECT \* FROM "users"`).
+	mock.ExpectQuery(`SELECT .* FROM "users"`).
 		WithArgs(2).
 		WillReturnRows(mock.NewRows([]string{"email", "password", "role"}))
 
-	c, r := util.CreateMockGinGetRequest("/user/2")
+	c, r := util.CreateTestGinGetRequest("/user/2")
 	c.Params = []gin.Param{
 		{
 			Key:   "id",
@@ -215,7 +246,7 @@ func TestUpdateUser(t *testing.T) {
 	expectedRows := sqlmock.NewRows([]string{"createdat", "updatedat", "id", "email", "password", "active", "role"})
 	expectedRows.AddRow(time.Now(), time.Now(), 1, "test@localhost", "test", true, models.Admin)
 
-	mock.ExpectQuery(`SELECT \* FROM "users"`).WithArgs(1).WillReturnRows(expectedRows)
+	mock.ExpectQuery(`SELECT .* FROM "users"`).WithArgs(1).WillReturnRows(expectedRows)
 
 	// updating the user. this sets the user to be a submitter
 	mock.ExpectBegin()
@@ -224,7 +255,7 @@ func TestUpdateUser(t *testing.T) {
 	mock.ExpectCommit()
 
 	// setting the user to be submitter
-	c, r := util.CreateMockGinJsonRequestWithRecorder("{\"email\": \"test@localhost\", \"role\": 0}")
+	c, r := util.CreateTestGinJsonRequestWithRecorder("{\"email\": \"test@localhost\", \"role\": 0}")
 
 	c.Request.Method = "PUT"
 	c.Request.URL.Path = "/user/1"
@@ -246,12 +277,10 @@ func TestUpdateUser(t *testing.T) {
 func TestUpdateUserDoesNotExist(t *testing.T) {
 	db, mock := util.CreateMockDB()
 
-	// creating first gets the existing user. existing user is an admin
-	expectedRows := sqlmock.NewRows([]string{"createdat", "updatedat", "id", "email", "password", "active", "role"})
+	mock.ExpectQuery(`SELECT .* FROM "users"`).WithArgs(1).
+		WillReturnRows(mock.NewRows([]string{"email", "password", "role"}))
 
-	mock.ExpectQuery(`SELECT \* FROM "users"`).WithArgs(1).WillReturnRows(expectedRows)
-
-	c, r := util.CreateMockGinJsonRequestWithRecorder("{\"email\": \"test@localhost\", \"role\": 0}")
+	c, r := util.CreateTestGinJsonRequestWithRecorder("{\"email\": \"test@localhost\", \"role\": 0}")
 
 	c.Request.Method = "PUT"
 	c.Request.URL.Path = "/user/1"

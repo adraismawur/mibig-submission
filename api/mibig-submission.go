@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/adraismawur/mibig-submission/config"
 	"github.com/adraismawur/mibig-submission/db"
 	"github.com/adraismawur/mibig-submission/endpoints"
 	"github.com/adraismawur/mibig-submission/middleware"
@@ -30,7 +31,7 @@ func main() {
 	endpoints.RegisterEndpointHandlers(router, dbConnection)
 
 	slog.Info("Starting server")
-	err := router.Run(":8080")
+	err := router.Run(config.Envs["SERVER_PORT"])
 	if err != nil {
 		slog.Error(fmt.Sprintf("Failed to start server: %v", err))
 	}

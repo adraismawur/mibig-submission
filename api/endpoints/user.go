@@ -5,6 +5,7 @@ import (
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"log/slog"
 	"net/http"
 	"strconv"
 )
@@ -18,7 +19,7 @@ func init() {
 	middleware.AddProtectedRoute(http.MethodDelete, UserPath, models.Admin)
 }
 
-const DEFAULT_GET_LIMIT = 10
+const DefaultGetLimit = 10
 
 // UserEndpoint returns the user endpoint. This endpoint will implement creating, updating, and deleting users.
 func UserEndpoint(db *gorm.DB) Endpoint {
@@ -47,7 +48,7 @@ func UserEndpoint(db *gorm.DB) Endpoint {
 			},
 			{
 				Method: http.MethodPatch,
-				Path:   UserPath,
+				Path:   UserPath + "/:id",
 				Handler: func(c *gin.Context) {
 					updateUser(db, c)
 				},
@@ -67,7 +68,8 @@ func createUser(db *gorm.DB, c *gin.Context) {
 	// bind json
 	var request models.User
 	if err := c.ShouldBindJSON(&request); err != nil {
-		panic(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		slog.Error("[endpoints] [user] Failed to bind request", "error", err)
 		return
 	}
 
@@ -88,6 +90,7 @@ func createUser(db *gorm.DB, c *gin.Context) {
 	exists, err := models.GetUserExistsByEmail(db, request.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		slog.Error("[endpoints] [user] Error when checking for existing user", "error", err)
 		return
 	}
 
@@ -100,6 +103,7 @@ func createUser(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		slog.Error("[endpoints] [user] Error when creating user", "error", err)
 		return
 	}
 
@@ -110,7 +114,7 @@ func getUsers(db *gorm.DB, c *gin.Context) {
 	// get optional query parameters
 	limit, err := strconv.ParseInt(c.Query("limit"), 10, 32)
 	if err != nil {
-		limit = DEFAULT_GET_LIMIT
+		limit = DefaultGetLimit
 	}
 
 	offset, err := strconv.ParseInt(c.Query("offset"), 10, 32)
@@ -122,6 +126,7 @@ func getUsers(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		slog.Error("[endpoints] [user] Error when retrieving all users", "error", err)
 		return
 	}
 
@@ -140,6 +145,7 @@ func getUserWithId(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		slog.Error("[endpoints] [user] Error when getting user by ID", "error", err)
 		return
 	}
 
@@ -164,6 +170,7 @@ func updateUser(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		slog.Error("[endpoints] [user] Error getting existing user", "error", err)
 		return
 	}
 

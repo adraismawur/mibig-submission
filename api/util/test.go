@@ -4,12 +4,14 @@ import (
 	"database/sql/driver"
 	"github.com/DATA-DOG/go-sqlmock"
 	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"log/slog"
 	"time"
 )
 
-// CreateMockDB creates a mock database connection for testing purposes
+// CreateMockDB creates a mock database connection for testing purposes whenever actually having a
+// database is not relevant
 func CreateMockDB() (*gorm.DB, sqlmock.Sqlmock) {
 	db, mock, err := sqlmock.New()
 
@@ -28,6 +30,18 @@ func CreateMockDB() (*gorm.DB, sqlmock.Sqlmock) {
 	}
 
 	return gormDB, mock
+}
+
+// CreateTestDB creates a mock database connection for testing purposes
+func CreateTestDB() *gorm.DB {
+	// Create a new SQLite database in memory
+	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
+
+	if err != nil {
+		panic(err)
+	}
+
+	return db
 }
 
 type AnyTime struct{}

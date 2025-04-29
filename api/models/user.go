@@ -26,35 +26,20 @@ type User struct {
 	Info       UserInfo `json:"info"`
 }
 
-// HasRole returns true if a user has a specific role
-func HasRole(db *gorm.DB, user User, role Role) bool {
-	tx := db.First(&UserInfo{}, "user_id = ? AND role = ?", user.ID, role)
-	return tx.RowsAffected > 0
+// LoginRequest type that represents a user request given by a client through a POST request
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
-func GetUserExistsByEmail(db *gorm.DB, email string) (bool, error) {
-
-	tx := db.Exec(`SELECT EXISTS (SELECT 1 FROM users WHERE email = ?)`, email)
-
-	if tx.Error != nil {
-		return false, tx.Error
-	}
-
-	return tx.RowsAffected > 0, nil
+// UserInfo model that represents additional information about a user
+type UserInfo struct {
+	gorm.Model `json:"-"`
+	UserID     uint `json:"user_id"`
 }
 
-func GetUserExistsByID(db *gorm.DB, id int) (bool, error) {
-	var user User
-
-	tx := db.Limit(1).Find(&user).Where("id = ?", id)
-
-	if tx.Error != nil {
-		return false, tx.Error
-	}
-
-	return tx.RowsAffected > 0, nil
-}
-
+// CreateUser creates a new user in the database with the given email, password and role
+// the user is automatically set to active
 func CreateUser(db *gorm.DB, email string, password string, role Role) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
@@ -77,15 +62,19 @@ func CreateUser(db *gorm.DB, email string, password string, role Role) error {
 	return nil
 }
 
+// GetUser returns a user from the database with the given ID
+// this function returns an error if the user does not exist
 func GetUser(db *gorm.DB, id int) (*User, error) {
 	user := User{}
 
 	tx := db.
 		Where("id = ?", id).
+		Omit("password").
 		Find(&user)
 
 	if tx.Error != nil {
 		// other error
+		slog.Error("[user] Error getting user", "id", id, "error", tx.Error)
 		return nil, tx.Error
 	}
 
@@ -97,13 +86,15 @@ func GetUser(db *gorm.DB, id int) (*User, error) {
 	return &user, nil
 }
 
+// GetUsers returns all users from the database with the given offset and limit
 func GetUsers(db *gorm.DB, offset int, limit int) ([]User, error) {
 	var users []User
 
-	tx := db.Find(&users).Offset(offset).Limit(limit)
+	tx := db.Omit("password").Offset(offset).Limit(limit).Find(&users)
 
 	if tx.Error != nil {
 		if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
+			slog.Error("[user] Error getting all users", "offset", offset, "limit", limit, "error", tx.Error)
 			return users, nil
 		}
 
@@ -113,6 +104,34 @@ func GetUsers(db *gorm.DB, offset int, limit int) ([]User, error) {
 	return users, nil
 }
 
+// GetUserExistsByEmail returns true if a user with a given email exists
+func GetUserExistsByEmail(db *gorm.DB, email string) (bool, error) {
+	tx := db.Exec(`SELECT EXISTS (SELECT 1 FROM users WHERE email = ?)`, email)
+
+	if tx.Error != nil {
+		slog.Error("[user] Error getting user existence by email", "email", email, "error", tx.Error)
+		return false, tx.Error
+	}
+
+	return tx.RowsAffected > 0, nil
+}
+
+// GetUserExistsByID returns true if a user with a given ID exists
+func GetUserExistsByID(db *gorm.DB, id int) (bool, error) {
+	tx := db.Exec(`SELECT EXISTS (SELECT 1 FROM users WHERE id = ?)`, id)
+
+	if tx.Error != nil {
+		slog.Error("[user] Error getting user existence by id", "id", id, "error", tx.Error)
+		return false, tx.Error
+	}
+
+	return tx.RowsAffected > 0, nil
+}
+
+// UpdateUser updates a user in the database with the given ID
+// this will overwrite everything in the given user struct
+// so if anything is set to default values, it will be overwritten.
+// this function will **not** update the password
 func UpdateUser(db *gorm.DB, id int, user *User) error {
 	tx := db.
 		Model(&user).
@@ -121,11 +140,28 @@ func UpdateUser(db *gorm.DB, id int, user *User) error {
 		Updates(user)
 
 	if tx.Error != nil {
+		slog.Error("[user] Error updating user", "id", id, "error", tx.Error)
 		return tx.Error
 	}
 	return nil
 }
 
+// DeleteUser deletes a user from the database with the given ID
+// performs a soft delete
+func DeleteUser(db *gorm.DB, id int) error {
+	tx := db.Delete(User{}, "id = ?", id)
+
+	if tx.Error != nil {
+		slog.Error("[user] Error deleting user", "id", id, "error", tx.Error)
+		return tx.Error
+	}
+
+	return nil
+}
+
+// UpdateUserPassword updates the password of a user in the database with the given ID
+// this function will hash the password before updating it as happens in the CreateUser function
+// this function will **not** update any other field
 func UpdateUserPassword(db *gorm.DB, user *User, password string) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
@@ -142,10 +178,17 @@ func UpdateUserPassword(db *gorm.DB, user *User, password string) error {
 	return nil
 }
 
-// LoginRequest type that represents a user request given by a client through a POST request
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+// HasRole returns true if a user from a given ID has a specific role
+func HasRole(db *gorm.DB, userId int, role Role) bool {
+	var user User
+	tx := db.First(&user, "user_id = ?", userId)
+
+	if tx.Error != nil {
+		slog.Error("[user] Error getting user role", "userId", userId, "error", tx.Error)
+		return false
+	}
+
+	return user.Role == role
 }
 
 // CheckPassword compares a plain text password with a hashed password and returns true if they match
@@ -160,10 +203,4 @@ func CheckPassword(in string, against string) bool {
 	err = bcrypt.CompareHashAndPassword([]byte(against), hash)
 
 	return true
-}
-
-// UserInfo model that represents additional information about a user
-type UserInfo struct {
-	gorm.Model `json:"-"`
-	UserID     uint `json:"user_id"`
 }

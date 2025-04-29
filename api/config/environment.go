@@ -16,6 +16,7 @@ type EnvVar struct {
 // Envs is a map of environment variables and their values
 // by default, it is initialized with the default values
 var Envs = map[string]string{
+	"SERVER_PORT":  ":8000",
 	"DB_DIALECT":   "sqlite",
 	"DB_PATH":      "/tmp/test.db",
 	"DB_HOST":      "localhost",

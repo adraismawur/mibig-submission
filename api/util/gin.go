@@ -7,8 +7,8 @@ import (
 	"strings"
 )
 
-// CreateMockGinGetRequest creates a mock gin context with a GET request for testing purposes
-func CreateMockGinGetRequest(path string) (*gin.Context, *httptest.ResponseRecorder) {
+// CreateTestGinGetRequest creates a new gin context with a GET request for testing purposes
+func CreateTestGinGetRequest(path string) (*gin.Context, *httptest.ResponseRecorder) {
 	recorder := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(recorder)
 	c.Request = httptest.NewRequest("GET", path, nil)
@@ -16,8 +16,8 @@ func CreateMockGinGetRequest(path string) (*gin.Context, *httptest.ResponseRecor
 	return c, recorder
 }
 
-// CreateMockGinJsonRequest creates a mock gin context with a JSON POST request for testing purposes
-func CreateMockGinJsonRequest(json string) *gin.Context {
+// CreateTestGinJsonRequest creates a new gin context with a JSON POST request for testing purposes
+func CreateTestGinJsonRequest(json string) *gin.Context {
 	c, _ := gin.CreateTestContext(httptest.NewRecorder())
 	c.Request = httptest.NewRequest("POST", "/login", nil)
 
@@ -27,7 +27,9 @@ func CreateMockGinJsonRequest(json string) *gin.Context {
 	return c
 }
 
-func CreateMockGinJsonRequestWithRecorder(json string) (*gin.Context, *httptest.ResponseRecorder) {
+// CreateTestGinJsonRequestWithRecorder creates a new gin context with a JSON POST request for testing purposes
+// this also supplies a recorder so that the response can be checked
+func CreateTestGinJsonRequestWithRecorder(json string) (*gin.Context, *httptest.ResponseRecorder) {
 	recorder := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(recorder)
 	c.Request = httptest.NewRequest("POST", "/login", nil)

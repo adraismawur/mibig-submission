@@ -17,7 +17,7 @@ func TestLogin(t *testing.T) {
 		WillReturnRows(expectedRows)
 
 	jsonParam := `{"email": "test@localhost", "password": "test"}`
-	c := util.CreateMockGinJsonRequest(jsonParam)
+	c := util.CreateTestGinJsonRequest(jsonParam)
 
 	login(gormDB, c)
 
