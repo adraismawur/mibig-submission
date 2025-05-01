@@ -173,6 +173,10 @@ func TestGetUsers(t *testing.T) {
 
 	c, r := util.CreateTestGinGetRequest("/user")
 
+	testToken, _ := models.GenerateToken(1, util.GenerateRandomEmail(), models.Admin)
+
+	util.AddTokenToHeader(c, testToken)
+
 	getUsers(db, c)
 
 	assert.Equal(t, http.StatusOK, c.Writer.Status(), "Status code should be 200")
@@ -185,7 +189,33 @@ func TestGetUsers(t *testing.T) {
 	assert.Equal(t, testRowCount, len(users), "Number of users should be %d", testRowCount)
 }
 
-func TestGetUserWithId(t *testing.T) {
+func TestGetUsersForbidden(t *testing.T) {
+	db, mock := util.CreateMockDB()
+
+	expectedRows := mock.NewRows([]string{"email", "password", "role"})
+
+	testRowCount := 5
+
+	for i := 0; i < testRowCount; i++ {
+		randomEmail := util.GenerateRandomEmail()
+		expectedRows.AddRow(randomEmail, "test", 2)
+	}
+
+	mock.ExpectQuery(`SELECT .* FROM "users"`).
+		WillReturnRows(expectedRows)
+
+	c, _ := util.CreateTestGinGetRequest("/user")
+
+	testToken, _ := models.GenerateToken(1, util.GenerateRandomEmail(), models.Submitter)
+
+	util.AddTokenToHeader(c, testToken)
+
+	getUsers(db, c)
+
+	assert.Equal(t, http.StatusForbidden, c.Writer.Status(), "Status code should be 403")
+}
+
+func TestGetUserWithIdAdmin(t *testing.T) {
 	db, mock := util.CreateMockDB()
 
 	expectedRows := mock.NewRows([]string{"email", "password", "role"}).
@@ -203,6 +233,10 @@ func TestGetUserWithId(t *testing.T) {
 		},
 	}
 
+	testToken, _ := models.GenerateToken(1, util.GenerateRandomEmail(), models.Admin)
+
+	util.AddTokenToHeader(c, testToken)
+
 	getUserWithId(db, c)
 
 	assert.Equal(t, http.StatusOK, c.Writer.Status(), "Status code should be 200")
@@ -213,6 +247,68 @@ func TestGetUserWithId(t *testing.T) {
 		t.Errorf("Error unmarshaling response: %v", err)
 	}
 	assert.Equal(t, "test@localhost", user.Email, "Email should be 'test@localhost'")
+}
+
+func TestGetUserWithIdSelf(t *testing.T) {
+	db, mock := util.CreateMockDB()
+
+	expectedRows := mock.NewRows([]string{"email", "password", "role"}).
+		AddRow("test@localhost", "test", 2)
+
+	mock.ExpectQuery(`SELECT .* FROM "users"`).
+		WithArgs(1).
+		WillReturnRows(expectedRows)
+
+	c, r := util.CreateTestGinGetRequest("/user/1")
+	c.Params = []gin.Param{
+		{
+			Key:   "id",
+			Value: "1",
+		},
+	}
+
+	testToken, _ := models.GenerateToken(1, util.GenerateRandomEmail(), models.Submitter)
+
+	util.AddTokenToHeader(c, testToken)
+
+	getUserWithId(db, c)
+
+	assert.Equal(t, http.StatusOK, c.Writer.Status(), "Status code should be 200")
+
+	var user models.User
+	err := json.Unmarshal(r.Body.Bytes(), &user)
+	if err != nil {
+		t.Errorf("Error unmarshaling response: %v", err)
+	}
+	assert.Equal(t, "test@localhost", user.Email, "Email should be 'test@localhost'")
+}
+
+func TestGetUserWithIdForbidden(t *testing.T) {
+	db, mock := util.CreateMockDB()
+
+	expectedRows := mock.NewRows([]string{"email", "password", "role"}).
+		AddRow("test@localhost", "test", 2)
+
+	mock.ExpectQuery(`SELECT .* FROM "users"`).
+		WithArgs(1).
+		WillReturnRows(expectedRows)
+
+	c, _ := util.CreateTestGinGetRequest("/user/1")
+	c.Params = []gin.Param{
+		{
+			Key:   "id",
+			Value: "1",
+		},
+	}
+
+	// token has user id 2, should return 403
+	testToken, _ := models.GenerateToken(2, util.GenerateRandomEmail(), models.Submitter)
+
+	util.AddTokenToHeader(c, testToken)
+
+	getUserWithId(db, c)
+
+	assert.Equal(t, http.StatusForbidden, c.Writer.Status(), "Status code should be 403")
 }
 
 func TestGetUserWithIdNotFound(t *testing.T) {
@@ -230,6 +326,10 @@ func TestGetUserWithIdNotFound(t *testing.T) {
 			Value: "2",
 		},
 	}
+
+	testToken, _ := models.GenerateToken(1, util.GenerateRandomEmail(), models.Admin)
+
+	util.AddTokenToHeader(c, testToken)
 
 	getUserWithId(db, c)
 

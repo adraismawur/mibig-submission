@@ -39,3 +39,8 @@ func CreateTestGinJsonRequestWithRecorder(json string) (*gin.Context, *httptest.
 
 	return c, recorder
 }
+
+// AddTokenToHeader adds a token to the request header for a given gin context
+func AddTokenToHeader(c *gin.Context, token string) {
+	c.Request.Header.Set("Authorization", "Bearer "+token)
+}

@@ -33,7 +33,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		var token models.Token
 
-		if !validateAuthHeader(c, &token) {
+		if !ValidateAuthHeader(c, &token) {
 			c.Abort()
 			return
 		}
@@ -48,7 +48,7 @@ func AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
-func validateAuthHeader(c *gin.Context, token *models.Token) bool {
+func ValidateAuthHeader(c *gin.Context, token *models.Token) bool {
 	if c.GetHeader("Authorization") == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return false
@@ -56,6 +56,7 @@ func validateAuthHeader(c *gin.Context, token *models.Token) bool {
 
 	expectedPrefix := "Bearer "
 
+	// check there is a token behind prefix and check if the prefix is correct
 	validBearer := len(c.GetHeader("Authorization")) > len(expectedPrefix) && c.GetHeader("Authorization")[:len(expectedPrefix)] == expectedPrefix
 
 	if !validBearer {
@@ -63,6 +64,7 @@ func validateAuthHeader(c *gin.Context, token *models.Token) bool {
 		return false
 	}
 
+	// get the actual token
 	bearerToken := c.GetHeader("Authorization")[len(expectedPrefix):]
 
 	if bearerToken == "" {

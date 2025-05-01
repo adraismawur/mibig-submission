@@ -111,6 +111,23 @@ func createUser(db *gorm.DB, c *gin.Context) {
 }
 
 func getUsers(db *gorm.DB, c *gin.Context) {
+	// check if requesting user is an admin
+	token := models.Token{}
+
+	valid := middleware.ValidateAuthHeader(c, &token)
+
+	if !valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.Abort()
+		return
+	}
+
+	if token.Role != models.Admin {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
+		c.Abort()
+		return
+	}
+
 	// get optional query parameters
 	limit, err := strconv.ParseInt(c.Query("limit"), 10, 32)
 	if err != nil {
@@ -138,6 +155,21 @@ func getUserWithId(db *gorm.DB, c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid id"})
+		return
+	}
+
+	// check if user is admin or the user itself
+	token := models.Token{}
+	valid := middleware.ValidateAuthHeader(c, &token)
+	if !valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.Abort()
+		return
+	}
+
+	if token.Role != models.Admin && token.ID != uint(id) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
+		c.Abort()
 		return
 	}
 

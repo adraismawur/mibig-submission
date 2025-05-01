@@ -2,15 +2,11 @@ package endpoints
 
 import (
 	"fmt"
-	"github.com/adraismawur/mibig-submission/config"
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 	"log/slog"
 	"net/http"
-	"strconv"
-	"time"
 )
 
 func init() {
@@ -57,40 +53,14 @@ func login(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	issuedAt := time.Now()
-	lifetime, err := strconv.ParseInt(config.Envs["JWT_LIFETIME"], 10, 64)
-	expirationTime := issuedAt.Add(time.Duration(lifetime) * time.Second)
+	stringToken, err := models.GenerateToken(user.ID, user.Email, user.Role)
 
 	if err != nil {
-		slog.Error(fmt.Sprintf("[db] [env] Error parsing JWT lifetime '%s'", config.Envs["JWT_LIFETIME"]))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
 		return
 	}
 
-	claims := models.Token{
-		user.Email,
-		user.Role,
-		jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expirationTime),
-			IssuedAt:  jwt.NewNumericDate(issuedAt),
-			NotBefore: jwt.NewNumericDate(issuedAt),
-			Issuer:    "mibig-submission-be",
-			Subject:   user.Email,
-			Audience:  []string{"mibig-submission-fe"},
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
-
-	tokenString, err := token.SignedString([]byte(config.Envs["JWT_SECRET"]))
-
-	if err != nil {
-		slog.Error(fmt.Sprintf("Error signing token: %s", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"token": tokenString})
+	c.JSON(http.StatusOK, gin.H{"token": stringToken})
 }
 
 // TODO: Implement refresh token
