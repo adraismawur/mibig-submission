@@ -38,7 +38,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		if token.Role != expectedRole {
+		if token.User.Role != expectedRole {
 			c.JSON(http.StatusForbidden, gin.H{"error": "Invalid role"})
 			c.Abort()
 			return

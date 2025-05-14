@@ -53,7 +53,10 @@ func login(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	stringToken, err := models.GenerateToken(user.ID, user.Email, user.Role)
+	// remove password from user object
+	user.Password = ""
+
+	stringToken, err := models.GenerateToken(user)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})

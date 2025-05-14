@@ -122,7 +122,7 @@ func getUsers(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	if token.Role != models.Admin {
+	if token.User.Role != models.Admin {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
 		c.Abort()
 		return
@@ -167,7 +167,7 @@ func getUserWithId(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	if token.Role != models.Admin && token.ID != uint(id) {
+	if token.User.Role != models.Admin && token.User.ID != uint(id) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
 		c.Abort()
 		return

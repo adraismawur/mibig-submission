@@ -13,8 +13,10 @@ func TestParseToken(t *testing.T) {
 	parsedToken, _ := ParseToken(token)
 
 	assert.Equal(t, Token{
-		Email: "test",
-		Role:  0,
+		User: User{
+			Email: "",
+			Role:  Submitter,
+		},
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    "mibig-submission-be",
 			Subject:   "test",

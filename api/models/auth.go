@@ -10,9 +10,7 @@ import (
 )
 
 type Token struct {
-	ID    uint   `json:"id"`
-	Email string `json:"email"`
-	Role  Role   `json:"role"`
+	User User `json:"user"`
 	jwt.RegisteredClaims
 }
 
@@ -34,7 +32,7 @@ func ParseToken(token string) (Token, error) {
 	panic("Invalid token")
 }
 
-func GenerateToken(id uint, email string, role Role) (string, error) {
+func GenerateToken(user User) (string, error) {
 	issuedAt := time.Now()
 	lifetime, err := strconv.ParseInt(config.Envs["JWT_LIFETIME"], 10, 64)
 	expirationTime := issuedAt.Add(time.Duration(lifetime) * time.Second)
@@ -45,15 +43,13 @@ func GenerateToken(id uint, email string, role Role) (string, error) {
 	}
 
 	claims := Token{
-		ID:    id,
-		Email: email,
-		Role:  role,
+		User: user,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(issuedAt),
 			NotBefore: jwt.NewNumericDate(issuedAt),
 			Issuer:    "mibig-submission-be",
-			Subject:   email,
+			Subject:   user.Email,
 			Audience:  []string{"mibig-submission-fe"},
 		},
 	}

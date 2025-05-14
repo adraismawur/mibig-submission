@@ -18,12 +18,12 @@ const (
 
 // User model that represents a singular user
 type User struct {
-	gorm.Model `json:"-"`
-	Email      string   `json:"email"`
-	Password   string   `json:"password"`
-	Active     bool     `json:"active"`
-	Role       Role     `json:"role"`
-	Info       UserInfo `json:"info"`
+	ID       uint     `json:"id"`
+	Email    string   `json:"email"`
+	Password string   `json:"password"`
+	Active   bool     `json:"active"`
+	Role     Role     `json:"role"`
+	Info     UserInfo `json:"info"`
 }
 
 // LoginRequest type that represents a user request given by a client through a POST request
@@ -34,8 +34,16 @@ type LoginRequest struct {
 
 // UserInfo model that represents additional information about a user
 type UserInfo struct {
-	gorm.Model `json:"-"`
-	UserID     uint `json:"user_id"`
+	gorm.Model    `json:"-"`
+	UserID        uint   `json:"user_id"`
+	Alias         string `json:"alias"`
+	Name          string `json:"name"`
+	CallName      string `json:"call_name"`
+	Organization1 string `json:"organization1"`
+	Organization2 string `json:"organization2"`
+	Organization3 string `json:"organization3"`
+	OrcID         string `json:"orc_id"`
+	public        bool   `json:"public"`
 }
 
 // CreateUser creates a new user in the database with the given email, password and role

@@ -27,8 +27,10 @@ func TestAuthMiddlewareValidToken(t *testing.T) {
 	c, _ := util.CreateTestGinGetRequest("/test")
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, models.Token{
-		Email:            "",
-		Role:             models.Admin,
+		User: models.User{
+			Email: "test@localhost",
+			Role:  models.Admin,
+		},
 		RegisteredClaims: jwt.RegisteredClaims{},
 	})
 
@@ -48,8 +50,10 @@ func TestAuthMiddlewareWrongSecret(t *testing.T) {
 	c, _ := util.CreateTestGinGetRequest("/test")
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, models.Token{
-		Email:            "",
-		Role:             models.Admin,
+		User: models.User{
+			Email: "test@localhost",
+			Role:  models.Admin,
+		},
 		RegisteredClaims: jwt.RegisteredClaims{},
 	})
 
@@ -82,8 +86,10 @@ func TestAuthMiddlewareWrongRole(t *testing.T) {
 	c, _ := util.CreateTestGinGetRequest("/test")
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, models.Token{
-		Email:            "",
-		Role:             models.Submitter,
+		User: models.User{
+			Email: "test@localhost",
+			Role:  models.Submitter,
+		},
 		RegisteredClaims: jwt.RegisteredClaims{},
 	})
 
@@ -103,8 +109,10 @@ func TestAuthMiddlewareParameterizedRoute(t *testing.T) {
 	c, _ := util.CreateTestGinGetRequest("/test/1")
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, models.Token{
-		Email:            "",
-		Role:             models.Admin,
+		User: models.User{
+			Email: "test@localhost",
+			Role:  models.Admin,
+		},
 		RegisteredClaims: jwt.RegisteredClaims{},
 	})
 
@@ -124,8 +132,10 @@ func TestAuthMiddlewareParameterizedRouteWrongRole(t *testing.T) {
 	c, _ := util.CreateTestGinGetRequest("/test/1")
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, models.Token{
-		Email:            "",
-		Role:             models.Submitter,
+		User: models.User{
+			Email: "test@localhost",
+			Role:  models.Submitter,
+		},
 		RegisteredClaims: jwt.RegisteredClaims{},
 	})
 
