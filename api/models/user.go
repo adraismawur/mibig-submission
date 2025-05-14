@@ -43,7 +43,7 @@ type UserInfo struct {
 	Organization2 string `json:"organization2"`
 	Organization3 string `json:"organization3"`
 	OrcID         string `json:"orc_id"`
-	public        bool   `json:"public"`
+	Public        bool   `json:"Public"`
 }
 
 // CreateUser creates a new user in the database with the given email, password and role
