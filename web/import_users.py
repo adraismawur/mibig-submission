@@ -173,7 +173,7 @@ def load_user(legacy: LegacyUser):
         alias=legacy.alias,
         name=legacy.name,
         call_name=legacy.call_name,
-        organisation=legacy.org,
+        organisation_1=legacy.org,
         public=legacy.public,
         orcid=legacy.orcid,
         organisation_2=legacy.org_2,

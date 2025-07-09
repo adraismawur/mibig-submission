@@ -80,10 +80,12 @@ func createUser(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	// validate role
-	if request.Role < models.Submitter || request.Role > models.Admin {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid role"})
-		return
+	// validate roles
+	for _, userRole := range request.Roles {
+		if userRole.Role < models.Submitter || userRole.Role > models.Admin {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid role"})
+			return
+		}
 	}
 
 	// check if user exists
@@ -99,7 +101,7 @@ func createUser(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	err = models.CreateUser(db, request.Email, request.Password, request.Role)
+	err = models.CreateUser(db, request.Email, request.Password, request.Roles)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -122,7 +124,7 @@ func getUsers(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	if token.User.Role != models.Admin {
+	if !models.HasRole(token.User, models.Admin) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
 		c.Abort()
 		return
@@ -167,7 +169,8 @@ func getUserWithId(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	if token.User.Role != models.Admin && token.User.ID != uint(id) {
+	// if user is not the requested user and is not an admin, return forbidden
+	if token.User.ID != uint(id) && !models.HasRole(token.User, models.Admin) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
 		c.Abort()
 		return
@@ -177,7 +180,7 @@ func getUserWithId(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		slog.Error("[endpoints] [user] Error when getting user by ID", "error", err)
+		slog.Error("[endpoints] [user] Error when getting user by Role", "error", err)
 		return
 	}
 

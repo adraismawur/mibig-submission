@@ -40,7 +40,7 @@ func login(db *gorm.DB, c *gin.Context) {
 
 	user := models.User{}
 
-	tx := db.First(&user, "email = ?", loginRequest.Email)
+	tx := db.Preload("Roles").First(&user, "email = ?", loginRequest.Email)
 
 	if tx.RowsAffected == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})

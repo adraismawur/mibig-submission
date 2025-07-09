@@ -34,7 +34,7 @@ def create_app(test_config: Optional[dict] = None) -> Flask:
 
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.get(int(user_id))
+        return User.get_user(user_id)
 
     return app
 
@@ -51,7 +51,11 @@ def configure_app(app: Flask, test_config: Optional[dict] = None) -> Flask:
     """
     load_dotenv()
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "IYKYK")
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI", "sqlite:///auth.sqlite3")
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
+        "SQLALCHEMY_DATABASE_URI", "sqlite:///auth.sqlite3"
+    )
+
+    app.config["API_BASE"] = os.getenv("API_BASE", "http://localhost:8000")
 
     app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER")
     app.config["MAIL_PORT"] = os.getenv("MAIL_PORT")

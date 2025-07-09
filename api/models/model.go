@@ -9,7 +9,11 @@ import (
 func Migrate(db *gorm.DB) {
 	slog.Info("[db] Migrating models")
 
-	db.AutoMigrate(&User{}, &UserInfo{})
+	err := db.AutoMigrate(&User{}, &UserInfo{}, &UserRole{})
+
+	if err != nil {
+		panic(err)
+	}
 
 	slog.Info("[db] Done migrating models")
 }

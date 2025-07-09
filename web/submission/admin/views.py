@@ -9,6 +9,7 @@ from submission.models import Role, User, UserInfo
 
 from submission.admin.forms import UserAdd, UserEdit
 
+
 @bp_admin.route("/")
 def index() -> str:
     return render_template("admin/index.html.j2")
@@ -19,12 +20,16 @@ def list_users() -> str:
     users = User.query.join(UserInfo).order_by(UserInfo.name).all()
     return render_template("admin/users.html.j2", users=users)
 
+
 @bp_admin.route("/users", methods=["POST"])
 def search_users() -> str:
     search = request.form["search"]
-    users = User.query.join(UserInfo) \
-        .filter(or_(UserInfo.name.like(f"{search}%"), User.email.like(f"{search}%"))) \
-        .order_by(UserInfo.name).all()
+    users = (
+        User.query.join(UserInfo)
+        .filter(or_(UserInfo.name.like(f"{search}%"), User.email.like(f"{search}%")))
+        .order_by(UserInfo.name)
+        .all()
+    )
     return render_template("admin/user_search.html.j2", users=users)
 
 
@@ -38,9 +43,12 @@ def user(user_id: int) -> str:
 def user_edit(user_id: int) -> str:
     user = User.query.get_or_404(user_id)
     all_roles = Role.query.order_by(Role.slug).all()
-    form = UserEdit(request.form, data={
-        "email": user.email,
-    })
+    form = UserEdit(
+        request.form,
+        data={
+            "email": user.email,
+        },
+    )
     form.roles.choices = [(role.slug, role.name) for role in all_roles]
 
     if form.validate_on_submit():
@@ -69,7 +77,9 @@ def user_create() -> str:
     form.roles.choices = [(role.slug, role.name) for role in all_roles]
 
     if form.validate_on_submit():
-        user = User(email=form.email.data, active=form.active.data, _password="deactivated")
+        user = User(
+            email=form.email.data, active=form.active.data, _password="deactivated"
+        )
         db.session.add(user)
         db.session.commit()
         name = form.name.data
@@ -78,7 +88,7 @@ def user_create() -> str:
             alias=UserInfo.generate_alias(),
             name=name,
             call_name=UserInfo.guess_call_name(name),
-            organisation=form.affiliation.data
+            organisation_1=form.affiliation.data,
         )
         db.session.add(info)
         for wanted_role in form.roles.data:

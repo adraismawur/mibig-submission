@@ -1,6 +1,19 @@
+import base64
+import requests
+
 from typing import Union
 
-from flask import render_template, request, redirect, url_for, flash, abort, current_app
+from flask import (
+    json,
+    render_template,
+    request,
+    redirect,
+    session,
+    url_for,
+    flash,
+    abort,
+    current_app,
+)
 from flask_login import login_user, logout_user, login_required
 from flask_mail import Message
 from werkzeug.wrappers import response
@@ -8,6 +21,7 @@ from werkzeug.wrappers import response
 from submission import mail
 from submission.auth import bp_auth
 from submission.models import User, Token
+from submission.models.users import UserRole
 from .forms.login import LoginForm, UserEmailForm, PasswordResetForm
 
 
@@ -25,13 +39,51 @@ def login_post() -> response.Response:
     password = request.form.get("password")
     remember = True if request.form.get("remember") else False
 
-    user: User = User.query.filter(User.email.ilike(email)).first()
+    if remember:
+        session.permanent = True
 
-    if not user or not user.check_password(password):
+    response = requests.post(
+        f"{current_app.config['API_BASE']}/login",
+        json={"email": email, "password": password},
+    )
+
+    if response.status_code != 200:
         flash("Please check your login details", "warning")
         return redirect(url_for("auth.login"))
 
-    login_user(user, remember)
+    token_string = response.json().get("token")
+
+    session["token"] = token_string
+
+    if not token_string:
+        flash("Please check your login details", "warning")
+        return redirect(url_for("auth.login"))
+
+    token_parts = token_string.split(".")
+    if len(token_parts) != 3:
+        flash("Invalid token", "warning")
+        return redirect(url_for("auth.login"))
+
+    token_data = base64.urlsafe_b64decode(token_parts[1] + "==")
+    if not token_data:
+        flash("Invalid token", "warning")
+        return redirect(url_for("auth.login"))
+
+    try:
+        token_data = json.loads(token_data)
+    except json.JSONDecodeError:
+        flash("Invalid token", "warning")
+        return redirect(url_for("auth.login"))
+
+    if not token_data:
+        flash("Invalid token", "warning")
+        return redirect(url_for("auth.login"))
+
+    current_app.logger.debug(token_data)
+
+    user = User.from_json(token_data["user"])
+
+    login_user(user, remember=remember)
 
     return redirect(url_for("main.index"))
 

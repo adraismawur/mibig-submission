@@ -10,7 +10,6 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"testing"
-	"time"
 )
 
 var testDb *gorm.DB
@@ -31,7 +30,11 @@ func TestMain(m *testing.M) {
 			Email:    util.GenerateRandomEmail(),
 			Password: "test",
 			Active:   true,
-			Role:     models.Admin,
+			Roles: []models.UserRole{
+				{
+					Role: models.Admin,
+				},
+			},
 		}
 		testDb.Create(&user)
 		testUsers = append(testUsers, user)
@@ -91,7 +94,9 @@ func TestCreateUserNoPassword(t *testing.T) {
 func TestCreateUserInvalidRole(t *testing.T) {
 	db, _ := util.CreateMockDB()
 
-	c, r := util.CreateTestGinJsonRequestWithRecorder("{\"email\": \"test@localhost\", \"password\": \"test\", \"role\": -1}")
+	testUserEmail := "test@localhost"
+	testUserPassword := "test"
+	c, r := util.CreateTestGinJsonRequestWithRecorder("{\"email\": \"" + testUserEmail + "\", \"password\": \"" + testUserPassword + "\", \"roles\": [{\"role\": 11037}]}")
 
 	c.Request.Method = "POST"
 	c.Request.URL.Path = "/user"
@@ -113,7 +118,7 @@ func TestCreateUserAlreadyExists(t *testing.T) {
 		WithArgs("test@localhost").
 		WillReturnResult(expectedResult)
 
-	c, r := util.CreateTestGinJsonRequestWithRecorder("{\"email\": \"test@localhost\", \"password\": \"test\", \"role\": 2}")
+	c, r := util.CreateTestGinJsonRequestWithRecorder("{\"email\": \"test@localhost\", \"password\": \"test\", \"roles\": [{\"role\": 2}]}")
 
 	c.Request.Method = "POST"
 	c.Request.URL.Path = "/user"
@@ -141,8 +146,14 @@ func TestCreateUser(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.ExpectQuery(`INSERT INTO "users"`).
-		WithArgs("test@localhost", util.AnyString{}, true, 2).
+		WithArgs("test@localhost", util.AnyString{}, true).
 		WillReturnRows(expectedRows)
+	mock.ExpectCommit()
+	mock.ExpectQuery(`INSERT INTO "users_roles"`).
+		WithArgs(1, 2).
+		WillReturnRows(mock.NewRows([]string{"user_id", "role"}).
+			AddRow(1, 2))
+
 	mock.ExpectCommit()
 
 	c, r := util.CreateTestGinJsonRequestWithRecorder("{\"email\": \"test@localhost\", \"password\": \"test\", \"role\": 2}")
@@ -176,7 +187,11 @@ func TestGetUsers(t *testing.T) {
 	user := models.User{
 		ID:    1,
 		Email: util.GenerateRandomEmail(),
-		Role:  models.Admin,
+		Roles: []models.UserRole{
+			{
+				Role: models.Admin,
+			},
+		},
 	}
 
 	testToken, _ := models.GenerateToken(user)
@@ -215,7 +230,11 @@ func TestGetUsersForbidden(t *testing.T) {
 	user := models.User{
 		ID:    1,
 		Email: util.GenerateRandomEmail(),
-		Role:  models.Submitter,
+		Roles: []models.UserRole{
+			{
+				Role: models.Submitter,
+			},
+		},
 	}
 
 	testToken, _ := models.GenerateToken(user)
@@ -250,7 +269,11 @@ func TestGetUserWithIdAdmin(t *testing.T) {
 	user := models.User{
 		ID:    1,
 		Email: testEmail,
-		Role:  models.Admin,
+		Roles: []models.UserRole{
+			{
+				Role: models.Admin,
+			},
+		},
 	}
 
 	testToken, _ := models.GenerateToken(user)
@@ -292,7 +315,11 @@ func TestGetUserWithIdSelf(t *testing.T) {
 	user := models.User{
 		ID:    1,
 		Email: testEmail,
-		Role:  models.Submitter,
+		Roles: []models.UserRole{
+			{
+				Role: models.Admin,
+			},
+		},
 	}
 
 	testToken, _ := models.GenerateToken(user)
@@ -333,7 +360,11 @@ func TestGetUserWithIdForbidden(t *testing.T) {
 	user := models.User{
 		ID:    2,
 		Email: util.GenerateRandomEmail(),
-		Role:  models.Submitter,
+		Roles: []models.UserRole{
+			{
+				Role: models.Submitter,
+			},
+		},
 	}
 
 	testToken, _ := models.GenerateToken(user)
@@ -364,7 +395,11 @@ func TestGetUserWithIdNotFound(t *testing.T) {
 	user := models.User{
 		ID:    1,
 		Email: util.GenerateRandomEmail(),
-		Role:  models.Admin,
+		Roles: []models.UserRole{
+			{
+				Role: models.Admin,
+			},
+		},
 	}
 
 	testToken, _ := models.GenerateToken(user)
@@ -383,10 +418,18 @@ func TestUpdateUser(t *testing.T) {
 	db, mock := util.CreateMockDB()
 
 	// creating first gets the existing user. existing user is an admin
-	expectedRows := sqlmock.NewRows([]string{"createdat", "updatedat", "id", "email", "password", "active", "role"})
-	expectedRows.AddRow(time.Now(), time.Now(), 1, "test@localhost", "test", true, models.Admin)
+	expectedUserRows := sqlmock.NewRows([]string{"id", "email", "active"})
+	expectedUserRows.AddRow(1, "test@localhost", true)
 
-	mock.ExpectQuery(`SELECT .* FROM "users"`).WithArgs(1).WillReturnRows(expectedRows)
+	mock.ExpectQuery(`SELECT .* FROM "users"`).WithArgs(1).WillReturnRows(expectedUserRows)
+
+	expectedInfoRows := sqlmock.NewRows([]string{})
+
+	mock.ExpectQuery(`SELECT .* FROM "user_infos"`).WithArgs(1).WillReturnRows(expectedInfoRows)
+
+	expectedRoleRows := sqlmock.NewRows([]string{})
+
+	mock.ExpectQuery(`SELECT .* FROM "user_roles"`).WithArgs(1).WillReturnRows(expectedRoleRows)
 
 	// updating the user. this sets the user to be a submitter
 	mock.ExpectBegin()

@@ -1,4 +1,4 @@
-from .users import User, Role, UserRole, UserInfo
+from .users import User, Role, UserInfo
 from .tokens import Token
 from .literature import Reference, EntryReference
 from .entries import Entry
@@ -8,7 +8,6 @@ from .substrates import Substrate
 __all__ = [
     "User",
     "Role",
-    "UserRole",
     "UserInfo",
     "Token",
     "Reference",

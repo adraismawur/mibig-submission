@@ -23,6 +23,7 @@ from submission.extensions import db
 from submission.edit import bp_edit
 from submission.edit.forms.form_collection import FormCollection
 from submission.edit.forms.edit_select import EditSelectForm
+from submission.models.users import Role
 from submission.utils import Storage, draw_smiles_svg, draw_smarts_svg
 from submission.utils.custom_validators import is_valid_bgc_id
 from submission.utils.custom_errors import ReferenceNotFound
@@ -88,7 +89,7 @@ def edit_minimal(bgc_id: str) -> Union[str, response.Response]:
         "edit/min_entry.html",
         form=form,
         bgc_id=bgc_id,
-        is_reviewer=current_user.has_role("reviewer"),
+        is_reviewer=current_user.has_role(Role.REVIEWER),
         reviewed=reviewed,
     )
 
@@ -148,7 +149,7 @@ def edit_structure(bgc_id: str) -> Union[str, response.Response]:
         "edit/structure.html",
         form=form,
         bgc_id=bgc_id,
-        is_reviewer=current_user.has_role("reviewer"),
+        is_reviewer=current_user.has_role(Role.REVIEWER),
         reviewed=reviewed,
     )
 
@@ -217,7 +218,7 @@ def edit_activity(bgc_id: str) -> Union[str, response.Response]:
         "edit/biological_activity.html",
         bgc_id=bgc_id,
         form=form,
-        is_reviewer=current_user.has_role("reviewer"),
+        is_reviewer=current_user.has_role(Role.REVIEWER),
         reviewed=reviewed,
     )
 
@@ -301,7 +302,7 @@ def edit_biosynth_class(bgc_id: str, b_class: str) -> Union[str, response.Respon
         form=form,
         b_class=b_class,
         bgc_id=bgc_id,
-        is_reviewer=current_user.has_role("reviewer"),
+        is_reviewer=current_user.has_role(Role.REVIEWER),
         reviewed=reviewed,
     )
 
@@ -338,7 +339,7 @@ def edit_biosynth_operons(bgc_id: str) -> Union[str, response.Response]:
         "edit/biosynth_operons.html",
         bgc_id=bgc_id,
         form=form,
-        is_reviewer=current_user.has_role("reviewer"),
+        is_reviewer=current_user.has_role(Role.REVIEWER),
         reviewed=reviewed,
     )
 
@@ -378,7 +379,7 @@ def edit_biosynth_paths(bgc_id: str) -> Union[str, response.Response]:
         "edit/biosynth_paths.html",
         bgc_id=bgc_id,
         form=form,
-        is_reviewer=current_user.has_role("reviewer"),
+        is_reviewer=current_user.has_role(Role.REVIEWER),
         reviewed=reviewed,
     )
 
@@ -415,7 +416,7 @@ def edit_biosynth_modules(bgc_id: str) -> Union[str, response.Response]:
         "edit/biosynth_modules.html",
         bgc_id=bgc_id,
         form=form,
-        is_reviewer=current_user.has_role("reviewer"),
+        is_reviewer=current_user.has_role(Role.REVIEWER),
         reviewed=reviewed,
     )
 
@@ -455,7 +456,7 @@ def edit_tailoring(bgc_id: str) -> Union[str, response.Response]:
         "edit/tailoring.html",
         bgc_id=bgc_id,
         form=form,
-        is_reviewer=current_user.has_role("reviewer"),
+        is_reviewer=current_user.has_role(Role.REVIEWER),
         reviewed=reviewed,
     )
 
@@ -507,7 +508,7 @@ def edit_annotation(bgc_id: str) -> Union[str, response.Response]:
         "edit/annotation.html",
         bgc_id=bgc_id,
         form=form,
-        is_reviewer=current_user.has_role("reviewer"),
+        is_reviewer=current_user.has_role(Role.REVIEWER),
         reviewed=reviewed,
     )
 
