@@ -88,6 +88,13 @@ func createUser(db *gorm.DB, c *gin.Context) {
 		}
 	}
 
+	// ensure a minimum role is set
+	if len(request.Roles) == 0 {
+		request.Roles = append(request.Roles, models.UserRole{
+			Role: models.Submitter,
+		})
+	}
+
 	// check if user exists
 	exists, err := models.GetUserExistsByEmail(db, request.Email)
 	if err != nil {
@@ -200,29 +207,31 @@ func updateUser(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	// check if user exists
-	user, err := models.GetUser(db, id)
+	// check if oldUser exists
+	oldUser, err := models.GetUser(db, id)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		slog.Error("[endpoints] [user] Error getting existing user", "error", err)
+		slog.Error("[endpoints] [oldUser] Error getting existing oldUser", "error", err)
 		return
 	}
 
-	if user == nil {
+	if oldUser == nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User does not exist"})
 		return
 	}
 
+	var newUser models.User
+
 	// bind request
-	err = c.BindJSON(&user)
+	err = c.ShouldBindJSON(&newUser)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	err = models.UpdateUser(db, id, user)
+	err = models.UpdateUser(db, id, oldUser, &newUser)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

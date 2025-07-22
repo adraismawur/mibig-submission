@@ -18,12 +18,12 @@ const (
 
 // User model that represents a singular user
 type User struct {
-	ID       uint       `json:"id"`
+	ID       uint       `json:"id,omitempty"`
 	Email    string     `json:"email"`
-	Password string     `json:"password"`
-	Active   bool       `json:"active"`
-	Roles    []UserRole `json:"roles" gorm:"foreignKey:UserID"`
-	Info     UserInfo   `json:"info"`
+	Password string     `json:"password,omitempty"`
+	Active   bool       `json:"active,omitempty"`
+	Roles    []UserRole `json:"roles,omitempty" gorm:"foreignKey:UserID"`
+	Info     UserInfo   `json:"info,omitempty"  gorm:"foreignKey:UserID"`
 }
 
 // LoginRequest type that represents a user request given by a client through a POST request
@@ -34,22 +34,23 @@ type LoginRequest struct {
 
 // UserRole model that represents a list of roles
 type UserRole struct {
+	ID     uint `json:"-" gorm:"primaryKey"`
+	UserID uint `json:"user_id"`
 	Role   Role `json:"role"`
-	UserID uint `json:"-"`
 }
 
 // UserInfo model that represents additional information about a user
 type UserInfo struct {
-	gorm.Model    `json:"-"`
+	ID            uint   `json:"-" gorm:"primaryKey"`
 	UserID        uint   `json:"user_id"`
-	Alias         string `json:"alias"`
-	Name          string `json:"name"`
-	CallName      string `json:"call_name"`
+	Alias         string `json:"alias" gorm:"default:"`
+	Name          string `json:"name" gorm:"default:"`
+	CallName      string `json:"call_name" gorm:"default:"`
 	Organization1 string `json:"organization1"`
 	Organization2 string `json:"organization2"`
 	Organization3 string `json:"organization3"`
 	OrcID         string `json:"orc_id"`
-	Public        bool   `json:"public"`
+	Public        bool   `json:"public" gorm:"default:false"`
 }
 
 // CreateUser creates a new user in the database with the given email, password and role
@@ -67,20 +68,16 @@ func CreateUser(db *gorm.DB, email string, password string, roles []UserRole) er
 		Password: string(hashedPassword),
 		Active:   true,
 		Roles:    roles,
+		Info:     UserInfo{},
 	}
 
 	if err := db.Create(&user).Error; err != nil {
 		return err
 	}
 
-	// append roles
-	//for _, role := range roles {
-	//	err := db.Model(&user).Association("Roles").Append(role)
-	//	if err != nil {
-	//		slog.Error("[user] Could not append role to user", "user", user.Role, "role", role.Role)
-	//		return err
-	//	}
-	//}
+	if err = db.Save(&user).Error; err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -137,14 +134,18 @@ func GetUsers(db *gorm.DB, offset int, limit int) ([]User, error) {
 
 // GetUserExistsByEmail returns true if a user with a given email exists
 func GetUserExistsByEmail(db *gorm.DB, email string) (bool, error) {
-	tx := db.Exec(`SELECT EXISTS (SELECT 1 FROM users WHERE email = ?)`, email)
+	var count int64
+
+	tx := db.Table("users").
+		Where("email = ?", email).
+		Count(&count)
 
 	if tx.Error != nil {
 		slog.Error("[user] Error getting user existence by email", "email", email, "error", tx.Error)
 		return false, tx.Error
 	}
 
-	return tx.RowsAffected > 0, nil
+	return count > 0, nil
 }
 
 // GetUserExistsByID returns true if a user with a given Role exists
@@ -163,12 +164,41 @@ func GetUserExistsByID(db *gorm.DB, id int) (bool, error) {
 // this will overwrite everything in the given user struct
 // so if anything is set to default values, it will be overwritten.
 // this function will **not** update the password
-func UpdateUser(db *gorm.DB, id int, user *User) error {
+func UpdateUser(db *gorm.DB, id int, oldUser *User, newUser *User) error {
 	tx := db.
-		Model(&user).
+		Model(oldUser).
 		Where("id = ?", id).
-		Omit("password").
-		Updates(user)
+		Omit("Password").
+		Save(newUser)
+
+	err := db.Model(&oldUser).
+		Association("Info").
+		Replace(&newUser.Info)
+
+	if err != nil {
+		slog.Error("[user] Error replacing user roles", "error", err)
+		return err
+	}
+
+	// remove old roles
+	err = db.Model(&oldUser).
+		Association("Roles").
+		Clear()
+
+	if err != nil {
+		slog.Error("[user] Error deleting user roles", "error", err)
+		return err
+	}
+
+	// add new ones
+	err = db.Model(&oldUser).
+		Association("Roles").
+		Append(&newUser.Roles)
+
+	if err != nil {
+		slog.Error("[user] Error replacing user roles", "error", err)
+		return err
+	}
 
 	if tx.Error != nil {
 		slog.Error("[user] Error updating user", "id", id, "error", tx.Error)

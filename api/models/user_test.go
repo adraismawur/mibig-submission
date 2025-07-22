@@ -48,10 +48,18 @@ func TestCreateUser(t *testing.T) {
 	assert.NoError(t, err, "Error should be nil")
 
 	var user User
-	testDb.Preload("Roles").Last(&user)
+	testDb.
+		Preload("Roles").
+		Preload("Info").
+		Last(&user)
 
 	assert.Equal(t, "test@localhost", user.Email)
+
+	assert.Equal(t, 1, len(user.Roles))
 	assert.Equal(t, Admin, user.Roles[0].Role)
+
+	assert.NotNil(t, user.Info)
+
 	assert.Nil(t, bcrypt.CompareHashAndPassword([]byte(user.Password), []byte("test")))
 
 	// cleanup after this test
@@ -98,7 +106,8 @@ func TestGetUsers(t *testing.T) {
 		expectedUser := testUsers[idx]
 
 		assert.Equal(t, expectedUser.Email, user.Email)
-		assert.Equal(t, expectedUser.Roles[0], user.Roles[0])
+		assert.Equal(t, len(expectedUser.Roles), len(user.Roles))
+		assert.Equal(t, expectedUser.Roles[0].Role, user.Roles[0].Role)
 		assert.Equal(t, expectedUser.Active, user.Active)
 		// important: do not return the password
 		assert.Equal(t, "", user.Password)
@@ -150,7 +159,7 @@ func TestUpdateUserFull(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	expectedRoles := []UserRole{{Role: Submitter}}
+	expectedRoles := []UserRole{{Role: Submitter, UserID: user.ID}}
 	expectedInfos := UserInfo{
 		Alias:         user.Info.Alias + "_update",
 		Name:          user.Info.Name + "_update",
@@ -170,7 +179,7 @@ func TestUpdateUserFull(t *testing.T) {
 		Info:   expectedInfos,
 	}
 
-	err = UpdateUser(testDb, int(user.ID), &expectedUser)
+	err = UpdateUser(testDb, int(user.ID), &user, &expectedUser)
 
 	assert.NoError(t, err)
 
@@ -187,7 +196,8 @@ func TestUpdateUserFull(t *testing.T) {
 	assert.Equal(t, expectedUser.Active, actualUser.Active)
 
 	// assert role changes
-	assert.Equal(t, expectedUser.Roles, actualUser.Roles)
+	assert.Equal(t, len(expectedUser.Roles), len(actualUser.Roles))
+	assert.Equal(t, expectedUser.Roles[0].Role, actualUser.Roles[0].Role)
 
 	// assert info changes
 	assert.Equal(t, expectedUser.Info.Alias, actualUser.Info.Alias)

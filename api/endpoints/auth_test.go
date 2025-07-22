@@ -8,18 +8,10 @@ import (
 )
 
 func TestLogin(t *testing.T) {
-	gormDB, mock := util.CreateMockDB()
-
-	expectedRows := mock.NewRows([]string{"email", "password"}).
-		AddRow("test@localhost", "$2a$10$wOLM7A7gHgQXKKnyZX2J.uWi41KZKd.vfzKqa.w.9hUVFGVk.4LB.")
-
-	mock.ExpectQuery(`SELECT(.*)`).
-		WillReturnRows(expectedRows)
-
-	jsonParam := `{"email": "test@localhost", "password": "test"}`
+	jsonParam := `{"email": "testadmin@localhost", "password": "test"}`
 	c := util.CreateTestGinJsonRequest(jsonParam)
 
-	login(gormDB, c)
+	login(testDb, c)
 
 	assert.Equal(t, http.StatusOK, c.Writer.Status(), "Status code should be 200")
 }
