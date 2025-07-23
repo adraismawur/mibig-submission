@@ -1,0 +1,28 @@
+{
+  "accession": "BGC0000001",
+  "version": 4,
+  "quality": "medium",
+  "status": "active",
+  "completeness": "unknown",
+  "changelog": {
+    "releases": [
+      {
+        "version":  "1",
+        "entries": [
+          {
+            "contributors": [
+              "AAAAAAAAAAAAAAAAAAAAAAAA",
+              "AAAAAAAAAAAAAAAAAAAAAAAB"
+            ],
+            "reviewers": [
+              "AAAAAAAAAAAAAAAAAAAAAAAA",
+              "AAAAAAAAAAAAAAAAAAAAAAAB"
+            ],
+            "date": "2025-07-23",
+            "comment": "Submitted"
+          }
+        ]
+      }
+    ]
+  }
+}

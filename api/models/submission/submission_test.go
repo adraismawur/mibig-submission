@@ -27,11 +27,17 @@ func TestMain(m *testing.M) {
 func TestParseSubmission(t *testing.T) {
 	var submission Submission
 
-	jsonString := "{}"
+	jsonString := util.ReadFile("testdata/test_submission.json")
 
 	err := json.Unmarshal([]byte(jsonString), &submission)
 
 	assert.NoError(t, err)
+
+	assert.Equal(t, submission.Accession, "BGC0000001")
+	assert.Equal(t, submission.Version, 4)
+	assert.Equal(t, submission.Quality, Medium)
+	assert.Equal(t, submission.Status, Active)
+	assert.Equal(t, submission.Completeness, Unknown)
 }
 
 func TestLoadSubmission(t *testing.T) {
