@@ -53,6 +53,12 @@ type UserInfo struct {
 	Public        bool   `json:"public" gorm:"default:false"`
 }
 
+func init() {
+	Models = append(Models, &User{})
+	Models = append(Models, &UserRole{})
+	Models = append(Models, &UserInfo{})
+}
+
 // CreateUser creates a new user in the database with the given email, password and role
 // the user is automatically set to active
 func CreateUser(db *gorm.DB, email string, password string, roles []UserRole) error {

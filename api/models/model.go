@@ -6,13 +6,16 @@ import (
 	"log/slog"
 )
 
+var Models []interface{}
+
 func Migrate(db *gorm.DB) {
 	slog.Info("[db] Migrating models")
 
-	err := db.AutoMigrate(&User{}, &UserInfo{}, &UserRole{})
-
-	if err != nil {
-		panic(err)
+	for _, model := range Models {
+		err := db.AutoMigrate(model)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	slog.Info("[db] Done migrating models")
