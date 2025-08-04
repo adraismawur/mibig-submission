@@ -11,21 +11,16 @@ func ReadFile(path string) []byte {
 	var err error
 	var file *os.File
 
-	defer func(file *os.File) {
-		err := file.Close()
-		if err != nil {
-			slog.Error("[sub] Could not close file %s", "path", path)
-		}
-	}(file)
-
 	if file, err = os.Open(path); err != nil {
-		slog.Error("[sub] Could not open entry file", "path", path)
+		slog.Error("[util] Could not open entry file", "path", path)
 		return nil
 	}
 
+	defer file.Close()
+
 	var bytes []byte
 	if bytes, err = io.ReadAll(file); err != nil {
-		slog.Error("[sub] Could not read entry file", "path", path)
+		slog.Error("[util] Could not read entry file", "path", path)
 		return nil
 	}
 

@@ -9,7 +9,7 @@ import (
 var Models []interface{}
 
 func Migrate(db *gorm.DB) {
-	slog.Info("[db] Migrating models")
+	slog.Info("[db]", "Number of models", len(Models))
 
 	for _, model := range Models {
 		err := db.AutoMigrate(model)

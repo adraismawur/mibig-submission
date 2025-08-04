@@ -26,6 +26,7 @@ var Envs = map[string]string{
 	"DB_PASS":      "",
 	"JWT_SECRET":   "CHANGEME",
 	"JWT_LIFETIME": "86400",
+	"DATA_PATH":    "data",
 }
 
 // init initializes the Envs map with the environment variables,
