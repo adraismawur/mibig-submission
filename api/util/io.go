@@ -19,13 +19,13 @@ func ReadFile(path string) []byte {
 	}(file)
 
 	if file, err = os.Open(path); err != nil {
-		slog.Error("[sub] Could not open submission file", "path", path)
+		slog.Error("[sub] Could not open entry file", "path", path)
 		return nil
 	}
 
 	var bytes []byte
 	if bytes, err = io.ReadAll(file); err != nil {
-		slog.Error("[sub] Could not read submission file", "path", path)
+		slog.Error("[sub] Could not read entry file", "path", path)
 		return nil
 	}
 

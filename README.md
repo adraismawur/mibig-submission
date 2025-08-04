@@ -27,12 +27,12 @@ go get -u gorm.io/gorm
 ```
 3. Clone the repository:
 ```bash
-git clone git@github.com:adraismawur/mibig-submission.git
+git clone git@github.com:adraismawur/mibig-entry.git
 ```
 4. Run the backend:
 ```bash
 cd api
-go run mibig-submission.go
+go run mibig-entry.go
 ``` 
 
 ### Frontend

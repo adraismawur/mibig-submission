@@ -1,4 +1,4 @@
-package submission
+package entry
 
 type Location struct {
 	From int64 `json:"from"`

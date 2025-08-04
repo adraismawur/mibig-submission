@@ -48,9 +48,9 @@ func GenerateToken(user User) (string, error) {
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(issuedAt),
 			NotBefore: jwt.NewNumericDate(issuedAt),
-			Issuer:    "mibig-submission-be",
+			Issuer:    "mibig-entry-be",
 			Subject:   user.Email,
-			Audience:  []string{"mibig-submission-fe"},
+			Audience:  []string{"mibig-entry-fe"},
 		},
 	}
 

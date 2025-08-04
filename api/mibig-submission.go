@@ -14,7 +14,7 @@ import (
 // main is the entry point of the application
 func main() {
 	// setup logging
-	slog.Info("Starting MIBiG submission portal API")
+	slog.Info("Starting MIBiG entry portal API")
 
 	slog.Info("Setting up database")
 	// setup database
