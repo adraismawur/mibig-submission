@@ -85,7 +85,7 @@ func LoadEntry(db *gorm.DB, path string) (*Entry, error) {
 
 // LoadEntryTransaction attempts to read a file at a given path and load it as an entry into the database. This function
 // uses a transaction to speed up batch writing
-func LoadEntryTransaction(db *gorm.DB, path string) (*Entry, error) {
+func LoadEntryTransaction(tx *gorm.DB, path string) (*Entry, error) {
 	jsonString := util.ReadFile(path)
 	if jsonString == nil {
 		slog.Error("[entry] Could not load entry file ", "path", path)
@@ -100,14 +100,8 @@ func LoadEntryTransaction(db *gorm.DB, path string) (*Entry, error) {
 		return nil, err
 	}
 
-	if err = db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(entry).Error; err != nil {
-			return err
-		}
-
-		return nil
-	}); err != nil {
-		slog.Error("[entry] Transaction failed", "error", err)
+	if err := tx.Create(entry).Error; err != nil {
+		return nil, err
 	}
 
 	return entry, nil
@@ -124,24 +118,25 @@ func LoadEntries(db *gorm.DB, path string) {
 
 	var _ *Entry
 
-	db.Begin()
+	db.Transaction(func(tx *gorm.DB) error {
 
-	for _, file := range files {
-		if file.IsDir() {
-			continue
+		for _, file := range files {
+			if file.IsDir() {
+				continue
+			}
+
+			fullPath := filepath.Join(path, file.Name())
+
+			_, err = LoadEntryTransaction(db, fullPath)
+
+			if err != nil {
+				slog.Error("[db] Failed to load entry", "path", fullPath)
+				return err
+			}
 		}
 
-		fullPath := filepath.Join(path, file.Name())
-
-		_, err = LoadEntryTransaction(db, fullPath)
-
-		if err != nil {
-			slog.Error("[db] Failed to load entry", "path", fullPath)
-			panic(err)
-		}
-	}
-
-	db.Commit()
+		return nil
+	})
 }
 
 func GetEntryExists(db *gorm.DB, accession string) (bool, error) {
