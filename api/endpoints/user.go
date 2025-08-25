@@ -231,6 +231,8 @@ func updateUser(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	newUser.ID = oldUser.ID
+
 	err = models.UpdateUser(db, id, oldUser, &newUser)
 
 	if err != nil {
