@@ -57,6 +57,33 @@ func init() {
 	Models = append(Models, &User{})
 	Models = append(Models, &UserRole{})
 	Models = append(Models, &UserInfo{})
+
+	InitData = append(InitData, InitDataEntry{
+		Table: "users",
+		Model: &User{
+			ID:       1,
+			Email:    "admin@localhost",
+			Password: "$2a$10$N1j/pHKDvxEeXSauBTH59u3Z4r/828dFnymwSPC2f4P.xe6LMiR5S", // password is 'changeme'
+			Active:   true,
+			Roles: []UserRole{
+				{
+					UserID: 1,
+					Role:   Admin,
+				},
+			},
+			Info: UserInfo{
+				UserID:        1,
+				Alias:         "test",
+				Name:          "test",
+				CallName:      "test",
+				Organization1: "test",
+				Organization2: "test",
+				Organization3: "test",
+				OrcID:         "",
+				Public:        false,
+			},
+		},
+	})
 }
 
 // CreateUser creates a new user in the database with the given email, password and role

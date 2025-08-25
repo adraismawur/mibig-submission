@@ -7,6 +7,7 @@ import (
 	"github.com/adraismawur/mibig-submission/db"
 	"github.com/adraismawur/mibig-submission/endpoints"
 	"github.com/adraismawur/mibig-submission/middleware"
+	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/models/entry"
 	"github.com/gin-gonic/gin"
 	"log/slog"
@@ -30,6 +31,9 @@ func main() {
 
 	slog.Info("Registering endpoints")
 	endpoints.RegisterEndpointHandlers(router, dbConnection)
+
+	// populate the database if this is the first time we are starting it
+	models.Populate(dbConnection)
 
 	slog.Info("Preloading MIBiG entries")
 	entry.PreloadMibigDatabase(dbConnection)
