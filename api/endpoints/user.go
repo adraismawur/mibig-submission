@@ -54,6 +54,13 @@ func UserEndpoint(db *gorm.DB) Endpoint {
 				},
 			},
 			{
+				Method: http.MethodPost,
+				Path:   UserPath + "/password/:id",
+				Handler: func(c *gin.Context) {
+					updateUserPassword(db, c)
+				},
+			},
+			{
 				Method: http.MethodDelete,
 				Path:   UserPath,
 				Handler: func(c *gin.Context) {
@@ -241,6 +248,47 @@ func updateUser(db *gorm.DB, c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "User updated"})
+}
+
+func updateUserPassword(db *gorm.DB, c *gin.Context) {
+	// get id from url
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid id"})
+		return
+	}
+
+	type updatePasswordRequest struct {
+		NewPassword string `json:"new_password"`
+	}
+
+	var request *updatePasswordRequest
+
+	err = c.ShouldBindJSON(&request)
+
+	if err != nil {
+		slog.Error("[endpoints] [user] Cannot bind request json")
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		return
+	}
+
+	user, err := models.GetUser(db, id)
+
+	if err != nil {
+		slog.Error("[endpoints] [user] Could not find user", "id", id)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		return
+	}
+
+	err = models.UpdateUserPassword(db, user, request.NewPassword)
+
+	if err != nil {
+		slog.Error("[endpoints] [user] Could not update user password")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not update user password"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password updated"})
 }
 
 func deleteUser(db *gorm.DB, c *gin.Context) {
