@@ -5,7 +5,7 @@ from wtforms import Form, IntegerField, SelectField, validators
 
 from .custom_fields import ReferenceField
 from .custom_widgets import TextInputWithSuggestions, SelectDefault
-from .custom_validators import ValidateCitations
+from .custom_validators import ValidateCitations, validate_loci
 
 
 def location_form_factory(required: bool = False):
@@ -19,17 +19,16 @@ def location_form_factory(required: bool = False):
     """
 
     if required:
-        valids = [validators.InputRequired()]
+        valids = [validators.InputRequired(), validate_loci]
     else:
-        valids = [validators.Optional()]
+        valids = [validators.Optional(), validate_loci]
 
     class LocationForm(Form):
         """Subform for location entry, use in combination with FormField"""
-
         start = IntegerField(
-            "Start", validators=valids + [validators.NumberRange(min=1)]
+            "Start", validators=valids
         )
-        end = IntegerField("End", validators=valids + [validators.NumberRange(min=2)])
+        end = IntegerField("End", validators=valids)
 
     return LocationForm
 

@@ -42,9 +42,6 @@ def edit_bgc(bgc_id: str) -> Union[str, response.Response]:
         str | Response: rendered overview template or redirect section form
     """
 
-    if not is_valid_bgc_id(bgc_id):
-        return abort(403, "Invalid existing entry!")
-
     form = EditSelectForm(request.form)
     if request.method == "POST":
         for option, chosen in form.data.items():
@@ -64,27 +61,26 @@ def edit_minimal(bgc_id: str) -> Union[str, response.Response]:
     Returns:
         str | Response: rendered form template or redirect to edit_bgc overview
     """
-    if not is_valid_bgc_id(bgc_id):
-        return abort(403, "Invalid existing entry!")
-
     # try to fill data from existing entry
-    if not request.form:
-        data: MultiDict = MultiDict(Storage.read_data(bgc_id).get("Minimal"))
-        form = FormCollection.minimal(data)
-        reviewed = data.get("reviewed")
-    else:
+    if bgc_id == "new":
         form = FormCollection.minimal(request.form)
         # do not prefill reviewed checkbox on failed post
         reviewed = False
+    else:
+        data: MultiDict = MultiDict(Storage.read_data(bgc_id).get("Minimal"))
+        form = FormCollection.minimal(data)
+        reviewed = data.get("reviewed")
 
     if request.method == "POST" and form.validate():
         try:
             Entry.save_minimal(bgc_id=bgc_id, data=form.data)
-            Storage.save_data(bgc_id, "Minimal", request.form, current_user)
+            # Storage.save_data(bgc_id, "Minimal", request.form, current_user)
+
             flash("Submitted minimal entry!")
-            return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id))
+            # return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id))
         except ReferenceNotFound as e:
             flash(str(e), "error")
+
     return render_template(
         "edit/min_entry.html",
         form=form,

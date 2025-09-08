@@ -1,3 +1,5 @@
+from flask import current_app, session
+import requests
 from wtforms import (
     Form,
     StringField,
@@ -7,6 +9,7 @@ from wtforms import (
     SelectMultipleField,
     FormField,
     BooleanField,
+    ValidationError,
     validators,
     SubmitField,
 )
@@ -19,7 +22,7 @@ from submission.utils.custom_widgets import (
     SelectDefault,
     ProductInputSearch,
 )
-from submission.utils.custom_validators import ValidateSingleInput
+from submission.utils.custom_validators import ValidateSingleInput, validate_genbank, validate_loci
 
 
 class MinEntryForm(Form):
@@ -33,10 +36,9 @@ class MinEntryForm(Form):
         strain = StringField("Strain")
 
     class LocusForm(Form):
-
         genome = StringField(
             "Genome identifier *",
-            [validators.InputRequired(), ValidateSingleInput()],
+            [validators.InputRequired(), ValidateSingleInput(), validate_genbank],
             widget=TextInputIndicator(),
             description="E.g., AL645882. Only use GenBank accessions, not RefSeq accessions or GI numbers.",
             # render_kw={
@@ -46,6 +48,10 @@ class MinEntryForm(Form):
             #     "hx-target": ".subform#taxonomy",
             #     "hx-indicator": "#spinner",
             # },
+        )
+        draft_genome = BooleanField(
+            "This accession is a draft",
+            description="Select if this accession is not yet publicised on GenBank",
         )
         location = FormField(
             location_form_factory(),

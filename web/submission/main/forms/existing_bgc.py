@@ -17,18 +17,18 @@ def valid_id(form, field):
 
 
 class SelectExisting(Form):
-    accession = StringField(
-        "MIBiG ID",
-        [validators.DataRequired(), valid_id],
-        description="Unique MIBiG identifier starting with 'BGC' or a unique temporary identifier",
-        widget=StringFieldAddBtn(
-            label="Edit existing entry",
-            render_kw={
-                "name": "edit",
-                "value": "edit",
-                "type": "submit",
-                "style": "margin-top:5px",
-            },
-        ),
-    )
+#     accession = StringField(
+#         "MIBiG ID",
+#         [validators.DataRequired(), valid_id],
+#         description="Unique MIBiG identifier starting with 'BGC' or a unique temporary identifier",
+#         widget=StringFieldAddBtn(
+#             label="Edit existing entry",
+#             render_kw={
+#                 "name": "edit",
+#                 "value": "edit",
+#                 "type": "submit",
+#                 "style": "margin-top:5px",
+#             },
+#         ),
+#     )
     submit = SubmitField("Create new entry", render_kw={"formnovalidate": True})

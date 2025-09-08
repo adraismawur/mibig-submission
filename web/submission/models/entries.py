@@ -66,9 +66,9 @@ class Entry(db.Model):
         Returns:
             Entry: new or existing database entry
         """
-        entry = Entry.get(bgc_id=bgc_id)
-        if entry is None:
+        if bgc_id == "new":
             entry = Entry.create(bgc_id=bgc_id)
+        # entry = Entry.get(bgc_id=bgc_id)
         return entry
 
     # TODO: save all important data
@@ -80,17 +80,18 @@ class Entry(db.Model):
             bgc_id (str): BGC identfier
             data (dict): Minimal information to save
         """
-        entry = Entry.get_or_create(bgc_id=bgc_id)
+        
+        # entry = Entry.get_or_create(bgc_id=bgc_id)
 
-        refs = set()
-        for locus in data["loci"]:
-            for evidence in locus["evidence"]:
-                refs.update(evidence["references"])
+        # refs = set()
+        # for locus in data["loci"]:
+        #     for evidence in locus["evidence"]:
+        #         refs.update(evidence["references"])
 
-        loaded_refs = Reference.load_missing(list(refs))
-        entry.add_references(loaded_refs)
+        # loaded_refs = Reference.load_missing(list(refs))
+        # entry.add_references(loaded_refs)
 
-        db.session.commit()
+        # db.session.commit()
 
     @staticmethod
     def save_structure(bgc_id: str, data: dict[str, Any]):

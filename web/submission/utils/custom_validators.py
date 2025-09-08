@@ -3,9 +3,10 @@
 import re
 from pathlib import Path
 
-from flask import current_app
+from flask import current_app, session
 from rdkit import Chem
 from rdkit.Chem import AllChem
+import requests
 from wtforms import ValidationError, validators
 
 
@@ -89,6 +90,42 @@ class ValidateSingleInput(validators.Regexp):
         message: str = "Please only provide one value (no spaces or commas allowed!)",
     ) -> None:
         super().__init__(regex, flags, message)
+
+def validate_genbank(form, field):
+    if form.draft_genome.data:
+        return
+    
+    response = requests.get(
+        f"{current_app.config['API_BASE']}/validations/genbank/{field.data}",
+        headers={"Authorization": f"Bearer {session['token']}"},
+    )
+
+    if response.status_code == 500:
+        raise ValidationError("Invalid GenBank")
+    
+    if response.status_code == 404:
+        raise ValidationError("Genbank Accession does not exist")
+    
+    session['cached_genbank'] = response.json()['result']
+
+def validate_loci(form, field):
+    if not session['cached_genbank']:
+        raise ValidationError("Cannot validate loci")
+    
+    if form.data['start'] == 0 and form.data['end'] == 0:
+        return
+    
+    sequence_len = int(session['cached_genbank']["slen"])
+
+    if field == form.start and form.start.data > sequence_len:
+        raise ValidationError(f"Start of sequence cannot be greater than sequence length ({sequence_len})")
+
+    if field == form.end and form.end.data > sequence_len:
+        raise ValidationError(f"End of sequence cannot be greater than sequence length ({sequence_len})")
+
+    if form.end.data <= form.start.data:
+        raise ValidationError(f"End must be lower than start")
+
 
 
 def validate_smiles(form, field):

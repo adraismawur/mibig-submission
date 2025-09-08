@@ -27,7 +27,7 @@ def index():
     if request.method == "POST":
         # create new entry
         if form.submit.data:
-            bgc_id = Storage.create_new_entry()
+            bgc_id = "new"
             return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id))
 
         # edit valid existing entry
@@ -35,7 +35,7 @@ def index():
             bgc_id = form.accession.data
             Storage.create_entry_if_not_exists(bgc_id)
 
-            return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id))
+            return redirect(url_for("edit.edit_bgc"))
 
     return render_template("main/index.html", form=form)
 
