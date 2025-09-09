@@ -1,5 +1,7 @@
 from typing import Any, Union
 
+from flask import current_app, session
+import requests
 from sqlalchemy import select
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -80,6 +82,15 @@ class Entry(db.Model):
             bgc_id (str): BGC identfier
             data (dict): Minimal information to save
         """
+
+        response = requests.post(
+            f"{current_app.config['API_BASE']}/entry",
+            headers={"Authorization": f"Bearer {session['token']}"},
+            json=data
+        )
+
+        if response.status_code != 200:
+            raise RuntimeError(response.content)
         
         # entry = Entry.get_or_create(bgc_id=bgc_id)
 

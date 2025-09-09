@@ -36,7 +36,7 @@ class MinEntryForm(Form):
         strain = StringField("Strain")
 
     class LocusForm(Form):
-        genome = StringField(
+        accession = StringField(
             "Genome identifier *",
             [validators.InputRequired(), ValidateSingleInput(), validate_genbank],
             widget=TextInputIndicator(),
