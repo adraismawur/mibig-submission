@@ -37,10 +37,12 @@ const (
 type Entry struct {
 	ID           uint         `json:"-"`
 	Accession    string       `json:"accession"`
-	Version      int          `json:"version"`
-	Quality      Quality      `json:"quality"`
-	Status       Status       `json:"status"`
+	Version      int          `json:"version,omitempty"`
+	Quality      Quality      `json:"quality,omitempty"`
+	Status       Status       `json:"status,omitempty"`
 	Completeness Completeness `json:"completeness"`
+	Embargo      bool         `json:"embargo"`
+	Loci         []Locus      `json:"loci" gorm:"foreignKey:EntryID"`
 }
 
 func init() {
