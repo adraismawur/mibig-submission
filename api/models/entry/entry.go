@@ -118,12 +118,31 @@ func LoadEntries(db *gorm.DB, path string) {
 		return
 	}
 
+	result, err := db.Table("entries").Select("accession").Rows()
+
+	var accessions = map[string]bool{}
+
+	// load a list of accessions that already exist
+	var accession string
+	for result.Next() {
+		result.Scan(&accession)
+		accessions[accession] = true
+	}
+
 	var _ *Entry
 
 	db.Transaction(func(tx *gorm.DB) error {
 
 		for _, file := range files {
 			if file.IsDir() {
+				continue
+			}
+
+			baseName := file.Name()[:len(file.Name())-5]
+
+			_, exists := accessions[baseName]
+
+			if exists {
 				continue
 			}
 
