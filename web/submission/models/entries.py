@@ -83,6 +83,15 @@ class Entry(db.Model):
             data (dict): Minimal information to save
         """
 
+        # we need to fix the "from_" attribute to lose the underscore
+        # this is because WTForms does not have a good way (that I can
+        # find) of naming a field something that is also a keyword in
+        # python. Sigh
+
+        for i in range(len(data['loci'])):
+            data['loci'][i]['location']['from'] = data['loci'][i]['location']['from_']
+            del data['loci'][i]['location']['from_']
+
         response = requests.post(
             f"{current_app.config['API_BASE']}/entry",
             headers={"Authorization": f"Bearer {session['token']}"},

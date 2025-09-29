@@ -25,10 +25,10 @@ def location_form_factory(required: bool = False):
 
     class LocationForm(Form):
         """Subform for location entry, use in combination with FormField"""
-        start = IntegerField(
-            "Start", validators=valids
+        from_ = IntegerField(
+            "From", validators=valids
         )
-        end = IntegerField("End", validators=valids)
+        to = IntegerField("To", validators=valids)
 
     return LocationForm
 

@@ -4,8 +4,8 @@ import "github.com/adraismawur/mibig-submission/models"
 
 type Location struct {
 	LocusID int64  `json:"locus_id"`
-	Start   *int64 `json:"start"`
-	End     *int64 `json:"end"`
+	Start   *int64 `json:"from"`
+	End     *int64 `json:"to"`
 }
 
 type Evidence struct {
