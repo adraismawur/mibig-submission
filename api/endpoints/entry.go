@@ -3,6 +3,7 @@ package endpoints
 import (
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/models/entry"
+	"github.com/adraismawur/mibig-submission/util"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"log/slog"
@@ -69,6 +70,8 @@ func createEntry(db *gorm.DB, c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid entry submitted"})
 		return
 	}
+
+	entry.Accession = util.UNASSIGNED_ENTRY_ACCESSION
 
 	db.Create(&entry)
 }
