@@ -171,3 +171,21 @@ func GetEntryExists(db *gorm.DB, accession string) (bool, error) {
 
 	return count > 0, nil
 }
+
+func GetEntryFromAccession(db *gorm.DB, accession string) (*Entry, error) {
+	var entry Entry
+
+	err := db.
+		Table("entries").
+		Where("accession = ?", accession).
+		Preload("Loci").
+		Preload("Loci.Location").
+		First(&entry).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &entry, nil
+}

@@ -27,7 +27,7 @@ func EntryEndpoint(db *gorm.DB) Endpoint {
 			},
 			{
 				Method: "GET",
-				Path:   "/entry",
+				Path:   "/entry/:accession",
 				Handler: func(c *gin.Context) {
 					getEntry(db, c)
 				},
@@ -65,9 +65,25 @@ func createEntry(db *gorm.DB, c *gin.Context) {
 }
 
 func getEntry(db *gorm.DB, c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "get entry",
-	})
+	accession := c.Param("accession")
+
+	exists, err := entry.GetEntryExists(db, accession)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+	}
+
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"message": "entry not found"})
+	}
+
+	existingEntry, err := entry.GetEntryFromAccession(db, accession)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+	}
+
+	c.JSON(http.StatusOK, existingEntry)
 }
 
 func updateEntry(db *gorm.DB, c *gin.Context) {
