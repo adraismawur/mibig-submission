@@ -1,11 +1,13 @@
 package endpoints
 
 import (
+	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/models/entry"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"log/slog"
 	"net/http"
+	"strconv"
 )
 
 func init() {
@@ -30,6 +32,13 @@ func EntryEndpoint(db *gorm.DB) Endpoint {
 				Path:   "/entry/:accession",
 				Handler: func(c *gin.Context) {
 					getEntry(db, c)
+				},
+			},
+			{
+				Method: "GET",
+				Path:   "/entry/user/:userId",
+				Handler: func(c *gin.Context) {
+					getUserentries(db, c)
 				},
 			},
 			{
@@ -84,6 +93,32 @@ func getEntry(db *gorm.DB, c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, existingEntry)
+}
+
+func getUserentries(db *gorm.DB, c *gin.Context) {
+	userId, err := strconv.Atoi(c.Param("userId"))
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+	}
+
+	exists, err := models.GetUserExistsByID(db, userId)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+	}
+
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"message": "user not found"})
+	}
+
+	accessions, err := entry.GetUserEntries(db, userId)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+	}
+
+	c.JSON(http.StatusOK, accessions)
 }
 
 func updateEntry(db *gorm.DB, c *gin.Context) {
