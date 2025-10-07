@@ -37,7 +37,7 @@ def index():
 
             return redirect(url_for("edit.edit_bgc"))
 
-    return render_template("main/index.html", form=form)
+    return render_template("main/index.html", form=form, user_id=current_user.id)
 
 
 @bp_main.route("/delete", methods=["DELETE"])

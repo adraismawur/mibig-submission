@@ -95,6 +95,8 @@ def validate_genbank(form, field):
     if form.draft_genome.data:
         return
     
+    session["cached_genbank"] = None
+    
     response = requests.get(
         f"{current_app.config['API_BASE']}/validations/genbank/{field.data}",
         headers={"Authorization": f"Bearer {session['token']}"},
