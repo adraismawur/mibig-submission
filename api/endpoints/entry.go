@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func init() {
@@ -63,17 +64,38 @@ func EntryEndpoint(db *gorm.DB) Endpoint {
 // createEntry creates a minimal entry from a request
 func createEntry(db *gorm.DB, c *gin.Context) {
 
-	var entry entry.Entry
+	var newEntry entry.Entry
 
-	if err := c.BindJSON(&entry); err != nil {
+	if err := c.BindJSON(&newEntry); err != nil {
 		slog.Error("[endpoints] [submission] Failed to unmarshal submission JSON", "error", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid entry submitted"})
 		return
 	}
 
-	entry.Accession = util.UNASSIGNED_ENTRY_ACCESSION
+	var currentDate = time.Now().Format("YYYY-MM-DD")
 
-	db.Create(&entry)
+	newEntry.Changelog = entry.Changelog{
+		Releases: []entry.Release{
+			{
+				Version: "1",
+				Date:    currentDate,
+				Entries: []entry.ReleaseEntry{
+					{
+						Contributors: []string{
+							util.ANONYMOUS_USER_ID,
+						},
+						Reviewers: nil,
+						Date:      currentDate,
+						Comment:   "",
+					},
+				},
+			},
+		},
+	}
+
+	newEntry.Accession = util.UNASSIGNED_ENTRY_ACCESSION
+
+	db.Create(&newEntry)
 }
 
 func getEntry(db *gorm.DB, c *gin.Context) {

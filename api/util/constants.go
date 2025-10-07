@@ -1,3 +1,4 @@
 package util
 
 const UNASSIGNED_ENTRY_ACCESSION = "unassigned"
+const ANONYMOUS_USER_ID = "AAAAAAAAAAAAAAAAAAAAAAAA"
