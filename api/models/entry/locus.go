@@ -1,6 +1,9 @@
 package entry
 
-import "github.com/adraismawur/mibig-submission/models"
+import (
+	"github.com/adraismawur/mibig-submission/models"
+	"github.com/lib/pq"
+)
 
 type Location struct {
 	LocusID int64  `json:"locus_id"`
@@ -9,9 +12,9 @@ type Location struct {
 }
 
 type Evidence struct {
-	LocusID    int64    `json:"locus_id"`
-	Method     string   `json:"method"`
-	References []string `json:"references" gorm:"type:text[]"`
+	LocusID    int64          `json:"locus_id"`
+	Method     string         `json:"method"`
+	References pq.StringArray `json:"references" gorm:"type:text[]"`
 }
 
 type Locus struct {

@@ -38,6 +38,7 @@ type Entry struct {
 	ID           uint         `json:"-"`
 	Accession    string       `json:"accession"`
 	Version      int          `json:"version,omitempty"`
+	Changelog    Changelog    `json:"changelog" gorm:"foreignKey:EntryID"`
 	Quality      Quality      `json:"quality,omitempty"`
 	Status       Status       `json:"status,omitempty"`
 	Completeness Completeness `json:"completeness"`
@@ -180,6 +181,10 @@ func GetEntryFromAccession(db *gorm.DB, accession string) (*Entry, error) {
 		Where("accession = ?", accession).
 		Preload("Loci").
 		Preload("Loci.Location").
+		Preload("Loci.Evidence").
+		Preload("Changelog").
+		Preload("Changelog.Releases").
+		Preload("Changelog.Releases.Entries").
 		First(&entry).
 		Error
 
