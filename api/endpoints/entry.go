@@ -86,14 +86,15 @@ func createEntry(db *gorm.DB, c *gin.Context) {
 						},
 						Reviewers: nil,
 						Date:      currentDate,
-						Comment:   "",
+						Comment:   util.NEW_ENTRY_COMMENT,
 					},
 				},
 			},
 		},
 	}
 
-	newEntry.Accession = util.UNASSIGNED_ENTRY_ACCESSION
+	// todo: replace with something meaningful
+	newEntry.Accession = util.NEW_ENTRY_ACCESSION
 
 	db.Create(&newEntry)
 }
