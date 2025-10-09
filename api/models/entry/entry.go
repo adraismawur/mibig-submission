@@ -42,6 +42,7 @@ type Entry struct {
 	Quality      Quality      `json:"quality,omitempty"`
 	Status       Status       `json:"status,omitempty"`
 	Completeness Completeness `json:"completeness"`
+	Biosynthesis Biosynthesis `json:"biosynthesis" gorm:"foreignKey:EntryID"`
 	Embargo      bool         `json:"embargo"`
 	Loci         []Locus      `json:"loci" gorm:"foreignKey:EntryID"`
 }
@@ -185,6 +186,8 @@ func GetEntryFromAccession(db *gorm.DB, accession string) (*Entry, error) {
 		Preload("Changelog").
 		Preload("Changelog.Releases").
 		Preload("Changelog.Releases.Entries").
+		Preload("Biosynthesis").
+		Preload("Biosynthesis.Classes").
 		First(&entry).
 		Error
 
