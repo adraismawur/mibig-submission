@@ -21,9 +21,9 @@ type Locus struct {
 	ID          int64      `json:"-"`
 	EntryID     int64      `json:"entry_id"`
 	Accession   string     `json:"accession"`
-	DraftGenome bool       `json:"draft_genome"`
 	Location    Location   `json:"location" gorm:"foreignKey:LocusID"`
 	Evidence    []Evidence `json:"evidence" gorm:"foreignKey:LocusID"`
+	DraftGenome bool       `json:"draft_genome,omitempty"`
 }
 
 func init() {

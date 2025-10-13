@@ -42,9 +42,9 @@ type Entry struct {
 	Quality      Quality      `json:"quality,omitempty"`
 	Status       Status       `json:"status,omitempty"`
 	Completeness Completeness `json:"completeness"`
-	Biosynthesis Biosynthesis `json:"biosynthesis" gorm:"foreignKey:EntryID"`
-	Embargo      bool         `json:"embargo"`
 	Loci         []Locus      `json:"loci" gorm:"foreignKey:EntryID"`
+	Biosynthesis Biosynthesis `json:"biosynthesis" gorm:"foreignKey:EntryID"`
+	Embargo      bool         `json:"embargo,omitempty"`
 }
 
 func init() {
