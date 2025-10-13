@@ -3,6 +3,7 @@ package entry
 import (
 	"errors"
 	"github.com/adraismawur/mibig-submission/models"
+	"github.com/adraismawur/mibig-submission/models/entry/biosynthesis"
 	"github.com/adraismawur/mibig-submission/util"
 	"github.com/goccy/go-json"
 	"gorm.io/gorm"
@@ -35,16 +36,16 @@ const (
 )
 
 type Entry struct {
-	ID           uint         `json:"-"`
-	Accession    string       `json:"accession"`
-	Version      int          `json:"version,omitempty"`
-	Changelog    Changelog    `json:"changelog" gorm:"foreignKey:EntryID"`
-	Quality      Quality      `json:"quality,omitempty"`
-	Status       Status       `json:"status,omitempty"`
-	Completeness Completeness `json:"completeness"`
-	Loci         []Locus      `json:"loci" gorm:"foreignKey:EntryID"`
-	Biosynthesis Biosynthesis `json:"biosynthesis" gorm:"foreignKey:EntryID"`
-	Embargo      bool         `json:"embargo,omitempty"`
+	ID           uint                      `json:"-"`
+	Accession    string                    `json:"accession"`
+	Version      int                       `json:"version,omitempty"`
+	Changelog    Changelog                 `json:"changelog" gorm:"foreignKey:EntryID"`
+	Quality      Quality                   `json:"quality,omitempty"`
+	Status       Status                    `json:"status,omitempty"`
+	Completeness Completeness              `json:"completeness"`
+	Loci         []Locus                   `json:"loci" gorm:"foreignKey:EntryID"`
+	Biosynthesis biosynthesis.Biosynthesis `json:"biosynthesis" gorm:"foreignKey:EntryID"`
+	Embargo      bool                      `json:"embargo,omitempty"`
 }
 
 func init() {
@@ -188,6 +189,15 @@ func GetEntryFromAccession(db *gorm.DB, accession string) (*Entry, error) {
 		Preload("Changelog.Releases.Entries").
 		Preload("Biosynthesis").
 		Preload("Biosynthesis.Classes").
+		Preload("Biosynthesis.Modules").
+		Preload("Biosynthesis.Modules.Carriers").
+		Preload("Biosynthesis.Modules.Carriers.Location").
+		Preload("Biosynthesis.Modules.ModificationDomains").
+		Preload("Biosynthesis.Modules.ModificationDomains.Location").
+		Preload("Biosynthesis.Modules.ATDomain").
+		Preload("Biosynthesis.Modules.ATDomain.Location").
+		Preload("Biosynthesis.Modules.KSDomain").
+		Preload("Biosynthesis.Modules.KSDomain.Location").
 		First(&entry).
 		Error
 
