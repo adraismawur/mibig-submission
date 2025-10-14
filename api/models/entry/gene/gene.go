@@ -33,8 +33,8 @@ type GeneAnnotation struct {
 type Gene struct {
 	ID          uint64           `json:"-"`
 	EntryID     uint64           `json:"-"`
-	Additions   []GeneAddition   `json:"to_add" gorm:"ForeignKey:GeneID"`
-	Annotations []GeneAnnotation `json:"annotations" gorm:"ForeignKey:GeneID"`
+	Additions   []GeneAddition   `json:"to_add,omitempty" gorm:"ForeignKey:GeneID"`
+	Annotations []GeneAnnotation `json:"annotations,omitempty" gorm:"ForeignKey:GeneID"`
 }
 
 func init() {

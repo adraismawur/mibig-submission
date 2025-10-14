@@ -11,6 +11,7 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -51,7 +52,7 @@ type Entry struct {
 	Biosynthesis     biosynthesis.Biosynthesis `json:"biosynthesis" gorm:"foreignKey:EntryID"`
 	Compounds        []compound.Compound       `json:"compounds" gorm:"ForeignKey:EntryID"`
 	Taxonomy         taxonomy.Taxonomy         `json:"taxonomy" gorm:"ForeignKey:EntryID"`
-	Genes            gene.Gene                 `json:"genes" gorm:"ForeignKey:EntryID"`
+	Genes            *gene.Gene                `json:"genes,omitempty" gorm:"ForeignKey:EntryID"`
 	LegacyReferences pq.StringArray            `json:"legacy_references,omitempty" gorm:"type:text[]"`
 	Embargo          bool                      `json:"-,omitempty"`
 }
@@ -186,35 +187,24 @@ func GetEntryExists(db *gorm.DB, accession string) (bool, error) {
 func GetEntryFromAccession(db *gorm.DB, accession string) (*Entry, error) {
 	var entry Entry
 
+	// TODO: there must be a better way to do this. no amount of googling on my part gets me anywhere though
+	// ideally doing this amount of preloading is rare. This is done here on getting the entire entry
 	err := db.
 		Table("entries").
 		Where("accession = ?", accession).
-		Preload("Loci").
+		Preload("Changelog.Releases.Entries").
 		Preload("Loci.Location").
 		Preload("Loci.Evidence").
-		Preload("Changelog").
-		Preload("Changelog.Releases").
-		Preload("Changelog.Releases.Entries").
-		Preload("Biosynthesis").
 		Preload("Biosynthesis.Classes").
-		Preload("Biosynthesis.Modules").
-		Preload("Biosynthesis.Modules.Carriers").
 		Preload("Biosynthesis.Modules.Carriers.Location").
-		Preload("Biosynthesis.Modules.ModificationDomains").
 		Preload("Biosynthesis.Modules.ModificationDomains.Location").
-		Preload("Biosynthesis.Modules.ATDomain").
 		Preload("Biosynthesis.Modules.ATDomain.Location").
-		Preload("Biosynthesis.Modules.KSDomain").
 		Preload("Biosynthesis.Modules.KSDomain.Location").
-		Preload("Compounds").
-		Preload("Compounds.Evidence").
-		Preload("Compounds.BioActivities").
-		Preload("Genes").
-		Preload("Genes.Additions").
-		Preload("Genes.Additions.Location").
 		Preload("Genes.Additions.Location.Exons").
 		Preload("Genes.Annotations").
-		Preload("Taxonomy").
+		Preload("Compounds.Evidence").
+		Preload("Compounds.BioActivities").
+		Preload(clause.Associations).
 		First(&entry).
 		Error
 
