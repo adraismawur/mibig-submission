@@ -4,8 +4,12 @@ import (
 	"errors"
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/models/entry/biosynthesis"
+	"github.com/adraismawur/mibig-submission/models/entry/compound"
+	"github.com/adraismawur/mibig-submission/models/entry/gene"
+	"github.com/adraismawur/mibig-submission/models/entry/taxonomy"
 	"github.com/adraismawur/mibig-submission/util"
 	"github.com/goccy/go-json"
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 	"log/slog"
 	"os"
@@ -36,16 +40,20 @@ const (
 )
 
 type Entry struct {
-	ID           uint                      `json:"-"`
-	Accession    string                    `json:"accession"`
-	Version      int                       `json:"version,omitempty"`
-	Changelog    Changelog                 `json:"changelog" gorm:"foreignKey:EntryID"`
-	Quality      Quality                   `json:"quality,omitempty"`
-	Status       Status                    `json:"status,omitempty"`
-	Completeness Completeness              `json:"completeness"`
-	Loci         []Locus                   `json:"loci" gorm:"foreignKey:EntryID"`
-	Biosynthesis biosynthesis.Biosynthesis `json:"biosynthesis" gorm:"foreignKey:EntryID"`
-	Embargo      bool                      `json:"embargo,omitempty"`
+	ID               uint                      `json:"-"`
+	Accession        string                    `json:"accession"`
+	Version          int                       `json:"version,omitempty"`
+	Changelog        Changelog                 `json:"changelog" gorm:"foreignKey:EntryID"`
+	Quality          Quality                   `json:"quality,omitempty"`
+	Status           Status                    `json:"status,omitempty"`
+	Completeness     Completeness              `json:"completeness"`
+	Loci             []Locus                   `json:"loci" gorm:"foreignKey:EntryID"`
+	Biosynthesis     biosynthesis.Biosynthesis `json:"biosynthesis" gorm:"foreignKey:EntryID"`
+	Compounds        []compound.Compound       `json:"compounds" gorm:"ForeignKey:EntryID"`
+	Taxonomy         taxonomy.Taxonomy         `json:"taxonomy" gorm:"ForeignKey:EntryID"`
+	Genes            gene.Gene                 `json:"genes" gorm:"ForeignKey:EntryID"`
+	LegacyReferences pq.StringArray            `json:"legacy_references,omitempty" gorm:"type:text[]"`
+	Embargo          bool                      `json:"-,omitempty"`
 }
 
 func init() {
@@ -198,6 +206,15 @@ func GetEntryFromAccession(db *gorm.DB, accession string) (*Entry, error) {
 		Preload("Biosynthesis.Modules.ATDomain.Location").
 		Preload("Biosynthesis.Modules.KSDomain").
 		Preload("Biosynthesis.Modules.KSDomain.Location").
+		Preload("Compounds").
+		Preload("Compounds.Evidence").
+		Preload("Compounds.BioActivities").
+		Preload("Genes").
+		Preload("Genes.Additions").
+		Preload("Genes.Additions.Location").
+		Preload("Genes.Additions.Location.Exons").
+		Preload("Genes.Annotations").
+		Preload("Taxonomy").
 		First(&entry).
 		Error
 

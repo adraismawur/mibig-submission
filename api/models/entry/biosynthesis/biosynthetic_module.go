@@ -5,6 +5,7 @@ import (
 	"github.com/lib/pq"
 )
 
+// TODO: maybe unify with loci.location and gene location
 type BiosyntheticModuleDomainLocation struct {
 	BiosyntheticModuleID uint64 `json:"-"`
 	From                 int    `json:"from"`

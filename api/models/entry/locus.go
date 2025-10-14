@@ -11,23 +11,23 @@ type Location struct {
 	End     *int64 `json:"to"`
 }
 
-type Evidence struct {
+type LocusEvidence struct {
 	LocusID    int64          `json:"-"`
 	Method     string         `json:"method"`
 	References pq.StringArray `json:"references,omitempty" gorm:"type:text[]"`
 }
 
 type Locus struct {
-	ID          int64      `json:"-"`
-	EntryID     int64      `json:"-"`
-	Accession   string     `json:"accession"`
-	Location    Location   `json:"location" gorm:"foreignKey:LocusID"`
-	Evidence    []Evidence `json:"evidence" gorm:"foreignKey:LocusID"`
-	DraftGenome bool       `json:"draft_genome,omitempty"`
+	ID          int64           `json:"-"`
+	EntryID     int64           `json:"-"`
+	Accession   string          `json:"accession"`
+	Location    Location        `json:"location" gorm:"foreignKey:LocusID"`
+	Evidence    []LocusEvidence `json:"evidence" gorm:"foreignKey:LocusID"`
+	DraftGenome bool            `json:"draft_genome,omitempty"`
 }
 
 func init() {
 	models.Models = append(models.Models, &Locus{})
 	models.Models = append(models.Models, &Location{})
-	models.Models = append(models.Models, &Evidence{})
+	models.Models = append(models.Models, &LocusEvidence{})
 }
