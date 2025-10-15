@@ -10,35 +10,35 @@ const knownNonExistingGb = "AA00000.1"
 
 func TestGetGenbankAccession(t *testing.T) {
 
-	actualExists, err := GetGenbankAccession(knownExistingGb)
+	actualExists, err := GetGenbankAccessionSummary(knownExistingGb)
 
 	if err != nil {
 		panic(err)
 	}
 
-	assert.NotNil(t, actualExists, "GetGenbankAccession with GB "+knownExistingGb+" should not return nil")
+	assert.NotNil(t, actualExists, "GetGenbankAccessionSummary with GB "+knownExistingGb+" should not return nil")
 }
 
 func TestGenbankAccessionDoesNotExist(t *testing.T) {
-	actualExists, err := GetGenbankAccession(knownNonExistingGb)
+	actualExists, err := GetGenbankAccessionSummary(knownNonExistingGb)
 
 	if err != nil {
 		panic(err)
 	}
 
-	assert.Nil(t, actualExists, "GetGenbankAccession with GB "+knownNonExistingGb+" should return nil")
+	assert.Nil(t, actualExists, "GetGenbankAccessionSummary with GB "+knownNonExistingGb+" should return nil")
 }
 
 func TestGetGenbankAccessionGetLength(t *testing.T) {
 
-	result, err := GetGenbankAccession(knownExistingGb)
+	result, err := GetGenbankAccessionSummary(knownExistingGb)
 
 	if err != nil {
 		panic(err)
 	}
 
 	expectedLen := 696
-	actualLen := result.Slen
+	actualLen := result.SLen
 
 	assert.Equal(t, expectedLen, actualLen)
 }

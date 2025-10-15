@@ -30,7 +30,7 @@ func GenbankValidationEndpoint(db *gorm.DB) Endpoint {
 func validateGenBank(db *gorm.DB, c *gin.Context) {
 	accession := c.Param("accession")
 
-	result, err := util.GetGenbankAccession(accession)
+	result, err := util.GetGenbankAccessionSummary(accession)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
