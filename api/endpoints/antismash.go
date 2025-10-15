@@ -17,13 +17,13 @@ func init() {
 func AntismashEndpoint(db *gorm.DB) Endpoint {
 	return Endpoint{
 		Routes: []Route{
-			//{
-			//	Method: http.MethodGet,
-			//	Path:   "/antismash/:accession",
-			//	Handler: func(c *gin.Context) {
-			//		getAntismashResults(db, c)
-			//	},
-			//},
+			{
+				Method: http.MethodGet,
+				Path:   "/antismash/:guid",
+				Handler: func(c *gin.Context) {
+					getAntismashStatus(db, c)
+				},
+			},
 			{
 				Method: http.MethodPost,
 				Path:   "/antismash",
@@ -35,17 +35,25 @@ func AntismashEndpoint(db *gorm.DB) Endpoint {
 	}
 }
 
-func getAntismashResults(db *gorm.DB, c *gin.Context) {
-	accession := c.Param("accession")
+func getAntismashStatus(db *gorm.DB, c *gin.Context) {
+	guid := c.Param("guid")
 
-	if accession == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no accession given"})
+	if guid == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no guid given"})
 		return
 	}
 
-	//outputDir := path2.Join(config.Envs["DATA_PATH"], "antismash", accession)
-	//
-	//c.FileFromFS()
+	status := util.AntismashRun{}
+
+	err := db.Where("guid = ?", guid).First(&status).Error
+
+	if err != nil {
+		slog.Error("[Antismash] Get Antismash Status Error", "err", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Antismash Status Error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, status)
 }
 
 func startAntismashRun(db *gorm.DB, c *gin.Context) {

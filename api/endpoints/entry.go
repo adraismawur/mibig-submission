@@ -3,7 +3,9 @@ package endpoints
 import (
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/models/entry"
+	"github.com/adraismawur/mibig-submission/util"
 	"github.com/adraismawur/mibig-submission/util/constants"
+	"github.com/beevik/guid"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"log/slog"
@@ -63,7 +65,6 @@ func EntryEndpoint(db *gorm.DB) Endpoint {
 
 // createEntry creates a minimal entry from a request
 func createEntry(db *gorm.DB, c *gin.Context) {
-
 	var newEntry entry.Entry
 
 	if err := c.BindJSON(&newEntry); err != nil {
@@ -97,6 +98,20 @@ func createEntry(db *gorm.DB, c *gin.Context) {
 	newEntry.Accession = constants.NEW_ENTRY_ACCESSION
 
 	db.Create(&newEntry)
+
+	antismashTask := util.AntismashRun{
+		Accession: newEntry.Loci[0].Accession,
+		GUID:      guid.NewString(),
+	}
+
+	err := db.Create(antismashTask).Error
+
+	if err != nil {
+		slog.Error("[endpoints] [entry] Failed to create antismash task", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to create antismash task"})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": antismashTask})
 }
 
 func getEntry(db *gorm.DB, c *gin.Context) {
