@@ -1,6 +1,7 @@
-package genbank
+package util
 
 import (
+	"github.com/adraismawur/mibig-submission/validations/genbank"
 	"github.com/goccy/go-json"
 	"io"
 	"log/slog"
@@ -17,7 +18,7 @@ const entrezIdParam = "id"
 const entrezDb = "nucleotide"
 const entrezRetmode = "json"
 
-func GetGenbankAccession(accession string) (*EntrezSummaryResult, error) {
+func GetGenbankAccession(accession string) (*genbank.EntrezSummaryResult, error) {
 	url := entrezBase + entrezEndpoint
 
 	request, err := http.NewRequest(http.MethodGet, url, nil)
@@ -50,7 +51,7 @@ func GetGenbankAccession(accession string) (*EntrezSummaryResult, error) {
 
 	slog.Info("[validations] [genbank] Got entrez response", "read bytes", len(data))
 
-	var entry EntrezSummaryResponse
+	var entry genbank.EntrezSummaryResponse
 
 	err = json.Unmarshal(data, &entry)
 
@@ -75,7 +76,7 @@ func GetGenbankAccession(accession string) (*EntrezSummaryResult, error) {
 		return nil, err
 	}
 
-	var result EntrezSummaryResult
+	var result genbank.EntrezSummaryResult
 
 	err = json.Unmarshal(resultJson, &result)
 
