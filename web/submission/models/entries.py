@@ -75,7 +75,7 @@ class Entry(db.Model):
 
     # TODO: save all important data
     @staticmethod
-    def save_minimal(bgc_id: str, data: dict[str, Any]):
+    def save_minimal(data: dict[str, Any]) -> str:
         """Save minimal entry information
 
         Args:
@@ -100,7 +100,12 @@ class Entry(db.Model):
 
         if response.status_code != 200:
             raise RuntimeError(response.content)
-        
+
+        as_task_status = response.json().get("status")
+        as_task_id = as_task_status.get("id")
+
+        return as_task_id
+
         # entry = Entry.get_or_create(bgc_id=bgc_id)
 
         # refs = set()

@@ -3,13 +3,16 @@ import csv
 from pathlib import Path
 from typing import Union
 
+import requests
 from sqlalchemy import select, or_
 from flask import (
     abort,
+    current_app,
     render_template,
     render_template_string,
     request,
     redirect,
+    session,
     url_for,
     flash,
 )
@@ -73,11 +76,11 @@ def edit_minimal(bgc_id: str) -> Union[str, response.Response]:
 
     if request.method == "POST" and form.validate():
         try:
-            Entry.save_minimal(bgc_id=bgc_id, data=form.data)
+            as_task_id = Entry.save_minimal(data=form.data)
             # Storage.save_data(bgc_id, "Minimal", request.form, current_user)
 
             flash("Submitted minimal entry!")
-            # return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id))
+            return redirect(url_for("edit.as_status", as_task_id=as_task_id))
         except ReferenceNotFound as e:
             flash(str(e), "error")
 
@@ -88,6 +91,44 @@ def edit_minimal(bgc_id: str) -> Union[str, response.Response]:
         is_reviewer=current_user.has_role(Role.REVIEWER),
         reviewed=reviewed,
     )
+
+
+@bp_edit.route("/antismash/status/<as_task_id>", methods=["GET"])
+@login_required
+def as_status(as_task_id: str) -> Union[str, response.Response]:
+    """Page to show status of antiSMASH processing task
+
+    Args:
+        as_task_id (str): Asynchronous task identifier
+
+    Returns:
+        str | Response: rendered template or redirect to edit_bgc overview
+    """
+
+    response = requests.get(
+        f"{current_app.config['API_BASE']}/antismash/{as_task_id}",
+        headers={"Authorization": f"Bearer {session['token']}"},
+    )
+
+    if response.json().get("state") == 4:
+        accession = response.json().get("accession")
+        return redirect(url_for("edit.view_antismash", accession=accession))
+
+    return render_template(
+        "edit/antismash_status.html", as_task_id=as_task_id, status=response.json()
+    )
+
+
+@bp_edit.route("/antismash/view/<accession>", methods=["GET"])
+@login_required
+def view_antismash(accession: str) -> Union[str, response.Response]:
+    """Redirect to antiSMASH results page for a given accession
+
+    Args:
+        accession (str): GenBank accession
+    """
+
+    return render_template("edit/antismash_view.html", accession=accession)
 
 
 @bp_edit.route("/<bgc_id>/structure", methods=["GET", "POST"])
