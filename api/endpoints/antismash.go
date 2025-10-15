@@ -1,7 +1,8 @@
 package endpoints
 
 import (
-	"github.com/adraismawur/mibig-submission/util"
+	"github.com/adraismawur/mibig-submission/middleware"
+	"github.com/adraismawur/mibig-submission/models"
 	"github.com/beevik/guid"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -11,6 +12,7 @@ import (
 
 func init() {
 	RegisterEndpointGenerator(AntismashEndpoint)
+	middleware.AddProtectedRoute(http.MethodPost, "/antismash", models.Admin)
 }
 
 // AntismashEndpoint returns the antismash endpoint, used for submitting, checking and stopping antismash runs
@@ -36,16 +38,16 @@ func AntismashEndpoint(db *gorm.DB) Endpoint {
 }
 
 func getAntismashStatus(db *gorm.DB, c *gin.Context) {
-	guid := c.Param("guid")
+	taskGuid := c.Param("guid")
 
-	if guid == "" {
+	if taskGuid == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no guid given"})
 		return
 	}
 
-	status := util.AntismashRun{}
+	status := models.AntismashRun{}
 
-	err := db.Where("guid = ?", guid).First(&status).Error
+	err := db.Where("guid = ?", taskGuid).First(&status).Error
 
 	if err != nil {
 		slog.Error("[Antismash] Get Antismash Status Error", "err", err)
@@ -57,7 +59,7 @@ func getAntismashStatus(db *gorm.DB, c *gin.Context) {
 }
 
 func startAntismashRun(db *gorm.DB, c *gin.Context) {
-	request := util.AntismashRun{}
+	request := models.AntismashRun{}
 
 	if err := c.ShouldBindJSON(&request); err != nil {
 		slog.Error("[Antismash] Could not bind request json")

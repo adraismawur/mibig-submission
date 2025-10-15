@@ -3,6 +3,7 @@ package entry
 import (
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/util"
+	"github.com/adraismawur/mibig-submission/util/test_utils"
 	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
@@ -20,7 +21,7 @@ var testEntry = Entry{
 }
 
 func TestMain(m *testing.M) {
-	testDb = util.CreateTestDB()
+	testDb = test_utils.CreateTestDB()
 	models.Migrate(testDb)
 }
 

@@ -3,7 +3,6 @@ package endpoints
 import (
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/models/entry"
-	"github.com/adraismawur/mibig-submission/util"
 	"github.com/adraismawur/mibig-submission/util/constants"
 	"github.com/beevik/guid"
 	"github.com/gin-gonic/gin"
@@ -83,11 +82,11 @@ func createEntry(db *gorm.DB, c *gin.Context) {
 				Entries: []entry.ReleaseEntry{
 					{
 						Contributors: []string{
-							constants.ANONYMOUS_USER_ID,
+							constants.AnonymousUserId,
 						},
 						Reviewers: nil,
 						Date:      currentDate,
-						Comment:   constants.NEW_ENTRY_COMMENT,
+						Comment:   constants.NewEntryComment,
 					},
 				},
 			},
@@ -95,11 +94,11 @@ func createEntry(db *gorm.DB, c *gin.Context) {
 	}
 
 	// todo: replace with something meaningful
-	newEntry.Accession = constants.NEW_ENTRY_ACCESSION
+	newEntry.Accession = constants.NewEntryAccession
 
 	db.Create(&newEntry)
 
-	antismashTask := util.AntismashRun{
+	antismashTask := models.AntismashRun{
 		Accession: newEntry.Loci[0].Accession,
 		GUID:      guid.NewString(),
 	}

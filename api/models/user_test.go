@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/adraismawur/mibig-submission/util"
+	"github.com/adraismawur/mibig-submission/util/test_utils"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -16,14 +16,14 @@ var testUsers []User
 
 func TestMain(m *testing.M) {
 	// setup
-	testDb = util.CreateTestDB()
+	testDb = test_utils.CreateTestDB()
 	Migrate(testDb)
 
 	for i := 0; i < numTestUsers; i++ {
 		userRoles := []UserRole{{Role: Admin}}
 
 		user := User{
-			Email:    util.GenerateRandomEmail(),
+			Email:    GenerateRandomEmail(),
 			Password: "test",
 			Active:   true,
 			Roles:    userRoles,

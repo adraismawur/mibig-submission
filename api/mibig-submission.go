@@ -9,7 +9,6 @@ import (
 	"github.com/adraismawur/mibig-submission/middleware"
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/models/entry"
-	"github.com/adraismawur/mibig-submission/util"
 	"github.com/gin-gonic/gin"
 	"log/slog"
 	path2 "path"
@@ -43,8 +42,8 @@ func main() {
 	slog.Info("Preloading MIBiG entries")
 	entry.PreloadMibigDatabase(dbConnection)
 
-	slog.Info("Starting AntiSMASH runner")
-	go util.AntismashWorker(dbConnection)
+	slog.Info("Starting AntiSMASH runner goroutine")
+	go models.AntismashWorker(dbConnection)
 
 	slog.Info("Starting server")
 	err := router.Run(config.Envs["SERVER_PORT"])

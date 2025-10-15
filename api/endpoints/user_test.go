@@ -80,7 +80,7 @@ func TestCreateUserAlreadyExists(t *testing.T) {
 }
 
 func TestCreateUser(t *testing.T) {
-	testEmail := util.GenerateRandomEmail()
+	testEmail := models.GenerateRandomEmail()
 	c, r := util.CreateTestGinJsonRequestWithRecorder("{\"email\": \"" + testEmail + "\", \"password\": \"test\", \"role\": 2}")
 
 	c.Request.Method = "POST"
@@ -97,7 +97,7 @@ func TestGetUsers(t *testing.T) {
 
 	user := models.User{
 		ID:    1,
-		Email: util.GenerateRandomEmail(),
+		Email: models.GenerateRandomEmail(),
 		Roles: []models.UserRole{
 			{
 				Role: models.Admin,
@@ -125,7 +125,7 @@ func TestGetUsersForbidden(t *testing.T) {
 
 	user := models.User{
 		ID:    1,
-		Email: util.GenerateRandomEmail(),
+		Email: models.GenerateRandomEmail(),
 		Roles: []models.UserRole{
 			{
 				Role: models.Submitter,
@@ -151,7 +151,7 @@ func TestGetUserWithIdAdmin(t *testing.T) {
 		},
 	}
 
-	testEmail := util.GenerateRandomEmail()
+	testEmail := models.GenerateRandomEmail()
 
 	user := models.User{
 		ID:    1,
@@ -188,7 +188,7 @@ func TestGetUserWithIdSelf(t *testing.T) {
 		},
 	}
 
-	testEmail := util.GenerateRandomEmail()
+	testEmail := models.GenerateRandomEmail()
 
 	user := models.User{
 		ID:    1,
@@ -228,7 +228,7 @@ func TestGetUserWithIdForbidden(t *testing.T) {
 	// token has user id 2, should return 403
 	user := models.User{
 		ID:    2,
-		Email: util.GenerateRandomEmail(),
+		Email: models.GenerateRandomEmail(),
 		Roles: []models.UserRole{
 			{
 				Role: models.Submitter,
@@ -258,7 +258,7 @@ func TestGetUserWithIdNotFound(t *testing.T) {
 
 	user := models.User{
 		ID:    1,
-		Email: util.GenerateRandomEmail(),
+		Email: models.GenerateRandomEmail(),
 		Roles: []models.UserRole{
 			{
 				Role: models.Admin,

@@ -115,6 +115,12 @@ class User(UserMixin):
 
     @staticmethod
     def get_user(id: int) -> User:
+        if "user" in session:
+            user_data = session["user"]
+            user = User.from_json(user_data)
+            if user.id == int(id):
+                return user
+
         response = requests.get(
             f"{current_app.config['API_BASE']}/user/{id}",
             headers={"Authorization": f"Bearer {session['token']}"},
@@ -124,6 +130,8 @@ class User(UserMixin):
             return None
 
         user_data = response.json()
+
+        session["user"] = user_data
 
         return User.from_json(user_data)
 

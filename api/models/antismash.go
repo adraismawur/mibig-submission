@@ -1,8 +1,8 @@
-package util
+package models
 
 import (
 	"github.com/adraismawur/mibig-submission/config"
-	"github.com/adraismawur/mibig-submission/models"
+	"github.com/adraismawur/mibig-submission/util"
 	"gorm.io/gorm"
 	"log/slog"
 	"os"
@@ -28,7 +28,7 @@ type AntismashRun struct {
 }
 
 func init() {
-	models.Models = append(models.Models, &AntismashRun{})
+	Models = append(Models, &AntismashRun{})
 }
 
 func AntismashWorker(db *gorm.DB) {
@@ -58,7 +58,7 @@ func AntismashWorker(db *gorm.DB) {
 		request.State = Downloading
 		db.Save(&request)
 
-		gbkPath, err := GetGBK(request.Accession)
+		gbkPath, err := util.GetGBK(request.Accession)
 
 		if err != nil {
 			slog.Error("[AntismashWorker] Could not get GBK", "Accession", request.Accession, "error", err)
@@ -114,7 +114,7 @@ func RunAntismash(gbkPath string, accession string) (string, error) {
 
 	if err != nil {
 		slog.Error("[Antismash] Error executing antismash", "gbkPath", gbkPath, "error", err)
-		slog.Error("[Antismash] Output:", string(ASOut))
+		slog.Error("[Antismash] Output:", "output", string(ASOut))
 		return "", err
 	}
 

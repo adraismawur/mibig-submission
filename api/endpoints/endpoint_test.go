@@ -2,7 +2,7 @@ package endpoints
 
 import (
 	"github.com/adraismawur/mibig-submission/models"
-	"github.com/adraismawur/mibig-submission/util"
+	"github.com/adraismawur/mibig-submission/util/test_utils"
 	"gorm.io/gorm"
 	"testing"
 )
@@ -13,7 +13,7 @@ const numTestUsers = 10
 
 var adminTestUser = models.User{
 	Email:    "testadmin@localhost",
-	Password: util.TestPassword,
+	Password: test_utils.TestPassword,
 	Active:   true,
 	Roles: []models.UserRole{
 		{
@@ -38,7 +38,7 @@ var randomTestUsers []models.User
 
 func TestMain(m *testing.M) {
 	// setup
-	testDb = util.CreateTestDB()
+	testDb = test_utils.CreateTestDB()
 	models.Migrate(testDb)
 
 	// fixed test users
@@ -48,7 +48,7 @@ func TestMain(m *testing.M) {
 	// create some random test users
 	for i := 0; i < numTestUsers; i++ {
 		user := models.User{
-			Email:    util.GenerateRandomEmail(),
+			Email:    models.GenerateRandomEmail(),
 			Password: "test",
 			Active:   true,
 			Roles: []models.UserRole{

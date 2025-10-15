@@ -5,6 +5,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"log/slog"
+	"math/rand"
+	"strconv"
 )
 
 // Role type that represents a user's role
@@ -295,4 +297,8 @@ func CheckPassword(in string, against string) bool {
 	err = bcrypt.CompareHashAndPassword([]byte(against), hash)
 
 	return true
+}
+
+func GenerateRandomEmail() string {
+	return "test" + strconv.Itoa(rand.Intn(100000)) + "@localhost"
 }
