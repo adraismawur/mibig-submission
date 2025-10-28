@@ -4,6 +4,7 @@ import (
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/models/entry"
 	"github.com/adraismawur/mibig-submission/util/constants"
+	"github.com/adraismawur/mibig-submission/util/entry_utils"
 	"github.com/beevik/guid"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -94,16 +95,23 @@ func createEntry(db *gorm.DB, c *gin.Context) {
 	}
 
 	// todo: replace with something meaningful
-	newEntry.Accession = constants.NewEntryAccession
+	var err error
+	newEntry.Accession, err = entry_utils.GenerateNewAccession(db)
+
+	if err != nil {
+		slog.Error("[endpoints] [submission] Failed to generate new entry accession", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to generate new entry accession"})
+	}
 
 	db.Create(&newEntry)
 
 	antismashTask := models.AntismashRun{
 		Accession: newEntry.Loci[0].Accession,
+		BGCID:     newEntry.Accession,
 		GUID:      guid.NewString(),
 	}
 
-	err := db.Create(antismashTask).Error
+	err = db.Create(antismashTask).Error
 
 	if err != nil {
 		slog.Error("[endpoints] [entry] Failed to create antismash task", "error", err.Error())

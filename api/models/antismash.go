@@ -3,6 +3,7 @@ package models
 import (
 	"github.com/adraismawur/mibig-submission/config"
 	"github.com/adraismawur/mibig-submission/util"
+	"github.com/goccy/go-json"
 	"gorm.io/gorm"
 	"log/slog"
 	"os"
@@ -23,8 +24,27 @@ const (
 
 type AntismashRun struct {
 	GUID      string            `json:"id" gorm:"primaryKey"`
+	BGCID     string            `json:"bgc_id" gorm:"primaryKey"`
 	Accession string            `json:"accession"`
 	State     AntismashRunState `json:"state"`
+}
+
+// AntismashResult is a struct that contains information from an AntiSMASH
+// result that is relevant for pre-filling an entry
+type AntismashResult struct {
+	Version string `json:"version"`
+	Records []struct {
+		ID       string `json:"id"`
+		Sequence string `json:"sequence"`
+		Features []struct {
+			Type       string `json:"type"`
+			Qualifiers []struct {
+				Product          string `json:"product,omitempty"`
+				DBCrossReference string `json:"db_xref,omitempty"`
+				Organism         string `json:"organism,omitempty"`
+			} `json:"qualifiers"`
+		}
+	} `json:"records"`
 }
 
 func init() {
@@ -119,4 +139,29 @@ func RunAntismash(gbkPath string, accession string) (string, error) {
 	}
 
 	return string(ASOut), nil
+}
+
+// ReadAntismashJson returns a reduced set of antismash result json for use in filling entry information
+func ReadAntismashJson(asJsonPath string) (*AntismashResult, error) {
+	var antismashResult AntismashResult
+
+	data := util.ReadFile(asJsonPath)
+
+	err := json.Unmarshal(data, &antismashResult)
+
+	if err != nil {
+		slog.Error("[Antismash] Could not unmarshal antismash result", "error", err)
+		return nil, err
+	}
+
+	for _, record := range antismashResult.Records {
+		for _, feature := range record.Features {
+			if feature.Type == "source" {
+				// use source to fill in taxonomy info
+
+			}
+		}
+	}
+
+	return &antismashResult, nil
 }
