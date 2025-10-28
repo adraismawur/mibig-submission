@@ -1,4 +1,4 @@
-""" Collection of custom form Field classes used throughout the submission system"""
+"""Collection of custom form Field classes used throughout the submission system"""
 
 import re
 import csv

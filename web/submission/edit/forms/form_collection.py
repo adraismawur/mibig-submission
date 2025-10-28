@@ -1,5 +1,7 @@
+from submission.edit.forms.bio_synth import BioSynthForm
 from submission.edit.forms.structure import StructureMultiple
-from submission.edit.forms.min_entry import MinEntryForm
+from submission.edit.forms.new_entry import NewEntryForm
+from submission.edit.forms.loci_tax import LociTaxonomyForm
 from submission.edit.forms.biological_activity import BioActivityMultiple
 from submission.edit.forms.biosynthesis import (
     NRPSForm,
@@ -17,7 +19,10 @@ from submission.edit.forms.gene_annotation import GeneAnnotationForm
 
 
 class FormCollection:
-    minimal = MinEntryForm
+    new = NewEntryForm
+    locitax = LociTaxonomyForm
+    biosynth = BioSynthForm
+
     structure = StructureMultiple
     bioact = BioActivityMultiple
 

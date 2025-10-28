@@ -28,7 +28,7 @@ def index():
         # create new entry
         if form.submit.data:
             bgc_id = "new"
-            return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id))
+            return redirect(url_for("new.new_entry"))
 
         # edit valid existing entry
         if request.form.get("edit") and form.validate():

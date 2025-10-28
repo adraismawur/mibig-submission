@@ -36,26 +36,6 @@ from submission.models import Entry, NPAtlas, Substrate
 @bp_edit.route("/<bgc_id>", methods=["GET", "POST"])
 @login_required
 def edit_bgc(bgc_id: str) -> Union[str, response.Response]:
-    """Overview page with navigation to forms for entry sections
-
-    Args:
-        bgc_id (str): BGC identifier
-
-    Returns:
-        str | Response: rendered overview template or redirect section form
-    """
-
-    form = EditSelectForm(request.form)
-    if request.method == "POST":
-        for option, chosen in form.data.items():
-            if chosen:
-                return redirect(url_for(f"edit.edit_{option}", bgc_id=bgc_id))
-    return render_template("edit/edit.html", form=form, bgc_id=bgc_id)
-
-
-@bp_edit.route("/<bgc_id>/minimal", methods=["GET", "POST"])
-@login_required
-def edit_minimal(bgc_id: str) -> Union[str, response.Response]:
     """Form to enter minimal entry information
 
     Args:
@@ -66,17 +46,17 @@ def edit_minimal(bgc_id: str) -> Union[str, response.Response]:
     """
     # try to fill data from existing entry
     if bgc_id == "new":
-        form = FormCollection.minimal(request.form)
+        form = FormCollection.locitax(request.form)
         # do not prefill reviewed checkbox on failed post
         reviewed = False
     else:
         data: MultiDict = MultiDict(Storage.read_data(bgc_id).get("Minimal"))
-        form = FormCollection.minimal(data)
+        form = FormCollection.locitax(data)
         reviewed = data.get("reviewed")
 
     if request.method == "POST" and form.validate():
         try:
-            as_task_id = Entry.save_minimal(data=form.data)
+            as_task_id = Entry.submit(data=form.data)
             # Storage.save_data(bgc_id, "Minimal", request.form, current_user)
 
             flash("Submitted minimal entry!")
@@ -91,44 +71,6 @@ def edit_minimal(bgc_id: str) -> Union[str, response.Response]:
         is_reviewer=current_user.has_role(Role.REVIEWER),
         reviewed=reviewed,
     )
-
-
-@bp_edit.route("/antismash/status/<as_task_id>", methods=["GET"])
-@login_required
-def as_status(as_task_id: str) -> Union[str, response.Response]:
-    """Page to show status of antiSMASH processing task
-
-    Args:
-        as_task_id (str): Asynchronous task identifier
-
-    Returns:
-        str | Response: rendered template or redirect to edit_bgc overview
-    """
-
-    response = requests.get(
-        f"{current_app.config['API_BASE']}/antismash/{as_task_id}",
-        headers={"Authorization": f"Bearer {session['token']}"},
-    )
-
-    if response.json().get("state") == 4:
-        accession = response.json().get("accession")
-        return redirect(url_for("edit.view_antismash", accession=accession))
-
-    return render_template(
-        "edit/antismash_status.html", as_task_id=as_task_id, status=response.json()
-    )
-
-
-@bp_edit.route("/antismash/view/<accession>", methods=["GET"])
-@login_required
-def view_antismash(accession: str) -> Union[str, response.Response]:
-    """Redirect to antiSMASH results page for a given accession
-
-    Args:
-        accession (str): GenBank accession
-    """
-
-    return render_template("edit/antismash_view.html", accession=accession)
 
 
 @bp_edit.route("/<bgc_id>/structure", methods=["GET", "POST"])

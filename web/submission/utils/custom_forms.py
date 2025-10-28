@@ -1,10 +1,20 @@
-""" Collection of custom form classes used throughout the submission system """
+"""Collection of custom form classes used throughout the submission system"""
+
+import keyword
 
 from markupsafe import Markup
-from wtforms import Form, IntegerField, SelectField, validators
+from wtforms import (
+    FieldList,
+    Form,
+    FormField,
+    IntegerField,
+    SelectField,
+    StringField,
+    validators,
+)
 
 from .custom_fields import ReferenceField
-from .custom_widgets import TextInputWithSuggestions, SelectDefault
+from .custom_widgets import FieldListAddBtn, TextInputWithSuggestions, SelectDefault
 from .custom_validators import ValidateCitations, validate_loci
 
 
@@ -25,12 +35,15 @@ def location_form_factory(required: bool = False):
 
     class LocationForm(Form):
         """Subform for location entry, use in combination with FormField"""
-        from_ = IntegerField(
-            "From", validators=valids
-        )
+
+        from_ = IntegerField("From", validators=valids)
         to = IntegerField("To", validators=valids)
 
     return LocationForm
+
+
+class ReferenceForm(Form):
+    references = FieldList(StringField())
 
 
 class EvidenceForm(Form):
@@ -49,16 +62,19 @@ class EvidenceForm(Form):
         widget=SelectDefault(),
         validators=[validators.InputRequired()],
     )
-    references = ReferenceField(
-        "Citation(s) *",
-        [validators.InputRequired(), ValidateCitations()],
+    references = FieldList(
+        StringField(),
+        label="Citation(s) *",
+        separator=" ",
         description=Markup(
-            "Comma separated list of references. Accepted formats are (in order of preference):<br>"
+            "Accepted formats are (in order of preference):<br>"
             "'doi:10.1016/j.chembiol.2020.11.009', 'pubmed:33321099', 'patent:US7070980B2', "
             "'url:https://example.com'.<br>If no publication "
             "is available <u>yet</u>, please use 'doi:pending'."
         ),
-        widget=TextInputWithSuggestions(post_url="/edit/get_db_references"),
+        widget=FieldListAddBtn(
+            label="Add reference",
+        ),
     )
 
 

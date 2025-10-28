@@ -56,7 +56,28 @@ class Entry(db.Model):
         Returns:
             Entry | None: entry database object or none if not exists
         """
-        return db.session.scalar(select(Entry).where(Entry.identifier == bgc_id))
+        response = requests.get(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+        if response.status_code == 200:
+            entry = response.json()
+
+            # we have a python keyword conflict and no good way to tell the form to
+            # behave, so we have to mess with the json
+            for i in range(len(entry["loci"])):
+                entry["loci"][i]["location"]["from_"] = entry["loci"][i]["location"][
+                    "from"
+                ]
+
+            # and another
+            if entry["biosynthesis"]["classes"] is not None:
+                for i in range(len(entry["biosynthesis"]["classes"])):
+                    c = entry["biosynthesis"]["classes"][i]["class"]
+                    entry["biosynthesis"]["classes"][i]["class_"] = c
+
+            return entry
+        return None
 
     @staticmethod
     def get_or_create(bgc_id: str) -> "Entry":
@@ -75,8 +96,8 @@ class Entry(db.Model):
 
     # TODO: save all important data
     @staticmethod
-    def save_minimal(data: dict[str, Any]) -> str:
-        """Save minimal entry information
+    def submit(data: dict[str, Any]) -> str:
+        """Submit a new entry to the API
 
         Args:
             bgc_id (str): BGC identfier
@@ -88,35 +109,20 @@ class Entry(db.Model):
         # find) of naming a field something that is also a keyword in
         # python. Sigh
 
-        for i in range(len(data['loci'])):
-            data['loci'][i]['location']['from'] = data['loci'][i]['location']['from_']
-            del data['loci'][i]['location']['from_']
+        for i in range(len(data["loci"])):
+            data["loci"][i]["location"]["from"] = data["loci"][i]["location"]["from_"]
+            del data["loci"][i]["location"]["from_"]
 
         response = requests.post(
             f"{current_app.config['API_BASE']}/entry",
             headers={"Authorization": f"Bearer {session['token']}"},
-            json=data
+            json=data,
         )
 
         if response.status_code != 200:
-            raise RuntimeError(response.content)
+            return None
 
-        as_task_status = response.json().get("status")
-        as_task_id = as_task_status.get("id")
-
-        return as_task_id
-
-        # entry = Entry.get_or_create(bgc_id=bgc_id)
-
-        # refs = set()
-        # for locus in data["loci"]:
-        #     for evidence in locus["evidence"]:
-        #         refs.update(evidence["references"])
-
-        # loaded_refs = Reference.load_missing(list(refs))
-        # entry.add_references(loaded_refs)
-
-        # db.session.commit()
+        return response.json()
 
     @staticmethod
     def save_structure(bgc_id: str, data: dict[str, Any]):

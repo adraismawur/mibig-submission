@@ -3,14 +3,14 @@
 {% import 'macros.html' as macros %}
 
 {% block header %}
-<h2 class="edit-header">{{ "New entry" if bgc_id == "new" else "Editing" + bgc_id }}</h2>
+<h2 class="edit-header">Submitting {{ bgc_id }}</h2>
 
 {% endblock %}
 
 {% block body %}
 <div class="form-wrapper">
 
-    <h4>Enter minimal information</h4>
+    <h4>Enter and confirm minimal information</h4>
     {{ macros.simple_divform(form, is_reviewer=is_reviewer, reviewed=reviewed) }}
 
 </div>

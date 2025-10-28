@@ -6,9 +6,11 @@ from dotenv import load_dotenv
 
 from submission.extensions import db, migrate, login_manager, mail
 from submission.main import bp_main
+from submission.new import bp_new
 from submission.edit import bp_edit
 from submission.auth import bp_auth
 from submission.admin import bp_admin
+from submission.antismash import bp_as
 from submission.models import User
 
 
@@ -85,7 +87,9 @@ def register_blueprints(app: Flask) -> Flask:
         Flask: Flask app instance with registered blueprints
     """
     app.register_blueprint(bp_main)
+    app.register_blueprint(bp_new)
     app.register_blueprint(bp_edit)
     app.register_blueprint(bp_auth)
     app.register_blueprint(bp_admin)
+    app.register_blueprint(bp_as)
     return app

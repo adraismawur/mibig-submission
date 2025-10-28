@@ -22,18 +22,20 @@ from submission.utils.custom_widgets import (
     SelectDefault,
     ProductInputSearch,
 )
-from submission.utils.custom_validators import ValidateSingleInput, validate_genbank, validate_loci
+from submission.utils.custom_validators import (
+    ValidateSingleInput,
+    validate_genbank,
+    validate_loci,
+)
 
 
-class MinEntryForm(Form):
+class LociTaxonomyForm(Form):
 
     class TaxonomyForm(Form):
-        ncbi_tax_id = IntegerField(
+        ncbiTaxId = IntegerField(
             "NCBI Taxonomy ID *", validators=[validators.InputRequired()]
         )
-        genus = StringField("Genus")
-        species = StringField("Species")
-        strain = StringField("Strain")
+        name = StringField("Name")
 
     class LocusForm(Form):
         accession = StringField(
@@ -74,36 +76,9 @@ class MinEntryForm(Form):
             label="Add additional locus",
         ),
     )
-    b_class = SelectMultipleField(
-        "Biosynthetic class(es) *",
-        choices=["NRPS", "PKS", "Ribosomal", "Saccharide", "Terpene", "Other"],
-        description="Hold ctrl or cmd key to select multiple classes in the case of a hybrid gene cluster. "
-        "Select all categories that apply: e.g. a compound resulting from a BGC with both non-ribosomal "
-        "and polyketide synthases should be both 'NRPS' and 'PKS', while a BGC with both a polyketide "
-        "synthase and a glycosyltransferase would be 'PKS' and 'Saccharide'.",
-        validators=[validators.InputRequired()],
-        render_kw={"size": "6"},
-    )
-    products = TagListField(
-        "Product(s) *",
-        [validators.InputRequired()],
-        description='Comma separated list of produced compounds. To enter a compound name containing a comma, encase in double quotes, e.g. "8,9-dihydrolactimidomycin"',
-        widget=ProductInputSearch(),
-    )
 
-    completeness = SelectField(
-        "Completeness *",
-        choices=["complete", "incomplete", "unknown"],
-        description="Are all genes needed for production of compounds present in the specified locus/loci?",
-        widget=SelectDefault(),
-        validate_choice=False,
-        validators=[validators.InputRequired()],
-    )
     taxonomy = FormField(TaxonomyForm)
-    embargo = BooleanField(
-        description="Please embargo my gene cluster information, pending publication of the results. "
-        "For newly characterized gene clusters only. Please notify us upon publication so that the embargo can be lifted."
-    )
-    comments = StringField("Additional comments")
 
-    submit = SubmitField("Submit", widget=SubmitIndicator())
+    submit = SubmitField(
+        "Continue to biosynthetic class information", widget=SubmitIndicator()
+    )
