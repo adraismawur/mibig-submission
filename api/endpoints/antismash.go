@@ -1,14 +1,49 @@
 package endpoints
 
 import (
+	"errors"
+	"github.com/adraismawur/mibig-submission/config"
 	"github.com/adraismawur/mibig-submission/middleware"
 	"github.com/adraismawur/mibig-submission/models"
+	"github.com/adraismawur/mibig-submission/models/entry"
+	"github.com/adraismawur/mibig-submission/models/entry/biosynthesis"
+	"github.com/adraismawur/mibig-submission/util"
 	"github.com/beevik/guid"
 	"github.com/gin-gonic/gin"
+	"github.com/goccy/go-json"
 	"gorm.io/gorm"
 	"log/slog"
 	"net/http"
+	"os"
+	"os/exec"
+	path2 "path"
+	"strconv"
+	"strings"
+	"time"
 )
+
+type AntismashResultFeature struct {
+	Type       string `json:"type"`
+	Qualifiers struct {
+		Product          []string `json:"product,omitempty"`
+		DBCrossReference []string `json:"db_xref,omitempty"`
+		Organism         []string `json:"organism,omitempty"`
+		GeneKind         []string `json:"gene_kind,omitempty"`
+		ProteinID        []string `json:"protein_id,omitempty"`
+		Note             []string `json:"note,omitempty"`
+	} `json:"qualifiers"`
+}
+
+// AntismashResult is a struct that contains information from an AntiSMASH
+// result that is relevant for pre-filling an entry
+type AntismashResult struct {
+	Version string `json:"version"`
+	Records []struct {
+		ID       string                   `json:"id"`
+		Sequence string                   `json:"sequence"`
+		Features []AntismashResultFeature `json:"features"`
+	} `json:"records"`
+}
 
 func init() {
 	RegisterEndpointGenerator(AntismashEndpoint)
@@ -72,4 +107,218 @@ func startAntismashRun(db *gorm.DB, c *gin.Context) {
 	slog.Info("[Antismash] Starting Antismash Run", "accession", request.Accession)
 
 	db.Create(&request)
+}
+
+func AntismashWorker(db *gorm.DB) {
+	for {
+		time.Sleep(1 * time.Second)
+
+		request := models.AntismashRun{}
+
+		result := db.Where("state = ?", models.Pending).Find(&request)
+		err := result.Error
+
+		if err != nil {
+			slog.Error("[AntismashWorker] antismash worker error:", "err", err)
+			continue
+		}
+
+		if result.RowsAffected == 0 {
+			slog.Info("[AntismashWorker] Nothing to do")
+			continue
+		}
+
+		if err != nil {
+			slog.Error("[AntismashWorker] antismash worker error:", "err", err)
+			continue
+		}
+
+		request.State = models.Downloading
+		db.Save(&request)
+
+		gbkPath, err := util.GetGBK(request.Accession)
+
+		if err != nil {
+			slog.Error("[AntismashWorker] Could not get GBK", "Accession", request.Accession, "error", err)
+
+			request.State = models.Failed
+			db.Save(&request)
+
+			continue
+		}
+
+		request.State = models.Running
+		db.Save(&request)
+
+		outputDir := path2.Join(config.Envs["DATA_PATH"], "antismash", request.Accession)
+
+		_, err = RunAntismash(*gbkPath, request.Accession, outputDir)
+
+		if err != nil {
+			slog.Error("[AntismashWorker] antismash worker error:", "err", err)
+
+			request.State = models.Failed
+			db.Save(&request)
+
+			continue
+		}
+
+		jsonFile := path2.Join(outputDir, request.Accession+".json")
+
+		antismashOutput, err := ReadAntismashJson(jsonFile)
+
+		if err != nil {
+			slog.Error("[AntismashWorker] Failed to read antismash output", "err", err)
+			request.State = models.Failed
+			db.Save(&request)
+		}
+
+		activeEntry, err := entry.GetEntryFromAccession(db, request.BGCID)
+		if err != nil {
+			slog.Error("[AntismashWorker] Failed to get entry from accession", "err", err)
+			request.State = models.Failed
+			db.Save(&request)
+		}
+
+		PrefillAntismash(activeEntry, antismashOutput)
+
+		db.Save(activeEntry)
+
+		request.State = models.Finished
+		db.Save(&request)
+	}
+}
+
+// RunAntismash is a helper function that runs antismash on a given GBK path
+func RunAntismash(gbkPath string, accession string, outputDir string) (string, error) {
+
+	err := os.MkdirAll(outputDir, 0755)
+
+	if err != nil {
+		slog.Error("[Antismash] Could not create output directory", "path", outputDir)
+		return "", err
+	}
+
+	htmlPath := path2.Join(outputDir, "index.html")
+
+	if _, err := os.Stat(htmlPath); err == nil {
+		slog.Info("[util] [genbank] File already exists", "path", htmlPath)
+		return "Output already exists", nil
+	}
+
+	ASCmd := exec.Command("antismash", gbkPath, "--output-dir", outputDir)
+
+	slog.Info("[Antismash] Running Antismash Command", "gbk", gbkPath, "cmd", ASCmd)
+
+	ASOut, err := ASCmd.Output()
+
+	if err != nil {
+		slog.Error("[Antismash] Error executing antismash", "gbkPath", gbkPath, "error", err)
+		slog.Error("[Antismash] Output:", "output", string(ASOut))
+		return "", err
+	}
+
+	return string(ASOut), nil
+}
+
+// ReadAntismashJson returns a reduced set of antismash result json for use in filling entry information
+func ReadAntismashJson(asJsonPath string) (*AntismashResult, error) {
+	var antismashResult AntismashResult
+
+	data := util.ReadFile(asJsonPath)
+
+	err := json.Unmarshal(data, &antismashResult)
+
+	if err != nil {
+		slog.Error("[Antismash] Could not unmarshal antismash result", "error", err)
+		return nil, err
+	}
+
+	return &antismashResult, nil
+}
+
+func PrefillAntismash(entry *entry.Entry, antismashResult *AntismashResult) {
+	var err error
+	for _, record := range antismashResult.Records {
+		for _, feature := range record.Features {
+			if feature.Type == "source" {
+				err = PrefillAntismashTaxonomy(entry, &feature)
+				if err != nil {
+					slog.Error("[Antismash] Could not parse taxonomy", "error", err)
+				}
+			}
+
+			if feature.Type == "region" {
+				err = PrefillAntismashBiosynthesisClass(entry, &feature)
+			}
+
+			if feature.Type == "CDS" {
+				if len(feature.Qualifiers.GeneKind) == 0 || feature.Qualifiers.GeneKind[0] != "biosynthetic" {
+					continue
+				}
+				err = PrefillAntismashBiosynthesisModule(entry, &feature)
+				if err != nil {
+					slog.Error("[Antismash] Could not parse biosynthesis", "error", err)
+				}
+			}
+		}
+	}
+}
+
+func PrefillAntismashTaxonomy(entry *entry.Entry, feature *AntismashResultFeature) error {
+	if feature.Type != "source" {
+		return errors.New("antismash feature is not a source feature")
+	}
+
+	entry.Taxonomy.Name = feature.Qualifiers.Organism[0]
+
+	// taxid is more complicated
+	taxIDParts := feature.Qualifiers.DBCrossReference[0]
+	taxIDString := strings.Split(taxIDParts, ":")[1]
+	taxID, err := strconv.ParseInt(taxIDString, 10, 64)
+
+	if err != nil {
+		return err
+	}
+
+	entry.Taxonomy.TaxID = uint64(taxID)
+
+	return nil
+}
+
+func PrefillAntismashBiosynthesisClass(entry *entry.Entry, feature *AntismashResultFeature) error {
+	if feature.Type != "region" {
+		return errors.New("antismash feature is not a region feature")
+	}
+
+	var class biosynthesis.BiosyntheticClass
+
+	switch feature.Qualifiers.Product[0] {
+	case "T1PKS":
+		class.Class = "PKS"
+		class.Subclass = "Type I"
+
+	case "T2PKS":
+		class.Class = "PKS"
+		class.Subclass = "Type II"
+	}
+	entry.Biosynthesis.Classes = append(entry.Biosynthesis.Classes, class)
+
+	return nil
+}
+
+func PrefillAntismashBiosynthesisModule(entry *entry.Entry, feature *AntismashResultFeature) error {
+	if feature.Type != "CDS" {
+		return errors.New("antismash feature is not a CDS feature")
+	}
+
+	var module biosynthesis.BiosyntheticModule
+
+	module.Genes = append(module.Genes, feature.Qualifiers.ProteinID[0])
+	module.Active = true
+	module.Type = feature.Qualifiers.Product[0]
+
+	entry.Biosynthesis.Modules = append(entry.Biosynthesis.Modules, module)
+
+	return nil
 }

@@ -43,7 +43,7 @@ func main() {
 	entry.PreloadMibigDatabase(dbConnection)
 
 	slog.Info("Starting AntiSMASH runner goroutine")
-	go models.AntismashWorker(dbConnection)
+	go endpoints.AntismashWorker(dbConnection)
 
 	slog.Info("Starting server")
 	err := router.Run(config.Envs["SERVER_PORT"])

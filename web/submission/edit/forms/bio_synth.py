@@ -37,9 +37,13 @@ class BiosynthClassForm(Form):
         widget=FieldListAddBtn(
             label="Add cyclase",
         ),
-        min_entries=0,
-        default=[],
     )
+
+
+class BiosynthModuleForm(Form):
+    type = StringField()
+    genes = FieldList(StringField(), widget=FieldListAddBtn(label="Add gene"))
+    active = BooleanField()
 
 
 class BiosynthForm(Form):
@@ -50,6 +54,10 @@ class BiosynthForm(Form):
         widget=FieldListAddBtn(
             label="Add class",
         ),
+    )
+
+    modules = FieldList(
+        FormField(BiosynthModuleForm), widget=FieldListAddBtn(label="Add module")
     )
 
 
