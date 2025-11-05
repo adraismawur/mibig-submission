@@ -29,38 +29,38 @@ from submission.utils.custom_validators import (
 )
 
 
-class BiosynthClassForm(Form):
-    class_ = StringField(id="class", name="class")
-    subclass = StringField()
-    cyclases = FieldList(
+class BioactivitySubForm(Form):
+    name = StringField()
+    observed = BooleanField()
+    references = FieldList(
         StringField(),
         widget=FieldListAddBtn(
-            label="Add cyclase",
+            label="Add reference",
         ),
     )
 
 
-class BiosynthModuleForm(Form):
-    type = StringField()
-    genes = FieldList(StringField(), widget=FieldListAddBtn(label="Add gene"))
-    active = BooleanField()
-
-
-class BiosynthForm(Form):
-    classes = FieldList(
-        FormField(BiosynthClassForm),
-        min_entries=1,
-        description="List of classes in this entry",
+class CompoundsSubForm(Form):
+    name = StringField()
+    bioactivities = FieldList(
+        FormField(BioactivitySubForm),
         widget=FieldListAddBtn(
-            label="Add class",
+            label="Add bioactivity",
+        ),
+    )
+    structure = StringField()
+    databaseIds = FieldList(
+        StringField(),
+        widget=FieldListAddBtn(
+            label="Add database",
         ),
     )
 
-    modules = FieldList(
-        FormField(BiosynthModuleForm), widget=FieldListAddBtn(label="Add module")
+
+class CompoundsForm(Form):
+    compounds = FieldList(
+        FormField(CompoundsSubForm),
+        widget=FieldListAddBtn(
+            label="Add compound",
+        ),
     )
-
-
-class BioSynthForm(Form):
-
-    biosynthesis = FormField(BiosynthForm)

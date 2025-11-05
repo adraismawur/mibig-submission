@@ -78,7 +78,3 @@ class LociTaxonomyForm(Form):
     )
 
     taxonomy = FormField(TaxonomyForm)
-
-    submit = SubmitField(
-        "Continue to biosynthetic class information", widget=SubmitIndicator()
-    )

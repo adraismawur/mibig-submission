@@ -29,10 +29,8 @@ from submission.utils.custom_forms import (
 )
 
 
-class AddGeneForm(Form):
-    gene_id = StringField(
-        "Gene identifier", description="The commonly used gene name (e.g. nisA)"
-    )
+class GeneLocationForm(Form):
+
     exons = FieldList(
         FormField(location_form_factory()),
         label="Exons *",
@@ -50,6 +48,13 @@ class AddGeneForm(Form):
         validate_choice=False,
         validators=[validators.InputRequired()],
     )
+
+
+class AddGeneForm(Form):
+    id = StringField(
+        "Gene identifier", description="The commonly used gene name (e.g. nisA)"
+    )
+    location = FormField(GeneLocationForm)
     translation = StringField(
         "Translation",
         description="The encoded amino acid sequence in one-letter code. Please omit the stop codon",
@@ -163,8 +168,8 @@ class DomainForm(Form):
     )
 
 
-class GeneAnnotationForm(Form):
-    add = FieldList(
+class GeneAnnotationSubForm(Form):
+    to_add = FieldList(
         FormField(AddGeneForm),
         widget=FieldListAddBtn(
             label="Add additional gene",
@@ -200,3 +205,7 @@ class GeneAnnotationForm(Form):
         ),
     )
     submit = SubmitField("Submit", widget=SubmitIndicator())
+
+
+class GeneAnnotationForm(Form):
+    genes = FormField(GeneAnnotationSubForm)

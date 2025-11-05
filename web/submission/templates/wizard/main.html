@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block header %}
+<h2 class="edit-header">Editing {{ bgc_id }}</h2>
+{% endblock %}
+
+{% block body %}
+
+<div class="form-wrapper">
+    <h4>Enter {{ form_description }}</h4>
+
+    {{ macros.simple_divform(form, is_reviewer=is_reviewer, reviewed=reviewed) }}
+</div>
+<div class="container">
+    {% if prev_form %}
+        <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=prev_form.id) }}"><button id="back-btn" class="btn btn-outline-secondary">Previous: {{ prev_form.description }}</button></a>
+    {%- endif %}
+    {% if next_form %}
+        <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=next_form.id) }}"><button id="back-btn" class="btn btn-outline-secondary">Next: {{ next_form.description }}</button></a>
+    {%- endif %}
+    
+</div>
+
+{% endblock %}

@@ -56,57 +56,10 @@ def as_status(as_task_id: str) -> Union[str, response.Response]:
         accession = response_data.get("accession")
         bgc_id = response_data.get("bgc_id")
         # redirect using 303 to change POST to GET
-        return redirect(url_for("new.new_loci_tax", bgc_id=bgc_id), code=303)
+        return redirect(
+            url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="locitax"), code=303
+        )
 
     return render_template(
         "antismash/status.html", as_task_id=as_task_id, status=response.json()
     )
-
-
-@bp_new.route("/<bgc_id>/locitax", methods=["GET", "POST"])
-@login_required
-def new_loci_tax(bgc_id: str):
-    """First page of the wizard. Contains loci and taxonomy information"""
-    entry = Entry.get(bgc_id=bgc_id)
-
-    if not entry:
-        flash("Entry not found.", "danger")
-        return render_template("new/new_review.html", entry=None)
-
-    form = FormCollection.locitax(request.form, data=entry)
-
-    if request.method == "POST" and form.validate():
-        # response = Entry.submit(form.data)
-
-        if not response:
-            flash("Error submitting minimal information.", "danger")
-            return render_template("new/new_review.html", form=form, entry=entry)
-
-        return redirect(url_for("new.new_biosynth", bgc_id=bgc_id), code=303)
-
-    return render_template("new/new_review.html", form=form, entry=entry, bgc_id=bgc_id)
-
-
-@bp_new.route("/<bgc_id>/biosynth", methods=["GET", "POST"])
-@login_required
-def new_biosynth(bgc_id: str):
-    """Second page of the wizard. This contains biosynthetic class information of the
-    entry"""
-    entry = Entry.get(bgc_id=bgc_id)
-
-    if not entry:
-        flash("Entry not found.", "danger")
-        return render_template("new/new_review.html", entry=None)
-
-    form = FormCollection.biosynth(request.form, data=entry)
-
-    if request.method == "POST" and form.validate():
-        # response = Entry.submit(form.data)
-
-        if not response:
-            flash("Error submitting minimal information.", "danger")
-            return render_template("new/new_review.html", form=form, entry=entry)
-
-        return redirect(url_for("new.new_biosynth"))
-
-    return render_template("new/new_review.html", form=form, entry=entry, bgc_id=bgc_id)

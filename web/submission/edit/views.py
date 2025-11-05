@@ -26,6 +26,11 @@ from submission.extensions import db
 from submission.edit import bp_edit
 from submission.edit.forms.form_collection import FormCollection
 from submission.edit.forms.edit_select import EditSelectForm
+from submission.edit.forms.wizard import (
+    get_wizard_page,
+    get_prev_page,
+    get_next_page,
+)
 from submission.models.users import Role
 from submission.utils import Storage, draw_smiles_svg, draw_smarts_svg
 from submission.utils.custom_validators import is_valid_bgc_id
@@ -33,9 +38,9 @@ from submission.utils.custom_errors import ReferenceNotFound
 from submission.models import Entry, NPAtlas, Substrate
 
 
-@bp_edit.route("/<bgc_id>", methods=["GET", "POST"])
+@bp_edit.route("/<bgc_id>/<form_id>", methods=["GET", "POST"])
 @login_required
-def edit_bgc(bgc_id: str) -> Union[str, response.Response]:
+def edit_bgc(bgc_id: str, form_id: str) -> Union[str, response.Response]:
     """Form to enter minimal entry information
 
     Args:
@@ -45,91 +50,30 @@ def edit_bgc(bgc_id: str) -> Union[str, response.Response]:
         str | Response: rendered form template or redirect to edit_bgc overview
     """
     # try to fill data from existing entry
-    if bgc_id == "new":
-        form = FormCollection.locitax(request.form)
-        # do not prefill reviewed checkbox on failed post
-        reviewed = False
-    else:
-        data: MultiDict = MultiDict(Storage.read_data(bgc_id).get("Minimal"))
-        form = FormCollection.locitax(data)
-        reviewed = data.get("reviewed")
+    entry = Entry.get(bgc_id=bgc_id)
+
+    # instantiate associated form
+    wizard_page = get_wizard_page(form_id)
+    form = wizard_page.create_form(request.form, entry)
+
+    prev_form = get_prev_page(form_id)
+    next_form = get_next_page(form_id)
 
     if request.method == "POST" and form.validate():
         try:
-            as_task_id = Entry.submit(data=form.data)
-            # Storage.save_data(bgc_id, "Minimal", request.form, current_user)
-
-            flash("Submitted minimal entry!")
-            return redirect(url_for("edit.as_status", as_task_id=as_task_id))
+            flash("Updated submission data")
         except ReferenceNotFound as e:
             flash(str(e), "error")
 
     return render_template(
-        "edit/min_entry.html",
+        "wizard/main.html",
         form=form,
         bgc_id=bgc_id,
         is_reviewer=current_user.has_role(Role.REVIEWER),
-        reviewed=reviewed,
-    )
-
-
-@bp_edit.route("/<bgc_id>/structure", methods=["GET", "POST"])
-@login_required
-def edit_structure(bgc_id: str) -> Union[str, response.Response]:
-    """Form to enter structure information
-
-    Args:
-        bgc_id (str): BGC identifier
-
-    Returns:
-        str | Response: rendered form template or redirect to edit_bgc overview
-    """
-    if not is_valid_bgc_id(bgc_id):
-        return abort(403, "Invalid existing entry!")
-
-    if not request.form:
-        data: MultiDict = MultiDict(Storage.read_data(bgc_id).get("Structure"))
-        form = FormCollection.structure(data)
-        reviewed = data.get("reviewed")
-    else:
-        form = FormCollection.structure(request.form)
-        reviewed = False
-
-    if request.method == "POST" and form.validate():
-        try:
-            Entry.save_structure(bgc_id=bgc_id, data=form.data)
-            Storage.save_data(bgc_id, "Structure", request.form, current_user)
-            flash("Submitted structure information!")
-            return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id))
-        except ReferenceNotFound as e:
-            flash(str(e), "error")
-
-    # on GET query db for any products already present
-    else:
-        # if one (or more) is present prefill
-        try:
-            products = next(
-                csv.reader(
-                    [
-                        MultiDict(Storage.read_data(bgc_id).get("Minimal")).get(
-                            "products"
-                        )
-                    ],
-                    skipinitialspace=True,
-                )
-            )
-        except:
-            products = []
-
-        for product in products:
-            if product not in [struct.data.get("name") for struct in form.structures]:
-                form.structures.append_entry(data={"name": product})
-    return render_template(
-        "edit/structure.html",
-        form=form,
-        bgc_id=bgc_id,
-        is_reviewer=current_user.has_role(Role.REVIEWER),
-        reviewed=reviewed,
+        reviewed=False,
+        next_form=next_form,
+        prev_form=prev_form,
+        form_description=wizard_page.description,
     )
 
 
@@ -143,80 +87,6 @@ def render_smiles() -> Union[str, response.Response]:
         return ""
 
     return draw_smiles_svg(smiles)
-
-
-@bp_edit.route("/<bgc_id>/bioact", methods=["GET", "POST"])
-@login_required
-def edit_activity(bgc_id: str) -> Union[str, response.Response]:
-    """Form to enter biological activity information
-
-    Args:
-        bgc_id (str): BGC identifier
-
-    Returns:
-        str | Response: rendered form templare or redirect to edit_bgc overview
-    """
-    if not is_valid_bgc_id(bgc_id):
-        return abort(403, "Invalid existing entry!")
-
-    if not request.form:
-        data: MultiDict = MultiDict(Storage.read_data(bgc_id).get("Bio_activity"))
-        form = FormCollection.bioact(data)
-        reviewed = data.get("reviewed")
-    else:
-        form = FormCollection.bioact(request.form)
-        reviewed = False
-    if request.method == "POST" and form.validate():
-        try:
-            Entry.save_activity(bgc_id=bgc_id, data=form.data)
-            Storage.save_data(bgc_id, "Bio_activity", request.form, current_user)
-            flash("Submitted activity information!")
-            return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id))
-        except ReferenceNotFound as e:
-            flash(str(e), "error")
-    else:
-        # prefill compounds
-        try:
-            products = next(
-                csv.reader(
-                    [
-                        MultiDict(Storage.read_data(bgc_id).get("Minimal")).get(
-                            "products"
-                        )
-                    ],
-                    skipinitialspace=True,
-                )
-            )
-        except:
-            products = []
-
-        for product in products:
-            if product not in [act.data.get("compound") for act in form.activities]:
-                form.activities.append_entry(data={"compound": product})
-    return render_template(
-        "edit/biological_activity.html",
-        bgc_id=bgc_id,
-        form=form,
-        is_reviewer=current_user.has_role(Role.REVIEWER),
-        reviewed=reviewed,
-    )
-
-
-@bp_edit.route("/<bgc_id>/biosynth", methods=["GET", "POST"])
-@login_required
-def edit_biosynth(bgc_id: str) -> str:
-    """Selection overview page for class-specific biosynthesis forms
-
-    Args:
-        bgc_id (str): BGC identifier
-
-    Returns:
-        str: rendered template
-    """
-    if not is_valid_bgc_id(bgc_id):
-        return abort(403, "Invalid existing entry!")
-
-    return render_template("edit/biosynthesis.html", bgc_id=bgc_id)
 
 
 @bp_edit.route("/class_buttons/<bgc_id>", methods=["POST"])
@@ -400,46 +270,6 @@ def edit_biosynth_modules(bgc_id: str) -> Union[str, response.Response]:
     )
 
 
-@bp_edit.route("/<bgc_id>/tailoring", methods=["GET", "POST"])
-@login_required
-def edit_tailoring(bgc_id: str) -> Union[str, response.Response]:
-    """Form to enter tailoring enzyme information
-
-    Args:
-        bgc_id (str): BGC identifier
-
-    Returns:
-        str | Response: rendered template or redirect to edit_bgc overview
-    """
-    if not is_valid_bgc_id(bgc_id):
-        return abort(403, "Invalid existing entry!")
-
-    if not request.form:
-        data: MultiDict = MultiDict(Storage.read_data(bgc_id).get("Tailoring"))
-        form = FormCollection.tailoring(data)
-        reviewed = data.get("reviewed")
-    else:
-        form = FormCollection.tailoring(request.form)
-        reviewed = False
-
-    if request.method == "POST" and form.validate():
-        try:
-            Entry.save_tailoring(bgc_id=bgc_id, data=form.data)
-            Storage.save_data(bgc_id, "Tailoring", request.form, current_user)
-            flash("Submitted tailoring information!")
-            return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id))
-        except ReferenceNotFound as e:
-            flash(str(e), "error")
-
-    return render_template(
-        "edit/tailoring.html",
-        bgc_id=bgc_id,
-        form=form,
-        is_reviewer=current_user.has_role(Role.REVIEWER),
-        reviewed=reviewed,
-    )
-
-
 @bp_edit.route("/render_smarts", methods=["POST"])
 @login_required
 def render_smarts() -> Union[str, response.Response]:
@@ -450,46 +280,6 @@ def render_smarts() -> Union[str, response.Response]:
         return ""
 
     return draw_smarts_svg(smarts)
-
-
-@bp_edit.route("/<bgc_id>/annotation", methods=["GET", "POST"])
-@login_required
-def edit_annotation(bgc_id: str) -> Union[str, response.Response]:
-    """Form to enter gene annotation information
-
-    Args:
-        bgc_id (str): BGC identifier
-
-    Returns:
-        str | Response: rendered template or redirect to edit_bgc overview
-    """
-    if not is_valid_bgc_id(bgc_id):
-        return abort(403, "Invalid existing entry!")
-
-    if not request.form:
-        data: MultiDict = MultiDict(Storage.read_data(bgc_id).get("Annotation"))
-        form = FormCollection.annotation(data)
-        reviewed = data.get("reviewed")
-    else:
-        form = FormCollection.annotation(request.form)
-        reviewed = False
-
-    if request.method == "POST" and form.validate():
-        try:
-            Entry.save_annotation(bgc_id=bgc_id, data=form.data)
-            Storage.save_data(bgc_id, "Annotation", request.form, current_user)
-            flash("Submitted annotation information!")
-            return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id))
-        except ReferenceNotFound as e:
-            flash(str(e), "error")
-
-    return render_template(
-        "edit/annotation.html",
-        bgc_id=bgc_id,
-        form=form,
-        is_reviewer=current_user.has_role(Role.REVIEWER),
-        reviewed=reviewed,
-    )
 
 
 @bp_edit.route("/add_field", methods=["POST"])
