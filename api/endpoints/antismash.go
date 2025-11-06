@@ -124,7 +124,7 @@ func AntismashWorker(db *gorm.DB) {
 		}
 
 		if result.RowsAffected == 0 {
-			slog.Info("[AntismashWorker] Nothing to do")
+			//slog.Info("[AntismashWorker] Nothing to do")
 			continue
 		}
 
