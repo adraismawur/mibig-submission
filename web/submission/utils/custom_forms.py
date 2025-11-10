@@ -36,8 +36,10 @@ def location_form_factory(required: bool = False):
     class LocationForm(Form):
         """Subform for location entry, use in combination with FormField"""
 
-        from_ = IntegerField("From", validators=valids)
-        to = IntegerField("To", validators=valids)
+        pass
+
+    setattr(LocationForm, "from", IntegerField("From", validators=valids))
+    setattr(LocationForm, "to", IntegerField("To", validators=valids))
 
     return LocationForm
 

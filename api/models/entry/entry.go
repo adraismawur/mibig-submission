@@ -219,6 +219,63 @@ func GetEntryFromAccession(db *gorm.DB, accession string) (*Entry, error) {
 	return &entry, nil
 }
 
+func GetEntryBiosynthesis(db *gorm.DB, accession string) (*biosynthesis.Biosynthesis, error) {
+	var entry Entry
+
+	err := db.
+		Table("entries").
+		Where("accession = ?", accession).
+		Preload("Biosynthesis.Classes").
+		Preload("Biosynthesis.Modules.Carriers.Location").
+		Preload("Biosynthesis.Modules.ModificationDomains.Location").
+		Preload("Biosynthesis.Modules.ATDomain.Location").
+		Preload("Biosynthesis.Modules.KSDomain.Location").
+		First(&entry).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &entry.Biosynthesis, nil
+}
+
+func GetEntryBiosynthesisModule(db *gorm.DB, accession string, name string) (*biosynthesis.BiosyntheticModule, error) {
+	var entry Entry
+
+	err := db.
+		Table("entries").
+		Where("accession = ?", accession).
+		Preload("Biosynthesis.Classes").
+		Preload("Biosynthesis.Modules.Carriers.Location").
+		Preload("Biosynthesis.Modules.ModificationDomains.Location").
+		Preload("Biosynthesis.Modules.ADomain.Location").
+		Preload("Biosynthesis.Modules.ATDomain.Location").
+		Preload("Biosynthesis.Modules.KSDomain.Location").
+		First(&entry).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(entry.Biosynthesis.Modules) == 0 {
+		return nil, nil
+	}
+
+	// TODO: use db to search. I can't figure out what gorm wants from me here. I am really regretting choosing gorm
+	// at this point. Just use raw sql and save yourself a lot of trouble. Maybe if their documentation was better
+	// I wouldn't spend hours of my life doing what I feel are very simple things. aaaaaaargh
+	for _, module := range entry.Biosynthesis.Modules {
+		if module.Name == name {
+			return &module, nil
+		}
+	}
+
+	// not found
+	return nil, nil
+}
+
 func GetUserEntries(db *gorm.DB, userId int) ([]string, error) {
 	var accessions []string
 

@@ -9,12 +9,12 @@
 {% block body %}
 
 <div class="form-wrapper">
-    <h4>Enter biosynthesis module information</h4>
+    <h4>Editing {{module}} module</h4>
 
     {{ macros.simple_divform(form, is_reviewer=is_reviewer, reviewed=reviewed) }}
 </div>
 <div class="container">
-    <a href="{{ url_for('edit.edit_biosynth', bgc_id=bgc_id) }}"><button id="back-btn"
+    <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id='biosynth') }}"><button id="back-btn"
             class="btn btn-outline-secondary">Back to
             Biosynthesis overview</button></a>
 </div>

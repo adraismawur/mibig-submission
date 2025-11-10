@@ -1,4 +1,7 @@
 from dataclasses import dataclass
+
+from flask import current_app, session
+import requests
 from submission.edit.forms.bio_synth import BioSynthForm
 from submission.edit.forms.compounds import CompoundsForm
 from submission.edit.forms.finalize import FinalizeForm
@@ -9,19 +12,35 @@ from submission.edit.forms.loci_tax import LociTaxonomyForm
 @dataclass
 class WizardPage:
     id: str
-    form: type
     description: str
+    form: type = None
+    api_endpoint: str = "/entry/<bgc_id>"
+    template: str = "wizard/main.html"
 
     def create_form(self, request_form, entry):
         return self.form(request_form, data=entry)
+    
+    def call_api(self, bgc_id):
+        replaced_api_endpoint = self.api_endpoint.replace("<bgc_id>", bgc_id)
+
+        response = requests.get(
+            f"{current_app.config['API_BASE']}" + replaced_api_endpoint,
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+        if response.status_code == 200:
+            entry = response.json()
+
+            return entry
+        return None
+
 
 
 wizard_pages = [
-    WizardPage("locitax", LociTaxonomyForm, "basic information"),
-    WizardPage("biosynth", BioSynthForm, "biosynthetic gene information"),
-    WizardPage("compounds", CompoundsForm, "compound information"),
-    WizardPage("gene_annotation", GeneAnnotationForm, "additional gene annotation"),
-    WizardPage("finalize", FinalizeForm, "final details"),
+    WizardPage("locitax", "basic information", LociTaxonomyForm),
+    WizardPage("biosynth", "biosynthetic information", BioSynthForm, api_endpoint="/entry/<bgc_id>/biosynth", template="wizard/biosynth.html"),
+    WizardPage("compounds", "compound information", CompoundsForm),
+    WizardPage("gene_annotation", "additional gene annotation", GeneAnnotationForm),
+    WizardPage("finalize", "final details", FinalizeForm),
 ]
 
 wizard_page_index = {page.id: i for i, page in enumerate(wizard_pages)}

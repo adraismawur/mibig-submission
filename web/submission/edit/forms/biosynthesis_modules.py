@@ -1,5 +1,6 @@
 from wtforms import (
     Form,
+    SelectField,
     StringField,
     HiddenField,
     BooleanField,
@@ -39,8 +40,6 @@ class CalForm(Form):
     )
     modification_domains = FieldList(
         FormField(ModificationDomainForm),
-        min_entries=1,
-        max_entries=1,
         widget=FieldListAddBtn(render_kw={"style": "display:none"}),
     )
     comments = StringField("Comments (Optional)")
@@ -56,21 +55,8 @@ class NRPS_I_Form(Form):
         validators=[validators.InputRequired()],
     )
     active = BooleanField("Active? *")
-    c_domain = FieldList(
-        FormField(CondensationDomain),
-        min_entries=1,
-        max_entries=1,
-        label="Condensation domain",
-        description="If no C domain is present, please skip to 'Adenylation domain'",
-        render_kw={"style": "display:none"},
-    )
-    a_domain = FieldList(
-        FormField(AdenylationDomain),
-        min_entries=1,
-        max_entries=1,
-        label="Adenylation domain",
-        render_kw={"style": "display:none"},
-    )
+    c_domain = FormField(CondensationDomain)
+    a_domain = FormField(AdenylationDomain)
     carriers = FieldList(
         FormField(CarrierDomain), widget=FieldListAddBtn(label="Add additional carrier")
     )
@@ -79,8 +65,6 @@ class NRPS_I_Form(Form):
     )
     modification_domains = FieldList(
         FormField(ModificationDomainForm),
-        min_entries=1,
-        max_entries=1,
         widget=FieldListAddBtn(render_kw={"style": "display:none"}),
     )
     comments = StringField("Comments (Optional)")
@@ -95,12 +79,7 @@ class NRPS_VI_Form(Form):
         validators=[validators.InputRequired()],
     )
     active = BooleanField("Active? *")
-    a_domain = FieldList(
-        FormField(AdenylationDomain),
-        min_entries=1,
-        max_entries=1,
-        render_kw={"style": "display:none"},
-    )
+    a_domain = FormField(AdenylationDomain)
     carriers = FieldList(
         FormField(CarrierDomain), widget=FieldListAddBtn(label="Add additional carrier")
     )
@@ -109,8 +88,6 @@ class NRPS_VI_Form(Form):
     )
     modification_domains = FieldList(
         FormField(ModificationDomainForm),
-        min_entries=1,
-        max_entries=1,
         widget=FieldListAddBtn(render_kw={"style": "display:none"}),
     )
     comments = StringField("Comments (Optional)")
@@ -131,8 +108,6 @@ class OtherForm(Form):
     )
     modification_domains = FieldList(
         FormField(ModificationDomainForm),
-        min_entries=1,
-        max_entries=1,
         widget=FieldListAddBtn(render_kw={"style": "display:none"}),
     )
     comments = StringField("Comments (Optional)")
@@ -153,8 +128,6 @@ class PKSIterativeForm(Form):
     ks_domain = None  # TODO: add ketosynthase
     at_domain = FieldList(
         FormField(AcyltransferaseForm),
-        min_entries=1,
-        max_entries=1,
         render_kw={"style": "display:none"},
     )
     carriers = FieldList(
@@ -165,8 +138,6 @@ class PKSIterativeForm(Form):
     )
     modification_domains = FieldList(
         FormField(ModificationDomainForm),
-        min_entries=1,
-        max_entries=1,
         widget=FieldListAddBtn(render_kw={"style": "display:none"}),
     )
     comments = StringField("Comments (Optional)")
@@ -174,7 +145,6 @@ class PKSIterativeForm(Form):
 
 class PKSModularForm(Form):
     _type = HiddenField("pks-modular")
-    name = StringField("Name *", validators=[validators.InputRequired()])
     genes = TagListField(
         "Gene(s) *",
         description="Comma separated list of genes in this module",
@@ -182,12 +152,7 @@ class PKSModularForm(Form):
     )
     active = BooleanField("Active? *")
     ks_domain = None  # TODO: add ketosynthase
-    at_domain = FieldList(
-        FormField(AcyltransferaseForm),
-        min_entries=1,
-        max_entries=1,
-        render_kw={"style": "display:none"},
-    )
+    at_domain = FormField(AcyltransferaseForm)
     carriers = FieldList(
         FormField(CarrierDomain), widget=FieldListAddBtn(label="Add additional carrier")
     )
@@ -196,8 +161,6 @@ class PKSModularForm(Form):
     )
     modification_domains = FieldList(
         FormField(ModificationDomainForm),
-        min_entries=1,
-        max_entries=1,
         widget=FieldListAddBtn(render_kw={"style": "display:none"}),
     )
     comments = StringField("Comments (Optional)")
@@ -221,8 +184,6 @@ class PKSTransForm(Form):
     )
     modification_domains = FieldList(
         FormField(ModificationDomainForm),
-        min_entries=1,
-        max_entries=1,
         widget=FieldListAddBtn(render_kw={"style": "display:none"}),
     )
     comments = StringField("Comments (Optional)")
@@ -263,3 +224,16 @@ class ModulesForm(Form):
         FormField(OtherForm), widget=FieldListAddBtn(label="Add additional module")
     )
     submit = SubmitField("Submit", widget=SubmitIndicator())
+
+
+module_map = {
+    "pks-modular": PKSModularForm,
+    "nrps-type1": NRPS_I_Form,
+    "pks-trans-at": PKSTransForm,
+}
+
+def get_module_form(module: str):
+    if module not in module_map:
+        return None
+
+    return module_map[module]

@@ -40,6 +40,20 @@ func EntryEndpoint(db *gorm.DB) Endpoint {
 			},
 			{
 				Method: "GET",
+				Path:   "/entry/:accession/biosynth",
+				Handler: func(c *gin.Context) {
+					getEntryBiosynthesis(db, c)
+				},
+			},
+			{
+				Method: "GET",
+				Path:   "/entry/:accession/biosynth/module/:name",
+				Handler: func(c *gin.Context) {
+					getEntryBiosynthesisModule(db, c)
+				},
+			},
+			{
+				Method: "GET",
 				Path:   "/entry/user/:userId",
 				Handler: func(c *gin.Context) {
 					getUserentries(db, c)
@@ -141,6 +155,51 @@ func getEntry(db *gorm.DB, c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, existingEntry)
+}
+
+func getEntryBiosynthesis(db *gorm.DB, c *gin.Context) {
+	accession := c.Param("accession")
+
+	exists, err := entry.GetEntryExists(db, accession)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+	}
+
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"message": "entry not found"})
+	}
+
+	entryBioSynth, err := entry.GetEntryBiosynthesis(db, accession)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+	}
+
+	c.JSON(http.StatusOK, entryBioSynth)
+}
+
+func getEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
+	accession := c.Param("accession")
+	name := c.Param("name")
+
+	exists, err := entry.GetEntryExists(db, accession)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+	}
+
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"message": "entry not found"})
+	}
+
+	entryBioSynth, err := entry.GetEntryBiosynthesisModule(db, accession, name)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+	}
+
+	c.JSON(http.StatusOK, entryBioSynth)
 }
 
 func getUserentries(db *gorm.DB, c *gin.Context) {

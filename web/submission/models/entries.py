@@ -78,6 +78,17 @@ class Entry(db.Model):
 
             return entry
         return None
+    
+    def get_module(bgc_id: str, name: str):
+        response = requests.get(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/module/{name}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+        if response.status_code == 200:
+            entry = response.json()
+
+            return entry
+        return None
 
     @staticmethod
     def get_or_create(bgc_id: str) -> "Entry":

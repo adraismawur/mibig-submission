@@ -97,8 +97,6 @@ module_types = [
     "pks-modular",
     "nrps-type1",
     "pks-trans-at",
-    "pks-modular-starter",
-    "pks-trans-at-starter",
 ]
 
 
@@ -109,14 +107,14 @@ class ModuleLocationForm(Form):
 
 class BiosynthModuleForm(Form):
     genes = FieldList(
-        StringField(),
+        StringField(default="Gene ID"),
         widget=FieldListAddBtn(label="Add gene"),
     )
+    name = StringField()
     type = SelectField(choices=module_types)
     active = BooleanField()
 
-
-class BiosynthSubForm(Form):
+class BioSynthForm(Form):
     classes = FieldList(
         FormField(BiosynthClassForm),
         min_entries=1,
@@ -131,7 +129,4 @@ class BiosynthSubForm(Form):
         widget=FieldListAddBtn(label="Add module"),
     )
 
-
-class BioSynthForm(Form):
-
-    biosynthesis = FormField(BiosynthSubForm)
+    submit = SubmitField("Save changes", widget=SubmitIndicator())

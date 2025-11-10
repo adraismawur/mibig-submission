@@ -26,6 +26,12 @@ type CarrierModuleDomain struct {
 	BetaBranching bool   `json:"beta_branching"`
 }
 
+type AModuleDomain struct {
+	BiosyntheticModuleDomain
+	References pq.StringArray `json:"substrates" gorm:"type:text[]"`
+	Substrates pq.StringArray `json:"substrates" gorm:"type:text[]"`
+}
+
 type ATModuleDomain struct {
 	BiosyntheticModuleDomain
 	Substrates pq.StringArray `json:"substrates" gorm:"type:text[]"`
@@ -49,14 +55,16 @@ type BiosyntheticModule struct {
 	Active              bool                       `json:"active"`
 	Carriers            []CarrierModuleDomain      `json:"carriers" gorm:"foreignKey:BiosyntheticModuleID"`
 	ModificationDomains []ModificationModuleDomain `json:"modification_domains,omitempty" gorm:"foreignKey:BiosyntheticModuleID"`
-	ATDomain            ATModuleDomain             `json:"at_domain,omitempty" gorm:"foreignKey:BiosyntheticModuleID"`
-	KSDomain            KSModuleDomain             `json:"ks_domain,omitempty" gorm:"foreignKey:BiosyntheticModuleID"`
+	ADomain             *AModuleDomain             `json:"a_domain,omitempty" gorm:"foreignKey:BiosyntheticModuleID"`
+	ATDomain            *ATModuleDomain            `json:"at_domain,omitempty" gorm:"foreignKey:BiosyntheticModuleID"`
+	KSDomain            *KSModuleDomain            `json:"ks_domain,omitempty" gorm:"foreignKey:BiosyntheticModuleID"`
 }
 
 func init() {
 	models.Models = append(models.Models, BiosyntheticModule{})
 	models.Models = append(models.Models, CarrierModuleDomain{})
 	models.Models = append(models.Models, ModificationModuleDomain{})
+	models.Models = append(models.Models, AModuleDomain{})
 	models.Models = append(models.Models, ATModuleDomain{})
 	models.Models = append(models.Models, KSModuleDomain{})
 	models.Models = append(models.Models, BiosyntheticModuleDomainLocation{})

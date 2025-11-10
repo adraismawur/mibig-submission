@@ -89,7 +89,6 @@ class CarrierDomain(Form):
     beta_branching = BooleanField("Beta-branching?")
     evidence = FieldList(
         FormField(SubtrateEvidenceForm),
-        min_entries=1,
         widget=FieldListAddBtn(label="Add additional evidence"),
     )
 
@@ -179,45 +178,67 @@ class OxidaseDomain(Form):
     gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
     location = FormField(location_form_factory(required=True), label="Location *")
 
+modification_domain_types = [
+    "other", 
+    "epimerase",
+    "ketoreductase",
+    "enoylreductase",
+    "oxidase",
+    "aminotransferase",
+    "branching",
+    "dehydratase",
+    "ligase",
+    "hydroxylase",
+    "product_template",
+    "thioreductase",
+    "methyltransferase",
+    "thioesterase",
+]
 
 class ModificationDomainForm(Form):
-    aminotransferase = FieldList(
-        FormField(AminotransferaseDomain),
-        widget=FieldListAddBtn(label="Add additional domain"),
-    )
-    cyclase = FieldList(
-        FormField(CyclaseDomain), widget=FieldListAddBtn(label="Add additional domain")
-    )
-    dehydratase = FieldList(
-        FormField(DehydrataseDomain),
-        widget=FieldListAddBtn(label="Add additional domain"),
-    )
-    enoylreductase = FieldList(
-        FormField(EnoylreductaseDomain),
-        widget=FieldListAddBtn(label="Add additional domain"),
-    )
-    epimerase = FieldList(
-        FormField(EpimeraseDomain),
-        widget=FieldListAddBtn(label="Add additional domain"),
-    )
-    hydroxylase = FieldList(
-        FormField(HydroxylaseDomain),
-        widget=FieldListAddBtn(label="Add additional domain"),
-    )
-    ketoreductase = FieldList(
-        FormField(KetoreductaseDomain),
-        widget=FieldListAddBtn(label="Add additional domain"),
-    )
-    methyltransferase = FieldList(
-        FormField(MethyltransferaseDomain),
-        widget=FieldListAddBtn(label="Add additional domain"),
-    )
-    oxidase = FieldList(
-        FormField(OxidaseDomain), widget=FieldListAddBtn(label="Add additional domain")
-    )
-    other = FieldList(
-        FormField(OtherDomain), widget=FieldListAddBtn(label="Add additional domain")
-    )
+    type = SelectField(choices=modification_domain_types)
+    gene = StringField()
+    location = FormField(location_form_factory())
+
+
+# class ModificationDomainForm(Form):
+#     aminotransferase = FieldList(
+#         FormField(AminotransferaseDomain),
+#         widget=FieldListAddBtn(label="Add additional domain"),
+#     )
+#     cyclase = FieldList(
+#         FormField(CyclaseDomain), widget=FieldListAddBtn(label="Add additional domain")
+#     )
+#     dehydratase = FieldList(
+#         FormField(DehydrataseDomain),
+#         widget=FieldListAddBtn(label="Add additional domain"),
+#     )
+#     enoylreductase = FieldList(
+#         FormField(EnoylreductaseDomain),
+#         widget=FieldListAddBtn(label="Add additional domain"),
+#     )
+#     epimerase = FieldList(
+#         FormField(EpimeraseDomain),
+#         widget=FieldListAddBtn(label="Add additional domain"),
+#     )
+#     hydroxylase = FieldList(
+#         FormField(HydroxylaseDomain),
+#         widget=FieldListAddBtn(label="Add additional domain"),
+#     )
+#     ketoreductase = FieldList(
+#         FormField(KetoreductaseDomain),
+#         widget=FieldListAddBtn(label="Add additional domain"),
+#     )
+#     methyltransferase = FieldList(
+#         FormField(MethyltransferaseDomain),
+#         widget=FieldListAddBtn(label="Add additional domain"),
+#     )
+#     oxidase = FieldList(
+#         FormField(OxidaseDomain), widget=FieldListAddBtn(label="Add additional domain")
+#     )
+#     other = FieldList(
+#         FormField(OtherDomain), widget=FieldListAddBtn(label="Add additional domain")
+#     )
 
 
 class MonomerForm(Form):
@@ -254,11 +275,9 @@ class AcyltransferaseForm(Form):
     inactive = BooleanField("Inactive?")
     substrates = FieldList(
         FormField(SubstrateForm),
-        min_entries=1,
         widget=FieldListAddBtn(label="Add additional substrate"),
     )
     evidence = FieldList(
         FormField(SubtrateEvidenceForm),
-        min_entries=1,
         widget=FieldListAddBtn(label="Add additional evidence"),
     )

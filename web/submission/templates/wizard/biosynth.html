@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block header %}
+<h2 class="edit-header">Editing {{ bgc_id }}</h2>
+{% endblock %}
+
+{% block body %}
+
+<div class="form-wrapper">
+    <h4>Enter {{ form_description }}</h4>
+
+    {{ macros.simple_divsubform(form.classes) }}
+
+    <div class="form-group">
+        <p class="form-label fw-bold">Modules</p>
+        <table>
+            <tr>
+                <th>Gene</th>
+                <th>Type</th>
+                <th></th>
+            </tr>
+            {% for module in form.modules %}
+            <tr>
+                <td>
+                    {{ module.genes[0] }}
+                </td>
+                <td>
+                    {{ module["type"]}}
+                </td>
+                <td>
+                    <a
+                        href="{{ url_for('edit.edit_biosynth_modules', bgc_id=bgc_id, name=module['name'].data, module=module['type'].data) }}">
+                        <button type="button" class="button">Edit module</button>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+<div class="container">
+    {% if prev_form %}
+    <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=prev_form.id) }}"><button id="back-btn"
+            class="btn btn-outline-secondary">Previous: {{ prev_form.description }}</button></a>
+    {%- endif %}
+    {% if next_form %}
+    <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=next_form.id) }}"><button id="back-btn"
+            class="btn btn-outline-secondary">Next: {{ next_form.description }}</button></a>
+    {%- endif %}
+
+</div>
+
+{% endblock %}

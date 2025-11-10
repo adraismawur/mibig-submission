@@ -22,6 +22,7 @@ from werkzeug.wrappers import response
 from wtforms.widgets import html_params
 from markupsafe import Markup
 
+from submission.edit.forms.biosynthesis_modules import get_module_form
 from submission.extensions import db
 from submission.edit import bp_edit
 from submission.edit.forms.form_collection import FormCollection
@@ -49,12 +50,15 @@ def edit_bgc(bgc_id: str, form_id: str) -> Union[str, response.Response]:
     Returns:
         str | Response: rendered form template or redirect to edit_bgc overview
     """
-    # try to fill data from existing entry
-    entry = Entry.get(bgc_id=bgc_id)
-
     # instantiate associated form
     wizard_page = get_wizard_page(form_id)
-    form = wizard_page.create_form(request.form, entry)
+
+    # try to fill data from existing entry
+    entry = wizard_page.call_api(bgc_id)
+
+    form = None
+    if wizard_page.form:
+        form = wizard_page.create_form(request.form, entry)
 
     prev_form = get_prev_page(form_id)
     next_form = get_next_page(form_id)
@@ -66,7 +70,7 @@ def edit_bgc(bgc_id: str, form_id: str) -> Union[str, response.Response]:
             flash(str(e), "error")
 
     return render_template(
-        "wizard/main.html",
+        wizard_page.template,
         form=form,
         bgc_id=bgc_id,
         is_reviewer=current_user.has_role(Role.REVIEWER),
@@ -124,15 +128,11 @@ def edit_biosynth_class(bgc_id: str, b_class: str) -> Union[str, response.Respon
     Returns:
         str | Response: rendered template or redirect to edit_bgc overview
     """
-    if not is_valid_bgc_id(bgc_id):
-        return abort(403, "Invalid existing entry!")
-
+    entry = Entry.get(bgc_id)
     if not request.form:
-        data: MultiDict = MultiDict(
-            Storage.read_data(bgc_id).get(f"BioSynth_{b_class}")
-        )
-        form = getattr(FormCollection, b_class)(data)
-        reviewed = data.get("reviewed")
+        
+        form = getattr(FormCollection, b_class)(data=entry)
+        reviewed = True
     else:
         form = getattr(FormCollection, b_class)(request.form)
         reviewed = False
@@ -142,7 +142,7 @@ def edit_biosynth_class(bgc_id: str, b_class: str) -> Union[str, response.Respon
             Entry.save_biosynth(bgc_id=bgc_id, b_class=b_class, data=form.data)
             Storage.save_data(bgc_id, f"BioSynth_{b_class}", request.form, current_user)
             flash(f"Submitted {b_class} biosynthesis information!")
-            return redirect(url_for("edit.edit_biosynth", bgc_id=bgc_id))
+            return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="biosynth"))
         except ReferenceNotFound as e:
             flash(str(e), "error")
 
@@ -233,9 +233,9 @@ def edit_biosynth_paths(bgc_id: str) -> Union[str, response.Response]:
     )
 
 
-@bp_edit.route("/<bgc_id>/biosynth/modules", methods=["GET", "POST"])
+@bp_edit.route("/<bgc_id>/biosynth/<name>/<module>", methods=["GET", "POST"])
 @login_required
-def edit_biosynth_modules(bgc_id: str) -> Union[str, response.Response]:
+def edit_biosynth_modules(bgc_id: str, name: str, module: str) -> Union[str, response.Response]:
     """Form to enter biosynthetic module information
 
     Args:
@@ -244,13 +244,11 @@ def edit_biosynth_modules(bgc_id: str) -> Union[str, response.Response]:
     Returns:
         str | Response: rendered template or redirect to edit_biosynth overview
     """
-    if not is_valid_bgc_id(bgc_id):
-        return abort(403, "Invalid existing entry!")
 
     if not request.form:
-        data: MultiDict = MultiDict(Storage.read_data(bgc_id).get("Biosynth_modules"))
-        form = FormCollection.modules(data)
-        reviewed = data.get("reviewed")
+        entry = Entry.get_module(bgc_id, name)
+        form = get_module_form(module)(data=entry)
+        reviewed = False
     else:
         form = FormCollection.modules(request.form)
         reviewed = False
@@ -259,12 +257,13 @@ def edit_biosynth_modules(bgc_id: str) -> Union[str, response.Response]:
         # TODO: save to db
         Storage.save_data(bgc_id, "Biosynth_modules", request.form, current_user)
         flash("Submitted biosynthetic module information!")
-        return redirect(url_for("edit.edit_biosynth", bgc_id=bgc_id))
+        return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="biosynth"))
 
     return render_template(
         "edit/biosynth_modules.html",
         bgc_id=bgc_id,
         form=form,
+        module=module,
         is_reviewer=current_user.has_role(Role.REVIEWER),
         reviewed=reviewed,
     )
@@ -284,7 +283,7 @@ def render_smarts() -> Union[str, response.Response]:
 
 @bp_edit.route("/add_field", methods=["POST"])
 @login_required
-def add_field() -> str:
+def add_field(field=None) -> str:
     """Render an additional field as a subform
 
     Whenever a FieldList triggers this request for the addition of an entry to the list,
@@ -298,6 +297,11 @@ def add_field() -> str:
     Returns:
         str: appended field rendered as a subform template string
     """
+
+    if field:
+        field.append_entry()
+        return
+
     # find directions to field to append an entry to
     directions = request.headers["Hx-Trigger"].split("-")
     # get origin of request to determine which form to use
