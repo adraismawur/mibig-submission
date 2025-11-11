@@ -114,7 +114,7 @@ def validate_loci(form, field):
     if not session['cached_genbank']:
         raise ValidationError("Cannot validate loci")
     
-    if form.data['from_'] == 0 and form.data['to'] == 0:
+    if form.data['from'] == 0 and form.data['to'] == 0:
         return
     
     sequence_len = int(session['cached_genbank']["slen"])

@@ -65,10 +65,10 @@ class Entry(db.Model):
 
             # we have a python keyword conflict and no good way to tell the form to
             # behave, so we have to mess with the json
-            for i in range(len(entry["loci"])):
-                entry["loci"][i]["location"]["from_"] = entry["loci"][i]["location"][
-                    "from"
-                ]
+            # for i in range(len(entry["loci"])):
+            #     entry["loci"][i]["location"]["from_"] = entry["loci"][i]["location"][
+            #         "from"
+            #     ]
 
             # and another
             if entry["biosynthesis"]["classes"] is not None:
@@ -120,9 +120,9 @@ class Entry(db.Model):
         # find) of naming a field something that is also a keyword in
         # python. Sigh
 
-        for i in range(len(data["loci"])):
-            data["loci"][i]["location"]["from"] = data["loci"][i]["location"]["from_"]
-            del data["loci"][i]["location"]["from_"]
+        # for i in range(len(data["loci"])):
+        #     data["loci"][i]["location"]["from"] = data["loci"][i]["location"]["from_"]
+        #     del data["loci"][i]["location"]["from_"]
 
         response = requests.post(
             f"{current_app.config['API_BASE']}/entry",
