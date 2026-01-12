@@ -69,6 +69,17 @@ def edit_bgc(bgc_id: str, form_id: str) -> Union[str, response.Response]:
         except ReferenceNotFound as e:
             flash(str(e), "error")
 
+    # get list of antismash accessions associated with this entry
+    antismash_list_endpoint = "/antismash/list/"
+    response = requests.get(
+            f"{current_app.config['API_BASE']}" + antismash_list_endpoint + bgc_id,
+        headers={"Authorization": f"Bearer {session['token']}"},
+    )
+    if response.status_code == 200:
+        antismash_accessions = response.json()
+
+    antismash_json_url = current_app.config['API_BASE'] + "/antismash/json/"
+
     return render_template(
         wizard_page.template,
         form=form,
@@ -78,6 +89,8 @@ def edit_bgc(bgc_id: str, form_id: str) -> Union[str, response.Response]:
         next_form=next_form,
         prev_form=prev_form,
         form_description=wizard_page.description,
+        antismash_json_url=antismash_json_url,
+        antismash_accessions=antismash_accessions
     )
 
 

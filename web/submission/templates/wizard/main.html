@@ -8,6 +8,28 @@
 
 {% block body %}
 
+<bgc-region-viewer-container id="viewer"></bgc-region-viewer-container>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
+<script type="module">
+    import('/static/js/bgc-viewer-components.umd.js').then(async () => {
+        // Load your antiSMASH JSON data
+        const accessions = {{ antismash_accessions | tojson }};
+        const antismashJsonUrl = '{{ antismash_json_url }}'
+        const response = await fetch(antismashJsonUrl + accessions[0]);
+        const data = await response.json();
+
+        // Create a data provider
+        const provider = new BGCViewerComponents.JSONFileProvider(data);
+
+        // Get the viewer element and configure it
+        const viewer = document.getElementById('viewer');
+        viewer.dataProvider = provider;
+        viewer.setAttribute('record-id', data.records[0].id);
+    })
+</script>
+
 <div class="form-wrapper">
     <h4>Enter {{ form_description }}</h4>
 
@@ -15,12 +37,14 @@
 </div>
 <div class="container">
     {% if prev_form %}
-        <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=prev_form.id) }}"><button id="back-btn" class="btn btn-outline-secondary">Previous: {{ prev_form.description }}</button></a>
+    <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=prev_form.id) }}"><button id="back-btn"
+            class="btn btn-outline-secondary">Previous: {{ prev_form.description }}</button></a>
     {%- endif %}
     {% if next_form %}
-        <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=next_form.id) }}"><button id="back-btn" class="btn btn-outline-secondary">Next: {{ next_form.description }}</button></a>
+    <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=next_form.id) }}"><button id="back-btn"
+            class="btn btn-outline-secondary">Next: {{ next_form.description }}</button></a>
     {%- endif %}
-    
+
 </div>
 
 {% endblock %}
