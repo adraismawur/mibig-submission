@@ -62,6 +62,20 @@ func AntismashEndpoint(db *gorm.DB) Endpoint {
 				},
 			},
 			{
+				Method: http.MethodGet,
+				Path:   "/antismash/json/:accession",
+				Handler: func(c *gin.Context) {
+					getAntismashJson(db, c)
+				},
+			},
+			{
+				Method: http.MethodGet,
+				Path:   "/antismash/list/:entry_accession",
+				Handler: func(c *gin.Context) {
+					getRecordAntismashAccessions(db, c)
+				},
+			},
+			{
 				Method: http.MethodPost,
 				Path:   "/antismash",
 				Handler: func(c *gin.Context) {
@@ -91,6 +105,34 @@ func getAntismashStatus(db *gorm.DB, c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, status)
+}
+
+func getAntismashJson(db *gorm.DB, c *gin.Context) {
+	accession := c.Param("accession")
+
+	if accession == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no accession given"})
+		return
+	}
+
+	jsonPath := path2.Join(config.Envs["DATA_PATH"], "antismash", accession, accession+".json")
+
+	c.File(jsonPath)
+}
+
+func getRecordAntismashAccessions(db *gorm.DB, c *gin.Context) {
+	entryAccession := c.Param("entry_accession")
+
+	if entryAccession == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no entry accession given"})
+		return
+	}
+
+	var accession []string
+
+	db.Table("antismash_runs").Where("bgc_id = ?", entryAccession).Select("accession").Find(&accession)
+
+	c.JSON(http.StatusOK, accession)
 }
 
 func startAntismashRun(db *gorm.DB, c *gin.Context) {

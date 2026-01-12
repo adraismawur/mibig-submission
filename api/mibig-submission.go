@@ -9,6 +9,7 @@ import (
 	"github.com/adraismawur/mibig-submission/middleware"
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/models/entry"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"log/slog"
 	path2 "path"
@@ -32,6 +33,9 @@ func main() {
 
 	slog.Info("Registering middleware")
 	router.Use(middleware.AuthMiddleware())
+
+	// of cors we use cors
+	router.Use(cors.Default())
 
 	slog.Info("Registering endpoints")
 	endpoints.RegisterEndpointHandlers(router, dbConnection)
