@@ -1,0 +1,33 @@
+{% macro bgc_viewer(antismash_accessions, antismash_json_url) %}
+
+
+<div id="bgc-viewer-container">
+    <div id="bgc-viewer-region-browser">
+        {% for accession in antismash_accessions %}
+            {{ accession }}
+        {% endfor %}
+    </div>
+    <bgc-region-viewer-container id="viewer" class="viewer-container"></bgc-region-viewer-container>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
+<script type="module">
+    import('/static/js/bgc-viewer-components.umd.js').then(async () => {
+        // Load your antiSMASH JSON data
+        const accessions = {{ antismash_accessions | tojson }};
+        const antismashJsonUrl = '{{ antismash_json_url }}'
+        const response = await fetch(antismashJsonUrl + accessions[0]);
+        const data = await response.json();
+
+        // Create a data provider
+        const provider = new BGCViewerComponents.JSONFileProvider(data);
+
+        // Get the viewer element and configure it
+        const viewer = document.getElementById('viewer');
+        viewer.dataProvider = provider;
+        viewer.setAttribute('record-id', data.records[0].id);
+    })
+</script>
+
+{% endmacro %}

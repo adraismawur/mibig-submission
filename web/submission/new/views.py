@@ -47,7 +47,7 @@ def as_status(as_task_id: str) -> Union[str, response.Response]:
     """
 
     response = requests.get(
-        f"{current_app.config['API_BASE']}/antismash/{as_task_id}",
+        f"{current_app.config['API_BASE']}/antismash?guid={as_task_id}",
         headers={"Authorization": f"Bearer {session['token']}"},
     )
 

@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -49,12 +50,7 @@ func AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
-func ValidateAuthHeader(c *gin.Context, token *models.Token) bool {
-	if c.GetHeader("Authorization") == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return false
-	}
-
+func GetAuthHeaderToken(c *gin.Context) (string, error) {
 	expectedPrefix := "Bearer "
 
 	// check there is a token behind prefix and check if the prefix is correct
@@ -62,7 +58,7 @@ func ValidateAuthHeader(c *gin.Context, token *models.Token) bool {
 
 	if !validBearer {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return false
+		return "", errors.New("invalid bearer prefix")
 	}
 
 	// get the actual token
@@ -70,6 +66,21 @@ func ValidateAuthHeader(c *gin.Context, token *models.Token) bool {
 
 	if bearerToken == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return "", errors.New("empty bearer token")
+	}
+
+	return bearerToken, nil
+}
+
+func ValidateAuthHeader(c *gin.Context, token *models.Token) bool {
+	if c.GetHeader("Authorization") == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return false
+	}
+
+	bearerToken, err := GetAuthHeaderToken(c)
+
+	if err != nil {
 		return false
 	}
 

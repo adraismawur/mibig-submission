@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"github.com/adraismawur/mibig-submission/middleware"
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/models/entry"
 	"github.com/adraismawur/mibig-submission/util/constants"
@@ -108,14 +109,21 @@ func createEntry(db *gorm.DB, c *gin.Context) {
 		},
 	}
 
-	// todo: replace with something meaningful
-	var err error
-	newEntry.Accession, err = entry_utils.GenerateNewAccession(db)
+	bearerToken, err := middleware.GetAuthHeaderToken(c)
+
+	if err != nil {
+		return
+	}
+
+	user, err := models.GetUserFromToken(bearerToken)
 
 	if err != nil {
 		slog.Error("[endpoints] [submission] Failed to generate new entry accession", "error", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to generate new entry accession"})
+		return
 	}
+
+	newEntry.Accession = entry_utils.GeneratePlaceholderAccession(*user)
 
 	db.Create(&newEntry)
 

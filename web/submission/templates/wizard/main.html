@@ -8,27 +8,8 @@
 
 {% block body %}
 
-<bgc-region-viewer-container id="viewer"></bgc-region-viewer-container>
-
-<script src="https://d3js.org/d3.v7.min.js"></script>
-
-<script type="module">
-    import('/static/js/bgc-viewer-components.umd.js').then(async () => {
-        // Load your antiSMASH JSON data
-        const accessions = {{ antismash_accessions | tojson }};
-        const antismashJsonUrl = '{{ antismash_json_url }}'
-        const response = await fetch(antismashJsonUrl + accessions[0]);
-        const data = await response.json();
-
-        // Create a data provider
-        const provider = new BGCViewerComponents.JSONFileProvider(data);
-
-        // Get the viewer element and configure it
-        const viewer = document.getElementById('viewer');
-        viewer.dataProvider = provider;
-        viewer.setAttribute('record-id', data.records[0].id);
-    })
-</script>
+{% import 'bgc_viewer.html' as bgc_viewer %}
+{{ bgc_viewer.bgc_viewer(antismash_accessions, antismash_json_url) }}
 
 <div class="form-wrapper">
     <h4>Enter {{ form_description }}</h4>

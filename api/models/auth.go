@@ -32,6 +32,16 @@ func ParseToken(token string) (Token, error) {
 	panic("Invalid token")
 }
 
+func GetUserFromToken(token string) (*User, error) {
+	parsedToken, err := ParseToken(token)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &parsedToken.User, nil
+}
+
 func GenerateToken(user User) (string, error) {
 	issuedAt := time.Now()
 	lifetime, err := strconv.ParseInt(config.Envs["JWT_LIFETIME"], 10, 64)

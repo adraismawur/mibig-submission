@@ -56,7 +56,7 @@ func AntismashEndpoint(db *gorm.DB) Endpoint {
 		Routes: []Route{
 			{
 				Method: http.MethodGet,
-				Path:   "/antismash/:guid",
+				Path:   "/antismash",
 				Handler: func(c *gin.Context) {
 					getAntismashStatus(db, c)
 				},
@@ -70,7 +70,7 @@ func AntismashEndpoint(db *gorm.DB) Endpoint {
 			},
 			{
 				Method: http.MethodGet,
-				Path:   "/antismash/list/:entry_accession",
+				Path:   "/antismash/list/:bgc_id",
 				Handler: func(c *gin.Context) {
 					getRecordAntismashAccessions(db, c)
 				},
@@ -87,20 +87,43 @@ func AntismashEndpoint(db *gorm.DB) Endpoint {
 }
 
 func getAntismashStatus(db *gorm.DB, c *gin.Context) {
-	taskGuid := c.Param("guid")
+	taskGuid := c.Query("guid")
+	taskAccession := c.Query("accession")
+	taskBGCID := c.Query("bgc_id")
 
-	if taskGuid == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no guid given"})
+	if taskGuid == "" && taskAccession == "" && taskBGCID == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Must provide a guid, accession or bgc_id"})
 		return
 	}
 
 	status := models.AntismashRun{}
 
-	err := db.Where("guid = ?", taskGuid).First(&status).Error
+	query := db
+
+	if taskGuid != "" {
+		query = query.Where("guid = ?", taskGuid)
+	}
+
+	if taskAccession != "" {
+		query = query.Where("accession = ?", taskAccession)
+	}
+
+	if taskBGCID != "" {
+		query = query.Where("bgc_id = ?", taskBGCID)
+	}
+
+	query = query.Find(&status)
+
+	err := query.Error
 
 	if err != nil {
 		slog.Error("[Antismash] Get Antismash Status Error", "err", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Antismash Status Error"})
+		return
+	}
+
+	if query.RowsAffected == 0 {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "antismash run or runs not found"})
 		return
 	}
 
@@ -121,7 +144,7 @@ func getAntismashJson(db *gorm.DB, c *gin.Context) {
 }
 
 func getRecordAntismashAccessions(db *gorm.DB, c *gin.Context) {
-	entryAccession := c.Param("entry_accession")
+	entryAccession := c.Param("bgc_id")
 
 	if entryAccession == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no entry accession given"})

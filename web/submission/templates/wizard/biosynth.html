@@ -8,6 +8,9 @@
 
 {% block body %}
 
+{% import 'bgc_viewer.html' as bgc_viewer %}
+{{ bgc_viewer.bgc_viewer(antismash_accessions, antismash_json_url) }}
+
 <div class="form-wrapper">
     <h4>Enter {{ form_description }}</h4>
 
