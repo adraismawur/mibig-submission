@@ -114,6 +114,7 @@ class BiosynthModuleForm(Form):
     type = SelectField(choices=module_types)
     active = BooleanField()
 
+
 class BioSynthForm(Form):
     classes = FieldList(
         FormField(BiosynthClassForm),

@@ -25,11 +25,15 @@ import (
 type AntismashResultFeature struct {
 	Type       string `json:"type"`
 	Qualifiers struct {
+		Gene             []string `json:"gene,omitempty"`
 		Product          []string `json:"product,omitempty"`
 		DBCrossReference []string `json:"db_xref,omitempty"`
 		Organism         []string `json:"organism,omitempty"`
 		GeneKind         []string `json:"gene_kind,omitempty"`
 		ProteinID        []string `json:"protein_id,omitempty"`
+		LocusTags        []string `json:"locus_tags,omitempty"`
+		Type             []string `json:"type,omitempty"`
+		Domains          []string `json:"domains,omitempty"`
 		Note             []string `json:"note,omitempty"`
 	} `json:"qualifiers"`
 }
@@ -43,6 +47,11 @@ type AntismashResult struct {
 		Sequence string                   `json:"sequence"`
 		Features []AntismashResultFeature `json:"features"`
 	} `json:"records"`
+}
+
+var moduleTypeMap = map[string]string{
+	"type 1 polyketide synthase": "pks-modular",
+	"pks":                        "pks-modular",
 }
 
 func init() {
@@ -304,6 +313,9 @@ func ReadAntismashJson(asJsonPath string) (*AntismashResult, error) {
 
 func PrefillAntismash(entry *entry.Entry, antismashResult *AntismashResult) {
 	var err error
+	// moduleName is an integer here for easy counting, but will be converted to a string later
+	moduleName := 1
+
 	for _, record := range antismashResult.Records {
 		for _, feature := range record.Features {
 			if feature.Type == "source" {
@@ -317,14 +329,31 @@ func PrefillAntismash(entry *entry.Entry, antismashResult *AntismashResult) {
 				err = PrefillAntismashBiosynthesisClass(entry, &feature)
 			}
 
-			if feature.Type == "CDS" {
-				if len(feature.Qualifiers.GeneKind) == 0 || feature.Qualifiers.GeneKind[0] != "biosynthetic" {
-					continue
-				}
-				err = PrefillAntismashBiosynthesisModule(entry, &feature)
+			if feature.Type == "aSModule" {
+				//if len(feature.Qualifiers.GeneKind) == 0 || feature.Qualifiers.GeneKind[0] != "biosynthetic" {
+				//	continue
+				//}
+
+				module, err := GenerateAntismashBiosynthesisModule(&feature, moduleName)
+
 				if err != nil {
 					slog.Error("[Antismash] Could not parse biosynthesis", "error", err)
+					continue
 				}
+
+				val, exists := moduleTypeMap[module.Type]
+
+				// case where we catch a CDS that is marked as biosynthetic, but we don't cover the type
+				if !exists {
+					continue
+				}
+
+				// convert the type into the type as it is in MIBiG
+				module.Type = val
+
+				entry.Biosynthesis.Modules = append(entry.Biosynthesis.Modules, *module)
+
+				moduleName++
 			}
 		}
 	}
@@ -372,18 +401,117 @@ func PrefillAntismashBiosynthesisClass(entry *entry.Entry, feature *AntismashRes
 	return nil
 }
 
-func PrefillAntismashBiosynthesisModule(entry *entry.Entry, feature *AntismashResultFeature) error {
-	if feature.Type != "CDS" {
-		return errors.New("antismash feature is not a CDS feature")
+func GenerateAntismashBiosynthesisModule(feature *AntismashResultFeature, moduleName int) (*biosynthesis.BiosyntheticModule, error) {
+	//if feature.Type != "CDS" {
+	//	return nil, errors.New("antismash feature is not a CDS feature")
+	//}
+	//
+	//var module biosynthesis.BiosyntheticModule
+	//
+	//module.Genes = append(module.Genes, feature.Qualifiers.ProteinID[0])
+	//module.Active = true
+	//module.Type = feature.Qualifiers.Product[0]
+	//module.Name = strconv.Itoa(moduleName)
+	//
+	//var err error
+	//
+	//module.ATDomain, err = GeneratePKSATDomain(feature, module)
+	//
+	//if err != nil {
+	//	slog.Error("[Antismash] Could not generate PKS AT domain", "error", err)
+	//	return nil, err
+	//}
+	//
+	//return &module, nil
+
+	if feature.Type != "aSModule" {
+		return nil, errors.New("antismash feature is not a aSModule feature")
 	}
 
 	var module biosynthesis.BiosyntheticModule
 
-	module.Genes = append(module.Genes, feature.Qualifiers.ProteinID[0])
+	module.Genes = append(module.Genes, feature.Qualifiers.LocusTags[0])
 	module.Active = true
-	module.Type = feature.Qualifiers.Product[0]
+	module.Type = feature.Qualifiers.Type[0]
+	module.Name = strconv.Itoa(moduleName)
 
-	entry.Biosynthesis.Modules = append(entry.Biosynthesis.Modules, module)
+	var err error
 
-	return nil
+	module.ATDomain, err = GeneratePKSATDomain(feature)
+
+	if err != nil {
+		slog.Error("[Antismash] Could not generate PKS AT domain", "error", err)
+		return nil, err
+	}
+
+	for _, domainString := range feature.Qualifiers.Domains {
+
+		parts := strings.Split(domainString, "_")
+		domain := strings.Split(parts[2], ".")[0]
+
+		switch domain {
+		case "ACP":
+			carrier, err := GenerateCarrier(module.Genes[0], "ACP")
+
+			if err != nil {
+				slog.Error("[Antismash] Could not generate PKS carrier", "error", err)
+			}
+
+			module.Carriers = append(module.Carriers, *carrier)
+		case "PKS":
+			domainType := strings.Split(parts[3], ".")[0]
+			modificationDomain, err := GenerateModificationDomain(module.Genes[0], domainType)
+
+			if err != nil {
+				slog.Info("[Antismash] Could not generate modification domain", "error", err)
+				continue
+			}
+
+			module.ModificationDomains = append(module.ModificationDomains, *modificationDomain)
+		}
+	}
+
+	return &module, nil
+}
+
+func GeneratePKSATDomain(feature *AntismashResultFeature) (*biosynthesis.ATModuleDomain, error) {
+	atDomain := biosynthesis.ATModuleDomain{}
+
+	atDomain.Gene = feature.Qualifiers.LocusTags[0]
+	atDomain.Location.From = -1
+	atDomain.Location.To = -1
+
+	return &atDomain, nil
+}
+
+func GenerateCarrier(gene string, subType string) (*biosynthesis.CarrierModuleDomain, error) {
+	domain := biosynthesis.CarrierModuleDomain{}
+
+	domain.Gene = gene
+	domain.Subtype = subType
+	domain.Location.From = -1
+	domain.Location.To = -1
+
+	return &domain, nil
+}
+
+var modificationDomainTypeMap = map[string]string{
+	"DH": "dehydratase",
+	"KR": "ketoreductase",
+}
+
+func GenerateModificationDomain(gene string, domainType string) (*biosynthesis.ModificationModuleDomain, error) {
+	domain := biosynthesis.ModificationModuleDomain{}
+
+	if mibigDomainType, ok := modificationDomainTypeMap[domainType]; !ok {
+		return nil, errors.New("modification domain type not supported")
+	} else {
+		domain.DomainType = mibigDomainType
+	}
+
+	domain.Gene = gene
+	domain.Location.From = -1
+	domain.Location.To = -1
+
+	return &domain, nil
 }
