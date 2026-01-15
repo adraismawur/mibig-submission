@@ -122,7 +122,7 @@ class AnnotationForm(Form):
             MutationPhenotype, label="Mutation phenotype (Optional)"
         )
 
-    gene_id = GeneIdField("Gene *", validators=[validators.InputRequired()])
+    id = GeneIdField("Gene *", validators=[validators.InputRequired()])
     name = StringField("Gene name", description="Commonly used gene name (e.g. scbA)")
     product = StringField(
         "Gene product name",
