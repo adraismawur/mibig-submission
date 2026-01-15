@@ -6,12 +6,14 @@ import (
 )
 
 type Location struct {
+	ID      int64  `json:"-"`
 	LocusID int64  `json:"-"`
 	Start   *int64 `json:"from"`
 	End     *int64 `json:"to"`
 }
 
 type LocusEvidence struct {
+	ID         int64          `json:"-"`
 	LocusID    int64          `json:"-"`
 	Method     string         `json:"method"`
 	References pq.StringArray `json:"references,omitempty" gorm:"type:text[]"`
