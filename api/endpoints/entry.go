@@ -8,6 +8,7 @@ import (
 	"github.com/adraismawur/mibig-submission/util/entry_utils"
 	"github.com/beevik/guid"
 	"github.com/gin-gonic/gin"
+	"github.com/goccy/go-json"
 	"gorm.io/gorm"
 	"log/slog"
 	"net/http"
@@ -145,6 +146,7 @@ func createEntry(db *gorm.DB, c *gin.Context) {
 
 func getEntry(db *gorm.DB, c *gin.Context) {
 	accession := c.Param("accession")
+	formatJson := c.Query("pretty") == "true"
 
 	exists, err := entry.GetEntryExists(db, accession)
 
@@ -154,6 +156,7 @@ func getEntry(db *gorm.DB, c *gin.Context) {
 
 	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"message": "entry not found"})
+		return
 	}
 
 	existingEntry, err := entry.GetEntryFromAccession(db, accession)
@@ -162,7 +165,21 @@ func getEntry(db *gorm.DB, c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 	}
 
-	c.JSON(http.StatusOK, existingEntry)
+	if !formatJson {
+		c.JSON(http.StatusOK, existingEntry)
+		return
+	}
+
+	formattedJson, err := json.MarshalIndent(existingEntry, "", "  ")
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		slog.Error("[endpoints] [entry] Failed to marshal existing entry", "error", err.Error())
+		return
+	}
+
+	c.Header("Content-Type", "application/json")
+	c.String(http.StatusOK, string(formattedJson))
 }
 
 func getEntryBiosynthesis(db *gorm.DB, c *gin.Context) {
