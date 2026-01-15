@@ -16,7 +16,7 @@
     import('/static/js/bgc-viewer-components.umd.js').then(async () => {
         // Load your antiSMASH JSON data
         const accessions = {{ antismash_accessions | tojson }};
-        const antismashJsonUrl = '{{ antismash_json_url }}'
+        const antismashJsonUrl = '{{ antismash_json_url }}';
         const response = await fetch(antismashJsonUrl + accessions[0]);
         const data = await response.json();
 
