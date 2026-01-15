@@ -11,6 +11,7 @@ from submission.edit import bp_edit
 from submission.auth import bp_auth
 from submission.admin import bp_admin
 from submission.antismash import bp_as
+from submission.diff import bp_diff
 from submission.models import User
 
 
@@ -92,4 +93,5 @@ def register_blueprints(app: Flask) -> Flask:
     app.register_blueprint(bp_auth)
     app.register_blueprint(bp_admin)
     app.register_blueprint(bp_as)
+    app.register_blueprint(bp_diff)
     return app

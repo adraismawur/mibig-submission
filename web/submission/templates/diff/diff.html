@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block header %}
+<h2 class="edit-header">Viewing diff</h2>
+<script type="application/javascript" src="/static/js/diff.min.js"></script>
+{% endblock %}
+
+{% block body %}
+
+<div id="diff-container"></div>
+
+<script type="application/javascript">
+    const diffContainer = document.getElementById('diff-container');
+    const leftFileName = '{{ left }}';
+    const rightFileName = '{{ right }}';
+    const mibigJsonUrl = '{{ mibig_json_url }}';
+
+    
+    let getDiff = async () => {
+            const leftResponse = await fetch(mibigJsonUrl + leftFileName + '?pretty=true');
+        const leftData = await leftResponse.json();
+        
+        const rightResponse = await fetch(mibigJsonUrl + rightFileName + '?pretty=true');
+        const rightData = await rightResponse.json();
+        
+        const diff = Diff.diffJson(leftData, rightData);
+
+        diff.forEach((part) => {
+            // green for additions, red for deletions
+            // grey for common parts
+
+            const color = part.added ? 'green' :
+                part.removed ? 'red' : 'grey';
+            span = document.createElement('div');
+            span.style.color = color;
+            span.appendChild(document
+                .createTextNode(part.value));
+            diffContainer.appendChild(span);
+        });
+    };
+
+    getDiff();
+
+
+</script>
+
+
+{% endblock %}
