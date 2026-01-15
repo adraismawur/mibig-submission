@@ -7,6 +7,7 @@ import (
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/models/entry"
 	"github.com/adraismawur/mibig-submission/models/entry/biosynthesis"
+	"github.com/adraismawur/mibig-submission/models/entry/gene"
 	"github.com/adraismawur/mibig-submission/util"
 	"github.com/beevik/guid"
 	"github.com/gin-gonic/gin"
@@ -318,22 +319,20 @@ func PrefillAntismash(entry *entry.Entry, antismashResult *AntismashResult) {
 
 	for _, record := range antismashResult.Records {
 		for _, feature := range record.Features {
-			if feature.Type == "source" {
+			switch feature.Type {
+			case "source": // source contains taxonomy information
 				err = PrefillAntismashTaxonomy(entry, &feature)
 				if err != nil {
 					slog.Error("[Antismash] Could not parse taxonomy", "error", err)
 				}
-			}
-
-			if feature.Type == "region" {
+				break
+			case "region": // regions contain class and subclass information
 				err = PrefillAntismashBiosynthesisClass(entry, &feature)
-			}
-
-			if feature.Type == "aSModule" {
-				//if len(feature.Qualifiers.GeneKind) == 0 || feature.Qualifiers.GeneKind[0] != "biosynthetic" {
-				//	continue
-				//}
-
+				if err != nil {
+					slog.Error("[Antismash] Could not parse biosynthetic class", "error", err)
+				}
+				break
+			case "aSModule": // these are modules we want to add to the biosynthetic modules part
 				module, err := GenerateAntismashBiosynthesisModule(&feature, moduleName)
 
 				if err != nil {
@@ -354,6 +353,26 @@ func PrefillAntismash(entry *entry.Entry, antismashResult *AntismashResult) {
 				entry.Biosynthesis.Modules = append(entry.Biosynthesis.Modules, *module)
 
 				moduleName++
+				break
+			case "CDS": // CDS can be a biosynthetic gene kind, which has to be added to the annotations
+				if len(feature.Qualifiers.GeneKind) == 0 || feature.Qualifiers.GeneKind[0] != "biosynthetic" {
+					continue
+				}
+
+				annotation, err := GenerateAnnotation(feature)
+
+				if err != nil {
+					slog.Error("[Antismash] Could not parse annotation", "error", err)
+					continue
+				}
+
+				if entry.Genes == nil {
+					entry.Genes = &gene.Gene{}
+				}
+
+				entry.Genes.Annotations = append(entry.Genes.Annotations, *annotation)
+
+				break
 			}
 		}
 	}
@@ -402,28 +421,6 @@ func PrefillAntismashBiosynthesisClass(entry *entry.Entry, feature *AntismashRes
 }
 
 func GenerateAntismashBiosynthesisModule(feature *AntismashResultFeature, moduleName int) (*biosynthesis.BiosyntheticModule, error) {
-	//if feature.Type != "CDS" {
-	//	return nil, errors.New("antismash feature is not a CDS feature")
-	//}
-	//
-	//var module biosynthesis.BiosyntheticModule
-	//
-	//module.Genes = append(module.Genes, feature.Qualifiers.ProteinID[0])
-	//module.Active = true
-	//module.Type = feature.Qualifiers.Product[0]
-	//module.Name = strconv.Itoa(moduleName)
-	//
-	//var err error
-	//
-	//module.ATDomain, err = GeneratePKSATDomain(feature, module)
-	//
-	//if err != nil {
-	//	slog.Error("[Antismash] Could not generate PKS AT domain", "error", err)
-	//	return nil, err
-	//}
-	//
-	//return &module, nil
-
 	if feature.Type != "aSModule" {
 		return nil, errors.New("antismash feature is not a aSModule feature")
 	}
@@ -514,4 +511,18 @@ func GenerateModificationDomain(gene string, domainType string) (*biosynthesis.M
 	domain.Location.To = -1
 
 	return &domain, nil
+}
+
+func GenerateAnnotation(feature AntismashResultFeature) (*gene.GeneAnnotation, error) {
+	if feature.Type != "CDS" {
+		return nil, errors.New("antismash feature is not a CDS feature")
+	}
+
+	annotation := gene.GeneAnnotation{}
+
+	annotation.Name = feature.Qualifiers.Gene[0]
+	annotation.Accession = feature.Qualifiers.ProteinID[0]
+	annotation.Product = feature.Qualifiers.Product[0]
+
+	return &annotation, nil
 }
