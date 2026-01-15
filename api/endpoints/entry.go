@@ -88,7 +88,7 @@ func createEntry(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	var currentDate = time.Now().Format("YYYY-MM-DD")
+	var currentDate = time.Now().Format(time.DateOnly)
 
 	newEntry.Changelog = entry.Changelog{
 		Releases: []entry.Release{
