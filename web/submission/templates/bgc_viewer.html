@@ -7,13 +7,23 @@
             {{ accession }}
         {% endfor %}
     </div>
-    <bgc-region-viewer-container id="viewer" class="viewer-container"></bgc-region-viewer-container>
+    <bgc-region-viewer id="viewer" class="viewer"></bgc-region-viewer>
 </div>
 
 <script src="https://d3js.org/d3.v7.min.js"></script>
 
 <script type="module">
     import('/static/js/bgc-viewer-components.umd.js').then(async () => {
+        // const viewer = new BGCViewerComponents.TrackViewer({
+        //     container: '#viewer-container',
+        //     domain: [0, 100],
+        //     trackHeight: 30
+        // });
+
+        // viewer.setData({
+
+        // });
+
         // Load your antiSMASH JSON data
         const accessions = {{ antismash_accessions | tojson }};
         const antismashJsonUrl = '{{ antismash_json_url }}';
@@ -25,8 +35,41 @@
 
         // Get the viewer element and configure it
         const viewer = document.getElementById('viewer');
-        viewer.dataProvider = provider;
+
+        viewer.addEventListener('error', (err) => {
+            console.error(err);
+        })
+
+        viewer.recordInfo = { recordId: data.records[0].id, filename: data.records[0].id + '.json', recordInfo: { description: '' } };
+        viewer.regions = [{id: data.records[0].id, region_number: 1, product: ['']}];
+        
+        // viewer.features = data.records[0].features;
+        const features = [];
+
+        const includeFeatures = [
+            'region',
+            // 'cand_cluster',
+            // 'protocluster',
+            // 'proto_core',
+            'gene',
+            'CDS',
+        ]
+
+        for (let i = 0; i < data.records[0].features.length; i++) {
+            let feature = data.records[0].features[i];
+            if (includeFeatures.indexOf(feature.type) == -1) {
+                continue;
+            }
+            features.push(feature);
+        }
+
+        viewer.features = features;
+
+        viewer.pfamColorMap = {};
         viewer.setAttribute('record-id', data.records[0].id);
+
+        // viewer.recordInfo = { recordId: data['records[0]']['id'], filename: data['records[0]']['id'] + '.json' };
+        // viewer.regions = []
     })
 </script>
 
