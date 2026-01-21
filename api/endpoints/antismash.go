@@ -92,8 +92,47 @@ func AntismashEndpoint(db *gorm.DB) Endpoint {
 					startAntismashRun(db, c)
 				},
 			},
+			{
+				Method: http.MethodGet,
+				Path:   "/debug/prefilljson",
+				Handler: func(c *gin.Context) {
+					debugPrefillJson(db, c)
+				},
+			},
 		},
 	}
+}
+
+// debugPrefillJson runs the prefill function on a specific bgc
+// TODO: this is a temporary test function and should be removed
+func debugPrefillJson(db *gorm.DB, c *gin.Context) {
+	BGCId := c.Query("bgc_id")
+	accession := c.Query("accession")
+
+	outputDir := path2.Join(config.Envs["DATA_PATH"], "antismash", accession)
+
+	jsonFile := path2.Join(outputDir, accession+".json")
+
+	antismashOutput, err := ReadAntismashJson(jsonFile)
+
+	if err != nil {
+		slog.Error("[AntismashWorker] Failed to read antismash output", "err", err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	activeEntry, err := entry.GetEntryFromAccession(db, BGCId)
+	if err != nil {
+		slog.Error("[AntismashWorker] Failed to get entry from accession", "err", err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	PrefillAntismash(activeEntry, antismashOutput)
+
+	db.Save(activeEntry)
+
+	c.Status(http.StatusOK)
 }
 
 func getAntismashStatus(db *gorm.DB, c *gin.Context) {
