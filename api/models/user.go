@@ -60,12 +60,20 @@ func init() {
 	Models = append(Models, &UserRole{})
 	Models = append(Models, &UserInfo{})
 
+	// password is 'changeme'
+	defaultPassword, err := bcrypt.GenerateFromPassword([]byte("changeme"), bcrypt.DefaultCost)
+
+	if err != nil {
+		slog.Error("Could not generate default password", "error", err)
+		return
+	}
+
 	InitData = append(InitData, InitDataEntry{
 		Table: "users",
 		Model: &User{
 			ID:       1,
 			Email:    "admin@localhost",
-			Password: "$2a$10$N1j/pHKDvxEeXSauBTH59u3Z4r/828dFnymwSPC2f4P.xe6LMiR5S", // password is 'changeme'
+			Password: string(defaultPassword),
 			Active:   true,
 			Roles: []UserRole{
 				{
@@ -287,14 +295,11 @@ func HasRole(user User, role Role) bool {
 
 // CheckPassword compares a plain text password with a hashed password and returns true if they match
 func CheckPassword(in string, against string) bool {
-	hash, err := bcrypt.GenerateFromPassword([]byte(in), bcrypt.DefaultCost)
+	err := bcrypt.CompareHashAndPassword([]byte(against), []byte(in))
 
 	if err != nil {
-		slog.Error("[auth] Could not hash password")
 		return false
 	}
-
-	err = bcrypt.CompareHashAndPassword([]byte(against), hash)
 
 	return true
 }
