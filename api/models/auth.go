@@ -1,10 +1,13 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 	"github.com/adraismawur/mibig-submission/config"
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"log/slog"
+	"net/http"
 	"strconv"
 	"time"
 )
@@ -12,6 +15,46 @@ import (
 type Token struct {
 	User User `json:"user"`
 	jwt.RegisteredClaims
+}
+
+func GetUserFromContext(c *gin.Context) (*User, error) {
+	bearerToken, err := GetAuthHeaderToken(c)
+
+	if err != nil {
+		slog.Error("Could not get bearer token from request")
+		return nil, err
+	}
+
+	parsedToken, err := ParseToken(bearerToken)
+
+	if err != nil {
+		slog.Error("Could not parse bearer token")
+		return nil, err
+	}
+
+	return &parsedToken.User, nil
+}
+
+func GetAuthHeaderToken(c *gin.Context) (string, error) {
+	expectedPrefix := "Bearer "
+
+	// check there is a token behind prefix and check if the prefix is correct
+	validBearer := len(c.GetHeader("Authorization")) > len(expectedPrefix) && c.GetHeader("Authorization")[:len(expectedPrefix)] == expectedPrefix
+
+	if !validBearer {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return "", errors.New("invalid bearer prefix")
+	}
+
+	// get the actual token
+	bearerToken := c.GetHeader("Authorization")[len(expectedPrefix):]
+
+	if bearerToken == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return "", errors.New("empty bearer token")
+	}
+
+	return bearerToken, nil
 }
 
 func ParseToken(token string) (Token, error) {
