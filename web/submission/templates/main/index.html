@@ -24,10 +24,11 @@
 
         {{ macros.simple_divform(form) }}
 
-        <!-- <h4>Edit an existing submission</h4>
-        {{ macros.user_entries(user_id) }}
+        <h4>Edit an existing submission</h4>
+        {{ macros.user_entries(user_submissions) }}
 
-        <h4>Edit an existing entry</h4> -->
+        <h4>Edit an existing entry</h4>
+        {{ macros.existing_entries() }}
     </div>
 </div>
 {% endblock %}

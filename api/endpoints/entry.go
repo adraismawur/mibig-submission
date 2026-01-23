@@ -3,16 +3,12 @@ package endpoints
 import (
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/models/entry"
-	"github.com/adraismawur/mibig-submission/util/constants"
-	"github.com/adraismawur/mibig-submission/util/entry_utils"
-	"github.com/beevik/guid"
 	"github.com/gin-gonic/gin"
 	"github.com/goccy/go-json"
 	"gorm.io/gorm"
 	"log/slog"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 func init() {
@@ -20,16 +16,16 @@ func init() {
 }
 
 // EntryEndpoint returns the entry endpoint.
-// This endpoint will implement creating and updating submissions, as well as perform some
-// specific checks on submissions.
+// This endpoint will implement creating and updating entries.
+// This is distinct from creating, updating and deleting submissions, which are new proposed entries
 func EntryEndpoint(db *gorm.DB) Endpoint {
 	return Endpoint{
 		Routes: []Route{
 			{
-				Method: "POST",
+				Method: "GET",
 				Path:   "/entry",
 				Handler: func(c *gin.Context) {
-					createEntry(db, c)
+					listEntries(db, c)
 				},
 			},
 			{
@@ -78,63 +74,28 @@ func EntryEndpoint(db *gorm.DB) Endpoint {
 	}
 }
 
-// createEntry creates a minimal entry from a request
-func createEntry(db *gorm.DB, c *gin.Context) {
-	var newEntry entry.Entry
+func listEntries(db *gorm.DB, c *gin.Context) {
+	// listAll will include user submissions
+	listAll := c.Query("list_all") == "true"
 
-	if err := c.BindJSON(&newEntry); err != nil {
-		slog.Error("[endpoints] [submission] Failed to unmarshal submission JSON", "error", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid entry submitted"})
+	var accessionList []string
+
+	q := db.Table("entries")
+	// select only accessions
+	q.Select("entries.accession")
+
+	if !listAll {
+		q = q.Where("entries.id NOT IN (select entry_id from user_submissions)")
+	}
+	err := q.Find(&accessionList).Error
+
+	if err != nil {
+		slog.Error("[endpoints] [entry] Could not list entries", "error", err)
+		c.Status(http.StatusInternalServerError)
 		return
 	}
 
-	var currentDate = time.Now().Format(time.DateOnly)
-
-	newEntry.Changelog = entry.Changelog{
-		Releases: []entry.Release{
-			{
-				Version: "1",
-				Date:    currentDate,
-				Entries: []entry.ReleaseEntry{
-					{
-						Contributors: []string{
-							constants.AnonymousUserId,
-						},
-						Reviewers: nil,
-						Date:      currentDate,
-						Comment:   constants.NewEntryComment,
-					},
-				},
-			},
-		},
-	}
-
-	user, err := models.GetUserFromContext(c)
-
-	if err != nil {
-		slog.Error("[endpoints] [submission] Failed to generate new entry accession", "error", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to generate new entry accession"})
-		return
-	}
-
-	newEntry.Accession = entry_utils.GeneratePlaceholderAccession(*user)
-
-	db.Create(&newEntry)
-
-	antismashTask := models.AntismashRun{
-		Accession: newEntry.Loci[0].Accession,
-		BGCID:     newEntry.Accession,
-		GUID:      guid.NewString(),
-	}
-
-	err = db.Create(antismashTask).Error
-
-	if err != nil {
-		slog.Error("[endpoints] [entry] Failed to create antismash task", "error", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to create antismash task"})
-	}
-
-	c.JSON(http.StatusOK, gin.H{"status": antismashTask})
+	c.JSON(http.StatusOK, accessionList)
 }
 
 func getEntry(db *gorm.DB, c *gin.Context) {

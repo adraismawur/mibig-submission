@@ -19,7 +19,7 @@ class WizardPage:
 
     def create_form(self, request_form, entry):
         return self.form(request_form, data=entry)
-    
+
     def call_api(self, bgc_id):
         replaced_api_endpoint = self.api_endpoint.replace("<bgc_id>", bgc_id)
 
@@ -34,16 +34,25 @@ class WizardPage:
         return None
 
 
-
 wizard_pages = [
     WizardPage("locitax", "basic information", LociTaxonomyForm),
-    WizardPage("biosynth", "biosynthetic information", BioSynthForm, api_endpoint="/entry/<bgc_id>/biosynth", template="wizard/biosynth.html"),
+    WizardPage(
+        "biosynth",
+        "biosynthetic information",
+        BioSynthForm,
+        api_endpoint="/entry/<bgc_id>/biosynth",
+        template="wizard/biosynth.html",
+    ),
     WizardPage("compounds", "compound information", CompoundsForm),
     WizardPage("gene_annotation", "additional gene annotation", GeneAnnotationForm),
     WizardPage("finalize", "final details", FinalizeForm),
 ]
 
 wizard_page_index = {page.id: i for i, page in enumerate(wizard_pages)}
+
+
+def get_default_wizard_page():
+    return wizard_pages[0].id
 
 
 def get_wizard_page(page_id: str) -> WizardPage:

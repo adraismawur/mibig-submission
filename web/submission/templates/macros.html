@@ -116,10 +116,33 @@
 </fieldset>
 {% endmacro %}
 
-{% macro user_entries(user_id) %}
+{% macro user_entries(user_submissions) %}
 
 <div class="form-group subgroup">
-    {{ user_id }}
+    <table class="table">
+        <thead class="table-header">
+            <th>Accession</th>
+            <th>State</th>
+            <th></th>
+        </thead>
+        {% for submission in user_submissions %}
+            <tr>
+                <td>{{ submission.accession }}</td>
+                <td>{{ submission.state }}</td>
+                {% if submission.state != pending_review and submission.state != accepted %}
+                    <td><a href="/edit/{{submission.accession}}"><button class="btn btn-primary">Edit</button></a></td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+
+{% endmacro %}
+
+
+{% macro existing_entries() %}
+
+<div class="form-group subgroup">
 </div>
 
 {% endmacro %}

@@ -78,7 +78,7 @@ class Entry(db.Model):
 
             return entry
         return None
-    
+
     def get_module(bgc_id: str, name: str):
         response = requests.get(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/module/{name}",
@@ -108,7 +108,7 @@ class Entry(db.Model):
     # TODO: save all important data
     @staticmethod
     def submit(data: dict[str, Any]) -> str:
-        """Submit a new entry to the API
+        """Submit a new submission to the API
 
         Args:
             bgc_id (str): BGC identfier
@@ -125,7 +125,7 @@ class Entry(db.Model):
         #     del data["loci"][i]["location"]["from_"]
 
         response = requests.post(
-            f"{current_app.config['API_BASE']}/entry",
+            f"{current_app.config['API_BASE']}/submission",
             headers={"Authorization": f"Bearer {session['token']}"},
             json=data,
         )

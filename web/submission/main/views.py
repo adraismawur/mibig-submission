@@ -37,7 +37,16 @@ def index():
 
             return redirect(url_for("edit.edit_bgc"))
 
-    return render_template("main/index.html", form=form, user_id=current_user.id)
+    # get the list of submissions for this user
+    api_path = f"{current_app.config['API_BASE']}/submission/{current_user.id}"
+    user_submissions = requests.get(api_path).json()
+
+    return render_template(
+        "main/index.html",
+        form=form,
+        user_id=current_user.id,
+        user_submissions=user_submissions,
+    )
 
 
 @bp_main.route("/delete", methods=["DELETE"])

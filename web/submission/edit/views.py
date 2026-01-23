@@ -28,6 +28,7 @@ from submission.edit import bp_edit
 from submission.edit.forms.form_collection import FormCollection
 from submission.edit.forms.edit_select import EditSelectForm
 from submission.edit.forms.wizard import (
+    get_default_wizard_page,
     get_wizard_page,
     get_prev_page,
     get_next_page,
@@ -37,6 +38,14 @@ from submission.utils import Storage, draw_smiles_svg, draw_smarts_svg
 from submission.utils.custom_validators import is_valid_bgc_id
 from submission.utils.custom_errors import ReferenceNotFound
 from submission.models import Entry, NPAtlas, Substrate
+
+
+@bp_edit.route("/<bgc_id>")
+@login_required
+def edit_bgc_redirect(bgc_id: str):
+    return redirect(
+        url_for("edit.edit_bgc", bgc_id=bgc_id, form_id=get_default_wizard_page())
+    )
 
 
 @bp_edit.route("/<bgc_id>/<form_id>", methods=["GET", "POST"])
@@ -72,13 +81,13 @@ def edit_bgc(bgc_id: str, form_id: str) -> Union[str, response.Response]:
     # get list of antismash accessions associated with this entry
     antismash_list_endpoint = "/antismash/list/"
     response = requests.get(
-            f"{current_app.config['API_BASE']}" + antismash_list_endpoint + bgc_id,
+        f"{current_app.config['API_BASE']}" + antismash_list_endpoint + bgc_id,
         headers={"Authorization": f"Bearer {session['token']}"},
     )
     if response.status_code == 200:
         antismash_accessions = response.json()
 
-    antismash_json_url = current_app.config['API_BASE'] + "/antismash/json/"
+    antismash_json_url = current_app.config["API_BASE"] + "/antismash/json/"
 
     return render_template(
         wizard_page.template,
@@ -90,7 +99,7 @@ def edit_bgc(bgc_id: str, form_id: str) -> Union[str, response.Response]:
         prev_form=prev_form,
         form_description=wizard_page.description,
         antismash_json_url=antismash_json_url,
-        antismash_accessions=antismash_accessions
+        antismash_accessions=antismash_accessions,
     )
 
 
@@ -143,7 +152,7 @@ def edit_biosynth_class(bgc_id: str, b_class: str) -> Union[str, response.Respon
     """
     entry = Entry.get(bgc_id)
     if not request.form:
-        
+
         form = getattr(FormCollection, b_class)(data=entry)
         reviewed = True
     else:
@@ -248,7 +257,9 @@ def edit_biosynth_paths(bgc_id: str) -> Union[str, response.Response]:
 
 @bp_edit.route("/<bgc_id>/biosynth/<name>/<module>", methods=["GET", "POST"])
 @login_required
-def edit_biosynth_modules(bgc_id: str, name: str, module: str) -> Union[str, response.Response]:
+def edit_biosynth_modules(
+    bgc_id: str, name: str, module: str
+) -> Union[str, response.Response]:
     """Form to enter biosynthetic module information
 
     Args:
