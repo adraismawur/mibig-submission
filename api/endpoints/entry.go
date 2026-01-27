@@ -78,16 +78,17 @@ func listEntries(db *gorm.DB, c *gin.Context) {
 	// listAll will include user submissions
 	listAll := c.Query("list_all") == "true"
 
-	var accessionList []string
+	var existingEntries []struct {
+		Accession    string `json:"accession"`
+		Status       string `json:"status"`
+		Completeness string `json:"completeness"`
+	}
 
 	q := db.Table("entries")
-	// select only accessions
-	q.Select("entries.accession")
-
 	if !listAll {
 		q = q.Where("entries.id NOT IN (select entry_id from user_submissions)")
 	}
-	err := q.Find(&accessionList).Error
+	err := q.Find(&existingEntries).Error
 
 	if err != nil {
 		slog.Error("[endpoints] [entry] Could not list entries", "error", err)
@@ -95,7 +96,7 @@ func listEntries(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, accessionList)
+	c.JSON(http.StatusOK, existingEntries)
 }
 
 func getEntry(db *gorm.DB, c *gin.Context) {

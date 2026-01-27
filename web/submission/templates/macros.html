@@ -116,7 +116,7 @@
 </fieldset>
 {% endmacro %}
 
-{% macro user_entries(user_submissions) %}
+{% macro list_user_submissions(user_submissions) %}
 
 <div class="form-group subgroup">
     <table class="table">
@@ -140,9 +140,25 @@
 {% endmacro %}
 
 
-{% macro existing_entries() %}
+{% macro list_existing_entries(existing_entries) %}
 
 <div class="form-group subgroup">
+    <table class="table">
+        <thead class="table-header">
+            <th>Accession</th>
+            <th>Status</th>
+            <th>Completeness</th>
+            <th></th>
+        </thead>
+        {% for entry in existing_entries %}
+            <tr>
+                <td>{{ entry.accession }}</td>
+                <td>{{ entry.status }}</td>
+                <td>{{ entry.completeness }}</td>
+                <td><a href="/edit/{{entry.accession}}"><button class="btn btn-primary">Edit</button></a></td>
+            </tr>
+        {% endfor %}
+    </table>
 </div>
 
 {% endmacro %}
