@@ -1,14 +1,14 @@
 package endpoints
 
 import (
-	"github.com/adraismawur/mibig-submission/models"
+	"github.com/adraismawur/mibig-submission/config"
 	"github.com/adraismawur/mibig-submission/models/entry"
 	"github.com/gin-gonic/gin"
 	"github.com/goccy/go-json"
 	"gorm.io/gorm"
 	"log/slog"
 	"net/http"
-	"strconv"
+	path2 "path"
 )
 
 func init() {
@@ -33,6 +33,13 @@ func EntryEndpoint(db *gorm.DB) Endpoint {
 				Path:   "/entry/:accession",
 				Handler: func(c *gin.Context) {
 					getEntry(db, c)
+				},
+			},
+			{
+				Method: "GET",
+				Path:   "/entry/raw/:accession",
+				Handler: func(c *gin.Context) {
+					getRawEntry(db, c)
 				},
 			},
 			{
@@ -135,6 +142,15 @@ func getEntry(db *gorm.DB, c *gin.Context) {
 
 	c.Header("Content-Type", "application/json")
 	c.String(http.StatusOK, string(formattedJson))
+}
+
+// getRawEntry returns the actual JSON from the data storage instead of the reconstructed JSON from the databse
+func getRawEntry(db *gorm.DB, c *gin.Context) {
+	accession := c.Param("accession")
+
+	jsonPath := path2.Join(config.Envs["DATA_PATH"], "json", accession+".json")
+
+	c.File(jsonPath)
 }
 
 func getEntryBiosynthesis(db *gorm.DB, c *gin.Context) {
