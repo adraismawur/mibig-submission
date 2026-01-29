@@ -70,7 +70,27 @@ func ParseEntry(jsonString []byte) (*Entry, error) {
 		return nil, err
 	}
 
+	EnsureEntryDefaults(entry)
+
 	return entry, nil
+}
+
+// EnsureEntryDefaults ensures that an entry has sane default values, e.g. no NULL values or fields that should not
+// be there
+// This is largely done by gorm and the structure of the data already, but some cases cannot be covered using gorm
+// or whatever creative structs have been made in this project and simply need to be handled through code
+func EnsureEntryDefaults(entry *Entry) {
+	for i := range entry.Loci {
+		for j := range entry.Loci[i].Evidence {
+			if entry.Loci[i].Evidence[j].References != nil {
+				continue
+			}
+
+			references := make(pq.StringArray, 0)
+
+			entry.Loci[i].Evidence[j].References = references
+		}
+	}
 }
 
 // LoadEntry attempts to read a file at a given path and load it as an entry into the database
