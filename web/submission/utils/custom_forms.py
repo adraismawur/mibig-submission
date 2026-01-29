@@ -64,19 +64,15 @@ class EvidenceForm(Form):
         widget=SelectDefault(),
         validators=[validators.InputRequired()],
     )
-    references = FieldList(
-        StringField(),
+    references = ReferenceField(
         label="Citation(s) *",
-        separator=" ",
         description=Markup(
             "Accepted formats are (in order of preference):<br>"
             "'doi:10.1016/j.chembiol.2020.11.009', 'pubmed:33321099', 'patent:US7070980B2', "
             "'url:https://example.com'.<br>If no publication "
             "is available <u>yet</u>, please use 'doi:pending'."
         ),
-        widget=FieldListAddBtn(
-            label="Add reference",
-        ),
+        validators=[validators.InputRequired(), ValidateCitations()],
     )
 
 

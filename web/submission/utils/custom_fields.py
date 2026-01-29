@@ -60,7 +60,20 @@ class TagListField(Field):
             self.data = []
 
 
-class ReferenceField(TagListField):
+class ReferenceField(StringField):
+
+    def _value(self):
+        """convert list of tags into comma separated string"""
+        if self.data:
+            data_string = ""
+            for tag in self.data:
+                if '"' in tag:
+                    data_string += f", {tag}"
+                else:
+                    data_string += f', "{tag}"'
+            return data_string[2:]
+        else:
+            return ""
 
     def process_formdata(self, valuelist: list[str]):
         """Process references, convert to standardized format, removes duplicates
