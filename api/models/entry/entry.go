@@ -275,21 +275,3 @@ func GetEntryBiosynthesisModule(db *gorm.DB, accession string, name string) (*bi
 	// not found
 	return nil, nil
 }
-
-func GetUserEntries(db *gorm.DB, userId int) ([]string, error) {
-	var accessions []string
-
-	err := db.
-		Table("user_entries").
-		Select("accession").
-		Joins("JOIN entries ON entries.id = user_entries.entry_id").
-		Where("user_id = ?", userId).
-		Find(&accessions).
-		Error
-
-	if err != nil {
-		return nil, err
-	}
-
-	return accessions, nil
-}

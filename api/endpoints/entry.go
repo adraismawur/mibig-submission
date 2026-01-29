@@ -57,13 +57,6 @@ func EntryEndpoint(db *gorm.DB) Endpoint {
 				},
 			},
 			{
-				Method: "GET",
-				Path:   "/entry/user/:userId",
-				Handler: func(c *gin.Context) {
-					getUserentries(db, c)
-				},
-			},
-			{
 				Method: "UPDATE",
 				Path:   "/entry",
 				Handler: func(c *gin.Context) {
@@ -196,32 +189,6 @@ func getEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, entryBioSynth)
-}
-
-func getUserentries(db *gorm.DB, c *gin.Context) {
-	userId, err := strconv.Atoi(c.Param("userId"))
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-	}
-
-	exists, err := models.GetUserExistsByID(db, userId)
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-	}
-
-	if !exists {
-		c.JSON(http.StatusNotFound, gin.H{"message": "user not found"})
-	}
-
-	accessions, err := entry.GetUserEntries(db, userId)
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-	}
-
-	c.JSON(http.StatusOK, accessions)
 }
 
 func updateEntry(db *gorm.DB, c *gin.Context) {

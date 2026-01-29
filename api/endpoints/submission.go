@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -138,4 +139,48 @@ func createSubmission(db *gorm.DB, c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": antismashTask})
+}
+
+func getUserEntries(db *gorm.DB, c *gin.Context) {
+	userId, err := strconv.Atoi(c.Param("userId"))
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+	}
+
+	exists, err := models.GetUserExistsByID(db, userId)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+	}
+
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"message": "user not found"})
+	}
+
+	accessions, err := GetUserSubmissions(db, userId)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+	}
+
+	c.JSON(http.StatusOK, accessions)
+}
+
+func GetUserSubmissions(db *gorm.DB, userId int) ([]string, error) {
+	var accessions []string
+
+	err := db.
+		Table("user_submissions").
+		Select("accession").
+		Joins("JOIN entries ON entries.id = user_submissions.entry_id").
+		Where("user_id = ?", userId).
+		Find(&accessions).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return accessions, nil
 }
