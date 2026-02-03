@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	path2 "path"
+	"strconv"
 )
 
 func init() {
@@ -77,18 +78,40 @@ func EntryEndpoint(db *gorm.DB) Endpoint {
 func listEntries(db *gorm.DB, c *gin.Context) {
 	// listAll will include user submissions
 	listAll := c.Query("list_all") == "true"
+	start, err := strconv.Atoi(c.Query("start"))
 
-	var existingEntries []struct {
+	if err != nil {
+		start = 0
+	}
+
+	limit, err := strconv.Atoi(c.Query("limit"))
+
+	if err != nil {
+		limit = 20
+	}
+
+	search := c.Query("search")
+
+	type ExistingEntrySummary struct {
 		Accession    string `json:"accession"`
 		Status       string `json:"status"`
 		Completeness string `json:"completeness"`
 	}
 
+	var existingEntries []ExistingEntrySummary
+
 	q := db.Table("entries")
 	if !listAll {
 		q = q.Where("entries.id NOT IN (select entry_id from user_submissions)")
 	}
-	err := q.Find(&existingEntries).Error
+
+	if search != "" {
+		q = q.Where("entries.accession LIKE ?", "%"+search+"%")
+	}
+
+	q = q.Offset(start)
+	q = q.Limit(limit)
+	err = q.Find(&existingEntries).Error
 
 	if err != nil {
 		slog.Error("[endpoints] [entry] Could not list entries", "error", err)
@@ -96,7 +119,35 @@ func listEntries(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, existingEntries)
+	slog.Info(q.Statement.SQL.String())
+
+	var recordCount int64
+
+	q = db.Table("entries")
+
+	if search != "" {
+		q = q.Where("entries.accession LIKE ?", "%"+search+"%")
+	}
+
+	q = q.Count(&recordCount)
+
+	err = q.Error
+
+	if err != nil {
+		slog.Error("[endpoints] [entry] Could not get record count", "error", err)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	var response struct {
+		Entries     []ExistingEntrySummary `json:"entries"`
+		RecordCount int64                  `json:"record_count"`
+	}
+
+	response.Entries = existingEntries
+	response.RecordCount = recordCount
+
+	c.JSON(http.StatusOK, response)
 }
 
 func getEntry(db *gorm.DB, c *gin.Context) {

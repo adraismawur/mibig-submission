@@ -43,8 +43,21 @@ def index():
     )
     user_submissions = requests.get(submissions_api_path).json()
 
-    existing_entries_api_path = f"{current_app.config['API_BASE']}/entry"
-    existing_entries = requests.get(existing_entries_api_path).json()
+    start = request.args.get("start")
+    start = start if start else 0
+
+    limit = request.args.get("limit")
+    limit = limit if limit else 10
+
+    search = request.args.get("search")
+    search = search if search else ""
+
+    existing_entries_api_path = f"{current_app.config['API_BASE']}/entry?start={start}&limit={limit}&search={search}"
+
+    response = requests.get(existing_entries_api_path).json()
+
+    existing_entries = response['entries']
+    record_count = response['record_count']
 
     return render_template(
         "main/index.html",
@@ -52,6 +65,10 @@ def index():
         user_id=current_user.id,
         user_submissions=user_submissions,
         existing_entries=existing_entries,
+        start=start,
+        limit=limit,
+        search=search,
+        record_count=record_count
     )
 
 

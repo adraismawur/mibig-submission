@@ -126,13 +126,13 @@
             <th></th>
         </thead>
         {% for submission in user_submissions %}
-            <tr>
-                <td>{{ submission.accession }}</td>
-                <td>{{ submission.state }}</td>
-                {% if submission.state != pending_review and submission.state != accepted %}
-                    <td><a href="/edit/{{submission.accession}}"><button class="btn btn-primary">Edit</button></a></td>
-                {% endif %}
-            </tr>
+        <tr>
+            <td>{{ submission.accession }}</td>
+            <td>{{ submission.state }}</td>
+            {% if submission.state != pending_review and submission.state != accepted %}
+            <td><a href="/edit/{{submission.accession}}"><button class="btn btn-primary">Edit</button></a></td>
+            {% endif %}
+        </tr>
         {% endfor %}
     </table>
 </div>
@@ -140,9 +140,30 @@
 {% endmacro %}
 
 
-{% macro list_existing_entries(existing_entries) %}
+{% macro list_existing_entries(existing_entries, start, limit, search, record_count) %}
 
-<div class="form-group subgroup">
+<div id="existing-entry" class="form-group subgroup">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-auto">
+                <input type="text" class="form-control" id="bgcSearch" placeholder="Search for BGC ID"
+                    value="{{search}}">
+            </div>
+            <div class="col-md">
+                <button id="searchBtn" class="btn btn-primary">Search</button>
+                <script type="application/javascript">
+                    const searchBtn = document.getElementById('searchBtn');
+                    const bgcSearch = document.getElementById('bgcSearch');
+                    searchBtn.addEventListener('click', () => {
+                        if (bgcSearch.value === "") {
+                            return;
+                        }
+                        document.location.href = "?search=" + bgcSearch.value + "#existing-entry";
+                    });
+                </script>
+            </div>
+        </div>
+    </div>
     <table class="table">
         <thead class="table-header">
             <th>Accession</th>
@@ -151,14 +172,33 @@
             <th></th>
         </thead>
         {% for entry in existing_entries %}
-            <tr>
-                <td>{{ entry.accession }}</td>
-                <td>{{ entry.status }}</td>
-                <td>{{ entry.completeness }}</td>
-                <td><a href="/edit/{{entry.accession}}"><button class="btn btn-primary">Edit</button></a></td>
-            </tr>
+        <tr>
+            <td>{{ entry.accession }}</td>
+            <td>{{ entry.status }}</td>
+            <td>{{ entry.completeness }}</td>
+            <td><a href="/edit/{{entry.accession}}"><button class="btn btn-primary">Edit</button></a></td>
+        </tr>
         {% endfor %}
     </table>
+    <div class="container">
+        <div class="row justify-content-md-center">
+            <div class="col-1">
+                {% if start | int > 0 %}
+                <a href="/?start={{[0, start | int - 10] | max}}#existing-entry"><button
+                        class="btn btn-primary">&lt;</button></a>
+                {% endif %}
+            </div>
+            <div class="col-2 text-center">
+                {{start | int + 1}} - {{[record_count, start | int + 10 ] | min}}
+            </div>
+            <div class="col-1">
+                {% if start | int + 10 < record_count %}
+                    <a href="/?start={{[record_count, start | int + 10 ] | min}}#existing-entry"><button
+                        class="btn btn-primary">&gt;</button></a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>
 
 {% endmacro %}
