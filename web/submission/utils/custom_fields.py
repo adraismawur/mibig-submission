@@ -84,7 +84,7 @@ class ReferenceField(StringField):
         super().process_formdata(valuelist)
 
         sanitized_refs = set()
-        for ref in self.data:
+        for ref in valuelist:
             ref = re.sub(r"('|\")+", "", ref)  # remove quotes
             ref = re.sub(r"\s+", "", ref)  # remove whitespaces
             ref = re.sub(r"%2F", "/", ref)  # revert html url encoding
