@@ -67,13 +67,13 @@ class ReferenceField(TagListField):
         if self.object_data:
             data_string = ""
             for tag in self.object_data:
-                if '"' in tag:
+                if "'" in tag:
                     data_string += f", {tag}"
                 else:
-                    data_string += f', "{tag}"'
+                    data_string += f", '{tag}'"
             return data_string[2:]
         else:
-            return []
+            return ""
 
     def process_formdata(self, valuelist: list[str]):
         """Process references, convert to standardized format, removes duplicates
