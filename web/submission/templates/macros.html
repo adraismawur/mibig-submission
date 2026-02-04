@@ -116,6 +116,12 @@
 </fieldset>
 {% endmacro %}
 
+{% macro list_user_actions(current_user) %}
+<div class="form-group subgroup">
+    <a href="{{url_for('new.new_entry')}}"><button class="btn btn-primary">Create a new submission</button></a>
+</div>
+{% endmacro %}
+
 {% macro list_user_submissions(user_submissions) %}
 
 <div class="form-group subgroup">
@@ -192,10 +198,10 @@
                 {{start | int + 1}} - {{[record_count, start | int + 10 ] | min}}
             </div>
             <div class="col-1">
-                {% if start | int + 10 < record_count %}
-                    <a href="/?start={{[record_count, start | int + 10 ] | min}}#existing-entry"><button
+                {% if start | int + 10 < record_count %} <a
+                    href="/?start={{[record_count, start | int + 10 ] | min}}#existing-entry"><button
                         class="btn btn-primary">&gt;</button></a>
-                {% endif %}
+                    {% endif %}
             </div>
         </div>
     </div>

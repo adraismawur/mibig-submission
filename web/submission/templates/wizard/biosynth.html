@@ -27,19 +27,27 @@
             {% for module in form.modules %}
             <tr>
                 <td>
-                    {{ module.genes[0] }}
+                    <input type="text" name="{{module.genes[0].name}}" id="{{module.genes[0].name}}"
+                        value="{{module.genes[0].data}}" class="form-control">
                 </td>
                 <td>
-                    {{ module["type"]}}
+                    <select name="{{ module['type'].name}}" id="{{ module['type'].name}}" class="form-select">
+                        {% for choice in module['type'].choices %}
+                        <option value="{{choice}}">{{choice}}</option>
+                        {% endfor %}
+                    </select>
                 </td>
                 <td>
                     <a
                         href="{{ url_for('edit.edit_biosynth_modules', bgc_id=bgc_id, name=module['name'].data, module=module['type'].data) }}">
-                        <button type="button" class="button">Edit module</button>
+                        <button type="button" class="btn btn-primary">Edit module</button>
                     </a>
                 </td>
             </tr>
             {% endfor %}
+            <tr>
+                <td><button class="btn btn-primary">Add new module</button></td>
+            </tr>
         </table>
     </div>
 </div>
