@@ -1,15 +1,22 @@
 {% macro simple_divform(form, is_reviewer=false, reviewed=false) %}
 <form method="post" class="container">
-    <fieldset>
-        {% for field in form %}
-        <div id="{{ field.id }}" class="form-group">
-            {{ render_field(field, is_reviewer, reviewed) }}
-        </div>
-
-        {% endfor %}
-
-    </fieldset>
+    {{ simple_divform_inner(form, is_reviewer, reviewed) }}
 </form>
+{% endmacro %}
+
+{% macro simple_divform_inner(form, is_reviewer=false, reviewed=false ) %}
+<fieldset>
+    {% for field in form %}
+    {% if field.type == "HiddenField" %}
+    {{field}}
+    {% else %}
+    <div id="{{ field.id }}" class="form-group">
+        {{ render_field(field, is_reviewer, reviewed) }}
+    </div>
+    {% endif %}
+    {% endfor %}
+
+</fieldset>
 {% endmacro %}
 
 
@@ -94,11 +101,14 @@
         <button class='btn btn-sm btn-danger btn-del' type="button" hx-delete='/delete' hx-target='closest fieldset'
             hx-swap='outerHTML'>&#x2715;</button>
         {% endif %}
-
-        {% if form.type != "FormField" %}
+        {% if form.type != "FormField" and form.type != "HiddenField" %}
         <div class="form-field">
             {{render_field(form)}}
         </div>
+        {% else %}
+
+        {% if form.type == "HiddenField" %}
+        {{field}}
         {% else %}
 
         {% for field in form %}
@@ -107,7 +117,7 @@
 
         </div>
         {% endfor %}
-
+        {% endif %}
         {% endif %}
 
     </div>

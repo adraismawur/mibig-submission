@@ -15,6 +15,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 type Quality string
@@ -258,6 +259,63 @@ func GetEntryBiosynthesis(db *gorm.DB, accession string) (*biosynthesis.Biosynth
 	}
 
 	return &entry.Biosynthesis, nil
+}
+
+func CreateEntryBiosynthesisModule(db *gorm.DB, accession string, module biosynthesis.BiosyntheticModule) error {
+
+	var entry Entry
+
+	err := db.
+		Table("entries").
+		Where("accession = ?", accession).
+		Preload("Biosynthesis.Classes").
+		Preload("Biosynthesis.Modules.Carriers.Location").
+		Preload("Biosynthesis.Modules.ModificationDomains.Location").
+		Preload("Biosynthesis.Modules.ADomain.Location").
+		Preload("Biosynthesis.Modules.ATDomain.Location").
+		Preload("Biosynthesis.Modules.KSDomain.Location").
+		First(&entry).
+		Error
+
+	if err != nil {
+		return err
+	}
+
+	// get new module number if it doesn't exist
+	if module.Name == "" {
+		module.Name = strconv.Itoa(len(entry.Biosynthesis.Modules) + 1)
+	}
+
+	err = db.Model(&entry.Biosynthesis).Association("Modules").Append(&module)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DeleteEntryBiosynthesisModule(db *gorm.DB, accession string, name string) error {
+	var entry Entry
+
+	err := db.
+		Table("entries").
+		Where("accession = ?", accession).
+		Preload("Biosynthesis.Modules").
+		First(&entry).
+		Error
+
+	if err != nil {
+		return err
+	}
+
+	err = db.Where("name = ?", name).Delete(entry.Biosynthesis.Modules).Error
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func GetEntryBiosynthesisModule(db *gorm.DB, accession string, name string) (*biosynthesis.BiosyntheticModule, error) {

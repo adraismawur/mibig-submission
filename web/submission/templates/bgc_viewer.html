@@ -1,13 +1,13 @@
 {% macro bgc_viewer(antismash_accessions, antismash_json_url) %}
 
 
-<div id="bgc-viewer-container">
+<div id="bgc-viewer-container"  class="region-viewer-container">
     <div id="bgc-viewer-region-browser">
         {% for accession in antismash_accessions %}
-            {{ accession }}
+        {{ accession }}
         {% endfor %}
     </div>
-    <bgc-region-viewer id="viewer" class="viewer"></bgc-region-viewer>
+    <bgc-region-viewer id="viewer"></bgc-region-viewer>
 </div>
 
 <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -25,52 +25,53 @@
         // });
 
         // Load your antiSMASH JSON data
-        const accessions = {{ antismash_accessions | tojson }};
-        const antismashJsonUrl = '{{ antismash_json_url }}';
-        const response = await fetch(antismashJsonUrl + accessions[0]);
-        const data = await response.json();
+        const accessions = {{ antismash_accessions | tojson
+    }};
+    const antismashJsonUrl = '{{ antismash_json_url }}';
+    const response = await fetch(antismashJsonUrl + accessions[0]);
+    const data = await response.json();
 
-        // Create a data provider
-        const provider = new BGCViewerComponents.JSONFileProvider(data);
+    // Create a data provider
+    const provider = new BGCViewerComponents.JSONFileProvider(data);
 
-        // Get the viewer element and configure it
-        const viewer = document.getElementById('viewer');
+    // Get the viewer element and configure it
+    const viewer = document.getElementById('viewer');
 
-        viewer.addEventListener('error', (err) => {
-            console.error(err);
-        })
+    viewer.addEventListener('error', (err) => {
+        console.error(err);
+    })
 
-        viewer.recordInfo = { recordId: data.records[0].id, filename: data.records[0].id + '.json', recordInfo: { description: '' } };
-        viewer.regions = [{id: data.records[0].id, region_number: 1, product: ['']}];
-        
-        // viewer.features = data.records[0].features;
-        const features = [];
+    viewer.recordInfo = { recordId: data.records[0].id, filename: data.records[0].id + '.json', recordInfo: { description: '' } };
+    viewer.regions = [{ id: data.records[0].id, region_number: 1, product: [''] }];
 
-        const includeFeatures = [
-            'region',
-            // 'cand_cluster',
-            // 'protocluster',
-            // 'proto_core',
-            'gene',
-            'CDS',
-        ]
+    // viewer.features = data.records[0].features;
+    const features = [];
 
-        for (let i = 0; i < data.records[0].features.length; i++) {
-            let feature = data.records[0].features[i];
-            if (includeFeatures.indexOf(feature.type) == -1) {
-                continue;
-            }
-            features.push(feature);
+    const includeFeatures = [
+        'region',
+        // 'cand_cluster',
+        // 'protocluster',
+        // 'proto_core',
+        'gene',
+        'CDS',
+    ]
+
+    for (let i = 0; i < data.records[0].features.length; i++) {
+        let feature = data.records[0].features[i];
+        if (includeFeatures.indexOf(feature.type) == -1) {
+            continue;
         }
+        features.push(feature);
+    }
 
-        viewer.features = features;
+    viewer.features = features;
 
-        viewer.pfamColorMap = {};
-        viewer.setAttribute('record-id', data.records[0].id);
+    viewer.pfamColorMap = {};
+    viewer.setAttribute('record-id', data.records[0].id);
 
         // viewer.recordInfo = { recordId: data['records[0]']['id'], filename: data['records[0]']['id'] + '.json' };
         // viewer.regions = []
-    })
+    });
 </script>
 
 {% endmacro %}

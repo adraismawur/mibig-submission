@@ -14,51 +14,53 @@
 <div class="form-wrapper">
     <h4>Enter {{ form_description }}</h4>
 
-    {{ macros.simple_divsubform(form.classes) }}
+    {{ macros.simple_divform_inner(form.classes) }}
 
     <div class="form-group">
         <p class="form-label fw-bold">Modules</p>
-        <table>
-            <tr>
-                <th>Gene</th>
-                <th>Type</th>
-                <th></th>
-            </tr>
-            {% for module in form.modules %}
-            <tr>
-                <td>
-                    <input type="text" name="{{module.genes[0].name}}" id="{{module.genes[0].name}}"
-                        value="{{module.genes[0].data}}" class="form-control">
-                </td>
-                <td>
-                    <select name="{{ module['type'].name}}" id="{{ module['type'].name}}" class="form-select">
-                        {% for choice in module['type'].choices %}
-                        <option value="{{choice}}">{{choice}}</option>
-                        {% endfor %}
-                    </select>
-                </td>
-                <td>
-                    <a
-                        href="{{ url_for('edit.edit_biosynth_modules', bgc_id=bgc_id, name=module['name'].data, module=module['type'].data) }}">
-                        <button type="button" class="btn btn-primary">Edit module</button>
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-            <tr>
-                <td><button class="btn btn-primary">Add new module</button></td>
-            </tr>
+        <table class="table">
+            <tbody id="module-table">
+                <tr>
+                    <th>#</th>
+                    <th>Gene</th>
+                    <th>Type</th>
+                    <th></th>
+                </tr>
+                {% for module in form.modules %}
+                <tr>
+                    <td>
+                        {{module['name'].data}}
+                    </td>
+                    <td>
+                        {{module.genes[0].data}}
+                    </td>
+                    <td>
+                        {{module['type'].data}}
+                    </td>
+                    <td>
+                        <a
+                            href="{{ url_for('edit.edit_biosynth_module', bgc_id=bgc_id, name=module['name'].data, module=module['type'].data) }}">
+                            <button type="button" class="btn btn-primary" type="button">Edit module</button>
+                        </a>
+                        <a href="{{ url_for('edit.remove_biosynth_module', bgc_id=bgc_id, name=module['name'].data) }}">
+                            <button type="button" class="btn btn-danger" type="button">X</button>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
+        <a href="{{url_for('edit.create_biosynth_module_new', bgc_id=bgc_id)}}">
+            <button class="btn btn-primary" type="button">Add new module</button>
+        </a>
     </div>
-</div>
-<div class="container">
     {% if prev_form %}
     <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=prev_form.id) }}"><button id="back-btn"
-            class="btn btn-outline-secondary">Previous: {{ prev_form.description }}</button></a>
+            class="btn btn-secondary" type="button">Previous: {{ prev_form.description }}</button></a>
     {%- endif %}
     {% if next_form %}
     <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=next_form.id) }}"><button id="back-btn"
-            class="btn btn-outline-secondary">Next: {{ next_form.description }}</button></a>
+            class="btn btn-secondary" type="button">Next: {{ next_form.description }}</button></a>
     {%- endif %}
 
 </div>

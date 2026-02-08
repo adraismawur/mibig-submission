@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block header %}
+<h2 class="edit-header">Editing {{ bgc_id }}</h2>
+{% endblock %}
+
+{% block body %}
+
+<script type="application/javascript">
+    const createNewModule = () => {
+        const moduleSelect = document.getElementById('module-select');
+        const module = moduleSelect.value;
+        const hrefParts = document.location.href.split('/');
+
+        // no module, just paste the module at the end
+        if (hrefParts[hrefParts.length - 1] == 'new') {
+            document.location.href = document.location.href + '/' + module;
+            return;
+        }
+
+        // otherwise, rebuild the url
+        let newHref = hrefParts.slice(0, hrefParts.length - 1);
+        newHref.push(module);
+        document.location.href = newHref.join('/');
+    };
+</script>
+
+<div class="form-wrapper">
+    <h4>Add a new module</h4>
+
+    <div class="form-group row">
+        <div class="col">
+            <select id="module-select" class="form-select">
+                {% for choice in choices %}
+                <option value="{{choice.value}}" {{'selected' if module==choice.value}}>{{choice.label}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col">
+            <button class="btn btn-primary" onclick="createNewModule()">{{'Select' if module == None else 'Change'}}
+                module</button>
+        </div>
+    </div>
+    {% if form %}
+    <form method="post" class="container">
+        {{ macros.simple_divform_inner(form, is_reviewer=is_reviewer, reviewed=reviewed) }}
+        <div class="form-group row">
+            <input type="submit" class="btn btn-primary" value="Create module">
+        </div>
+    </form>
+    {% endif %}
+
+</div>
+<div class="container">
+    <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id='biosynth') }}"><button id="back-btn"
+            class="btn btn-outline-secondary">Back to
+            Biosynthesis overview</button></a>
+</div>
+{% endblock %}

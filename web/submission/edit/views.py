@@ -140,7 +140,6 @@ def class_buttons(bgc_id: str) -> str:
         class_btns += f"<a class='btn btn-light' style='margin: 5px' role='button' href='/edit/{bgc_id}/biosynth/{cls}'>{cls}</a>"
     return class_btns
 
-
 @bp_edit.route("/<bgc_id>/biosynth/<b_class>", methods=["GET", "POST"])
 @login_required
 def edit_biosynth_class(bgc_id: str, b_class: str) -> Union[str, response.Response]:
@@ -257,10 +256,79 @@ def edit_biosynth_paths(bgc_id: str) -> Union[str, response.Response]:
         reviewed=reviewed,
     )
 
-
-@bp_edit.route("/<bgc_id>/biosynth/<name>/<module>", methods=["GET", "POST"])
+@bp_edit.route('/<bgc_id>/biosynth/new', methods=["GET"])
 @login_required
-def edit_biosynth_modules(
+def create_biosynth_module_new(bgc_id):
+
+    return create_biosynth_module(bgc_id, None)
+
+
+@bp_edit.route("/<bgc_id>/biosynth/new/<module>", methods=["GET", "POST"])
+@login_required
+def create_biosynth_module(bgc_id: str, module: str) -> Union[str, response.Response]:
+    """Create a new biosynthetic module for a certain BGC"""
+
+    choices = [
+        {
+            "label": "Co-enzyme A ligase (CAL)",
+            "value": "cal"
+        },
+        {
+            "label": "NRPS Type I",
+            "value": "nrps-type1"
+        },
+        {
+            "label": "NRPS Type VI",
+            "value": "nrps-type6"
+        },
+        {
+            "label": "Iterative PKS",
+            "value": "pks-iterative"
+        },
+        {
+            "label": "Modular PKS",
+            "value": "pks-modular"
+        },
+        {
+            "label": "Trans-AT PKS",
+            "value": "pks-trans-at"
+        },
+        {
+            "label": "Other",
+            "value": "other"
+        },
+    ]
+
+    entry = Entry.get(bgc_id)
+
+    if module:
+        form = get_module_form(module)(request.form)
+    else:
+        form = None
+
+    if request.method == "POST" and form.validate():
+        
+        if (Entry.create_module(bgc_id, form.data)):
+            flash("Created new biosynthetic module!")
+            return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="biosynth"))
+        else:
+            flash("Error creating new biosynthetic module", "error")
+            return redirect(url_for("edit.create_biosynth_module", bgc_id=bgc_id, module=module))
+        
+
+    return render_template(
+        "wizard/biosynth_module_new.html",
+        bgc_id=bgc_id,
+        form=form,
+        choices=choices,
+        module=module
+    )
+
+
+
+@bp_edit.route("/<bgc_id>/biosynth/edit/<name>/<module>", methods=["GET", "POST"])
+@login_required
+def edit_biosynth_module(
     bgc_id: str, name: str, module: str
 ) -> Union[str, response.Response]:
     """Form to enter biosynthetic module information
@@ -273,16 +341,15 @@ def edit_biosynth_modules(
     """
 
     if not request.form:
-        entry = Entry.get_module(bgc_id, name)
-        form = get_module_form(module)(data=entry)
+        moduleData = Entry.get_module(bgc_id, name)
+        form = get_module_form(module)(data=moduleData)
         reviewed = False
     else:
         form = FormCollection.modules(request.form)
         reviewed = False
 
     if request.method == "POST" and form.validate():
-        # TODO: save to db
-        Storage.save_data(bgc_id, "Biosynth_modules", request.form, current_user)
+        Entry.save_biosynth(bgc_id, name, "Biosynth_modules", request.form, current_user)
         flash("Submitted biosynthetic module information!")
         return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="biosynth"))
 
@@ -293,6 +360,24 @@ def edit_biosynth_modules(
         module=module,
         is_reviewer=current_user.has_role(Role.REVIEWER),
         reviewed=reviewed,
+    )
+
+@bp_edit.route("/<bgc_id>/biosynth/delete/<name>", methods=["GET", "POST"])
+@login_required
+def remove_biosynth_module(bgc_id: str, name: str):
+    # get pretty printed version of module data
+    moduleData = Entry.get_module_text(bgc_id, name)
+
+    if request.method == "POST":
+        Entry.delete_module(bgc_id, name)
+        return redirect(url_for('edit.edit_bgc', bgc_id=bgc_id, form_id='biosynth'))
+
+
+    return render_template(
+        "wizard/biosynth_module_remove.html",
+        bgc_id=bgc_id,
+        name=name,
+        moduleData=moduleData,
     )
 
 

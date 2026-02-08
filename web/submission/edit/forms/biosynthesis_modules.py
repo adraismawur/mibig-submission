@@ -27,8 +27,8 @@ from submission.edit.forms.biosynthesis_domains import (
 
 
 class CalForm(Form):
-    _type = HiddenField("cal")
-    name = StringField("Name *", validators=[validators.InputRequired()])
+    type = HiddenField(default="cal")
+    # name = StringField("Name *", validators=[validators.InputRequired()])
     genes = TagListField(
         "Gene(s) *",
         description="Comma separated list of genes in this module",
@@ -47,8 +47,8 @@ class CalForm(Form):
 
 class NRPS_I_Form(Form):
     # required _type, name, genes, active
-    _type = HiddenField("nrps-type1")
-    name = StringField("Name *", validators=[validators.InputRequired()])
+    type = HiddenField(default="nrps-type1")
+    # name = StringField("Name *", validators=[validators.InputRequired()])
     genes = TagListField(
         "Gene(s) *",
         description="Comma separated list of genes in this module",
@@ -71,8 +71,8 @@ class NRPS_I_Form(Form):
 
 
 class NRPS_VI_Form(Form):
-    _type = HiddenField("nrps-type6")
-    name = StringField("Name *", validators=[validators.InputRequired()])
+    type = HiddenField(default="nrps-type6")
+    # name = StringField("Name *", validators=[validators.InputRequired()])
     genes = TagListField(
         "Gene(s) *",
         description="Comma separated list of genes in this module",
@@ -94,8 +94,8 @@ class NRPS_VI_Form(Form):
 
 
 class OtherForm(Form):
-    _type = HiddenField("other")
-    name = StringField("Name *", validators=[validators.InputRequired()])
+    type = HiddenField(default="other")
+    # name = StringField("Name *", validators=[validators.InputRequired()])
     subtype = StringField("Subtype *", validators=[validators.InputRequired()])
     genes = TagListField(
         "Gene(s) *",
@@ -114,8 +114,8 @@ class OtherForm(Form):
 
 
 class PKSIterativeForm(Form):
-    _type = HiddenField("pks-iterative")
-    name = StringField("Name *", validators=[validators.InputRequired()])
+    type = HiddenField(default="pks-iterative")
+    # name = StringField("Name *", validators=[validators.InputRequired()])
     genes = TagListField(
         "Gene(s) *",
         description="Comma separated list of genes in this module",
@@ -144,7 +144,7 @@ class PKSIterativeForm(Form):
 
 
 class PKSModularForm(Form):
-    _type = HiddenField("pks-modular")
+    type = HiddenField(default="pks-modular")
     genes = TagListField(
         "Gene(s) *",
         description="Comma separated list of genes in this module",
@@ -167,8 +167,8 @@ class PKSModularForm(Form):
 
 
 class PKSTransForm(Form):
-    _type = HiddenField("pks-trans")
-    name = StringField("Name *", validators=[validators.InputRequired()])
+    type = HiddenField(default="pks-trans")
+    # name = StringField("Name *", validators=[validators.InputRequired()])
     genes = TagListField(
         "Gene(s) *",
         description="Comma separated list of genes in this module",
@@ -227,9 +227,13 @@ class ModulesForm(Form):
 
 
 module_map = {
-    "pks-modular": PKSModularForm,
+    "cal": CalForm,
     "nrps-type1": NRPS_I_Form,
+    "nrps-type6": NRPS_VI_Form,
+    "pks-iterative": PKSIterativeForm,
+    "pks-modular": PKSModularForm,
     "pks-trans-at": PKSTransForm,
+    "other": OtherForm,
 }
 
 def get_module_form(module: str):
