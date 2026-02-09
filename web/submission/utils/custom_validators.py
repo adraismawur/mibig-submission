@@ -117,15 +117,18 @@ def validate_loci(form, field):
     if form.data['from'] == 0 and form.data['to'] == 0:
         return
     
+    if form.data['from'] == -1 and form.data['to'] == -1:
+        return
+    
     sequence_len = int(session['cached_genbank']["slen"])
 
-    if field == form.from_ and form.from_.data > sequence_len:
+    if field == form['from'] and form['from'].data > sequence_len:
         raise ValidationError(f"Start of sequence cannot be greater than sequence length ({sequence_len})")
 
     if field == form.to and form.to.data > sequence_len:
         raise ValidationError(f"End of sequence cannot be greater than sequence length ({sequence_len})")
 
-    if form.to.data <= form.from_.data:
+    if form.to.data <= form['from'].data:
         raise ValidationError(f"To must be lower than From")
 
 

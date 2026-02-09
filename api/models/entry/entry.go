@@ -295,6 +295,54 @@ func CreateEntryBiosynthesisModule(db *gorm.DB, accession string, module biosynt
 	return nil
 }
 
+func UpdateEntryBiosynthesisModule(db *gorm.DB, accession string, newModule *biosynthesis.BiosyntheticModule) error {
+
+	var entry Entry
+
+	err := db.
+		Table("entries").
+		Where("accession = ?", accession).
+		Preload("Biosynthesis.Classes").
+		Preload("Biosynthesis.Modules.Carriers.Location").
+		Preload("Biosynthesis.Modules.ModificationDomains.Location").
+		Preload("Biosynthesis.Modules.ADomain.Location").
+		Preload("Biosynthesis.Modules.ATDomain.Location").
+		Preload("Biosynthesis.Modules.KSDomain.Location").
+		First(&entry).
+		Error
+
+	if err != nil {
+		return err
+	}
+
+	// find correct newModule
+	found := false
+	for _, module := range entry.Biosynthesis.Modules {
+		if module.Name == module.Name {
+			newModule.ID = module.ID
+			newModule.BiosynthesisID = module.BiosynthesisID
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return errors.New("could not find newModule")
+	}
+
+	err = db.
+		Session(&gorm.Session{FullSaveAssociations: true}).
+		Model(&entry.Biosynthesis).
+		Association("Modules").
+		Replace(newModule)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func DeleteEntryBiosynthesisModule(db *gorm.DB, accession string, name string) error {
 	var entry Entry
 

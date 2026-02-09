@@ -52,6 +52,13 @@ func EntryEndpoint(db *gorm.DB) Endpoint {
 				},
 			},
 			{
+				Method: "GET",
+				Path:   "/entry/:accession/biosynth/module/:name",
+				Handler: func(c *gin.Context) {
+					getEntryBiosynthesisModule(db, c)
+				},
+			},
+			{
 				Method: http.MethodPost,
 				Path:   "/entry/:accession/biosynth/module",
 				Handler: func(c *gin.Context) {
@@ -59,10 +66,10 @@ func EntryEndpoint(db *gorm.DB) Endpoint {
 				},
 			},
 			{
-				Method: "GET",
+				Method: http.MethodPost,
 				Path:   "/entry/:accession/biosynth/module/:name",
 				Handler: func(c *gin.Context) {
-					getEntryBiosynthesisModule(db, c)
+					updateEntryBiosynthesisModule(db, c)
 				},
 			},
 			{
@@ -255,6 +262,48 @@ func createEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+func updateEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
+	accession := c.Param("accession")
+	name := c.Param("name")
+
+	var module biosynthesis.BiosyntheticModule
+	err := c.ShouldBindJSON(&module)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		slog.Error("[endpoints] [entry] Failed to marshal existing module", "error", err.Error())
+		return
+	}
+
+	if name != module.Name {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Name mismatch between request URL and data"})
+		return
+	}
+
+	exists, err := entry.GetEntryExists(db, accession)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		slog.Error("[endpoints] [entry] Error finding entry", "error", err.Error())
+		return
+	}
+
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"message": "entry not found"})
+		return
+	}
+
+	err = entry.UpdateEntryBiosynthesisModule(db, accession, &module)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		slog.Error("[endpoints] [entry] Failed to update biosynthesis module", "error", err.Error())
 		return
 	}
 

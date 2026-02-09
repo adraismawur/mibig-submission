@@ -345,19 +345,22 @@ def edit_biosynth_module(
         form = get_module_form(module)(data=moduleData)
         reviewed = False
     else:
-        form = FormCollection.modules(request.form)
+        form = form = get_module_form(module)(request.form)
         reviewed = False
 
     if request.method == "POST" and form.validate():
-        Entry.save_biosynth(bgc_id, name, "Biosynth_modules", request.form, current_user)
-        flash("Submitted biosynthetic module information!")
-        return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="biosynth"))
+        if Entry.update_module(bgc_id, name, form.data):
+            flash("Updated biosynthetic module!")
+        else:
+            flash("Failed to update biosynthetic module", "error")
+
+        return redirect(url_for("edit.edit_biosynth_module", bgc_id=bgc_id, name=name, module=module, form=form))
 
     return render_template(
         "edit/biosynth_modules.html",
         bgc_id=bgc_id,
-        form=form,
         module=module,
+        form=form,
         is_reviewer=current_user.has_role(Role.REVIEWER),
         reviewed=reviewed,
     )

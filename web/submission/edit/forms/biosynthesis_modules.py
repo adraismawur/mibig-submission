@@ -28,7 +28,7 @@ from submission.edit.forms.biosynthesis_domains import (
 
 class CalForm(Form):
     type = HiddenField(default="cal")
-    # name = StringField("Name *", validators=[validators.InputRequired()])
+    name = HiddenField()
     genes = TagListField(
         "Gene(s) *",
         description="Comma separated list of genes in this module",
@@ -40,15 +40,18 @@ class CalForm(Form):
     )
     modification_domains = FieldList(
         FormField(ModificationDomainForm),
-        widget=FieldListAddBtn(render_kw={"style": "display:none"}),
+        widget=FieldListAddBtn(),
+        min_entries=1, 
+        max_entries=1
     )
     comments = StringField("Comments (Optional)")
+    submit = SubmitField("Save changes")
 
 
 class NRPS_I_Form(Form):
     # required _type, name, genes, active
     type = HiddenField(default="nrps-type1")
-    # name = StringField("Name *", validators=[validators.InputRequired()])
+    name = HiddenField()
     genes = TagListField(
         "Gene(s) *",
         description="Comma separated list of genes in this module",
@@ -65,14 +68,17 @@ class NRPS_I_Form(Form):
     )
     modification_domains = FieldList(
         FormField(ModificationDomainForm),
-        widget=FieldListAddBtn(render_kw={"style": "display:none"}),
+        widget=FieldListAddBtn(),
+        min_entries=1, 
+        max_entries=1
     )
     comments = StringField("Comments (Optional)")
+    submit = SubmitField("Save changes")
 
 
 class NRPS_VI_Form(Form):
     type = HiddenField(default="nrps-type6")
-    # name = StringField("Name *", validators=[validators.InputRequired()])
+    name = HiddenField()
     genes = TagListField(
         "Gene(s) *",
         description="Comma separated list of genes in this module",
@@ -88,14 +94,17 @@ class NRPS_VI_Form(Form):
     )
     modification_domains = FieldList(
         FormField(ModificationDomainForm),
-        widget=FieldListAddBtn(render_kw={"style": "display:none"}),
+        widget=FieldListAddBtn(),
+        min_entries=1, 
+        max_entries=1
     )
     comments = StringField("Comments (Optional)")
+    submit = SubmitField("Save changes")
 
 
 class OtherForm(Form):
     type = HiddenField(default="other")
-    # name = StringField("Name *", validators=[validators.InputRequired()])
+    name = HiddenField()
     subtype = StringField("Subtype *", validators=[validators.InputRequired()])
     genes = TagListField(
         "Gene(s) *",
@@ -108,14 +117,17 @@ class OtherForm(Form):
     )
     modification_domains = FieldList(
         FormField(ModificationDomainForm),
-        widget=FieldListAddBtn(render_kw={"style": "display:none"}),
+        widget=FieldListAddBtn(),
+        min_entries=1, 
+        max_entries=1
     )
     comments = StringField("Comments (Optional)")
+    submit = SubmitField("Save changes")
 
 
 class PKSIterativeForm(Form):
     type = HiddenField(default="pks-iterative")
-    # name = StringField("Name *", validators=[validators.InputRequired()])
+    name = HiddenField()
     genes = TagListField(
         "Gene(s) *",
         description="Comma separated list of genes in this module",
@@ -138,13 +150,17 @@ class PKSIterativeForm(Form):
     )
     modification_domains = FieldList(
         FormField(ModificationDomainForm),
-        widget=FieldListAddBtn(render_kw={"style": "display:none"}),
+        widget=FieldListAddBtn(),
+        min_entries=1, 
+        max_entries=1
     )
     comments = StringField("Comments (Optional)")
+    submit = SubmitField("Save changes")
 
 
 class PKSModularForm(Form):
     type = HiddenField(default="pks-modular")
+    name = HiddenField()
     genes = TagListField(
         "Gene(s) *",
         description="Comma separated list of genes in this module",
@@ -161,14 +177,17 @@ class PKSModularForm(Form):
     )
     modification_domains = FieldList(
         FormField(ModificationDomainForm),
-        widget=FieldListAddBtn(render_kw={"style": "display:none"}),
+        widget=FieldListAddBtn(),
+        min_entries=1, 
+        max_entries=1
     )
     comments = StringField("Comments (Optional)")
+    submit = SubmitField("Save changes")
 
 
 class PKSTransForm(Form):
     type = HiddenField(default="pks-trans")
-    # name = StringField("Name *", validators=[validators.InputRequired()])
+    name = HiddenField()
     genes = TagListField(
         "Gene(s) *",
         description="Comma separated list of genes in this module",
@@ -184,9 +203,12 @@ class PKSTransForm(Form):
     )
     modification_domains = FieldList(
         FormField(ModificationDomainForm),
-        widget=FieldListAddBtn(render_kw={"style": "display:none"}),
+        widget=FieldListAddBtn(),
+        min_entries=1, 
+        max_entries=1
     )
     comments = StringField("Comments (Optional)")
+    submit = SubmitField("Save changes")
 
 
 class ModulesForm(Form):

@@ -110,6 +110,17 @@ class Entry(db.Model):
             return True
         
         return False
+    
+    def update_module(bgc_id: str, name: str, data: dict[str, any]):
+        response = requests.post(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/module/{name}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+            json=data
+        )
+        if response.status_code == 200:
+            return True
+        
+        return False
 
     def delete_module(bgc_id: str, name: str):
         response = requests.delete(
