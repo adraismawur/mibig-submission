@@ -14,33 +14,51 @@ class WizardPage:
     id: str
     description: str
     form: type = None
-    api_endpoint: str = "/entry/<bgc_id>"
+    data_get_endpoint: str = "/entry/<bgc_id>"
+    data_set_endpoint: str = "/entry/<bgc_id>"
     template: str = "wizard/main.html"
 
     def create_form(self, request_form, entry):
         return self.form(request_form, data=entry)
 
-    def call_api(self, bgc_id):
-        replaced_api_endpoint = self.api_endpoint.replace("<bgc_id>", bgc_id)
+    def get_data(self, bgc_id):
+        replaced_api_endpoint = self.data_get_endpoint.replace("<bgc_id>", bgc_id)
 
         response = requests.get(
             f"{current_app.config['API_BASE']}" + replaced_api_endpoint,
             headers={"Authorization": f"Bearer {session['token']}"},
         )
         if response.status_code == 200:
-            entry = response.json()
+            data = response.json()
 
-            return entry
+            return data
         return None
+    
+    def post_data(self, bgc_id, data: dict[str, any]):
+        replaced_api_endpoint = self.data_set_endpoint.replace("<bgc_id>", bgc_id)
+
+        response = requests.post(
+            f"{current_app.config['API_BASE']}" + replaced_api_endpoint,
+            headers={"Authorization": f"Bearer {session['token']}"},
+            data=data
+        )
+
+        return response.status_code == 200
+            
 
 
 wizard_pages = [
-    WizardPage("locitax", "basic information", LociTaxonomyForm),
+    WizardPage(
+        "locitax",
+        "basic information",
+        LociTaxonomyForm,
+        data_set_endpoint="/entr/<bgc_id>/locitax",
+    ),
     WizardPage(
         "biosynth",
         "biosynthetic information",
         BioSynthForm,
-        api_endpoint="/entry/<bgc_id>/biosynth",
+        data_get_endpoint="/entry/<bgc_id>/biosynth",
         template="wizard/biosynth.html",
     ),
     WizardPage("compounds", "compound information", CompoundsForm),

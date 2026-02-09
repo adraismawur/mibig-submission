@@ -66,7 +66,7 @@ def edit_bgc(bgc_id: str, form_id: str) -> Union[str, response.Response]:
     wizard_page = get_wizard_page(form_id)
 
     # try to fill data from existing entry
-    entry = wizard_page.call_api(bgc_id)
+    entry = wizard_page.get_data(bgc_id)
 
     form = None
     if wizard_page.form:
@@ -78,6 +78,7 @@ def edit_bgc(bgc_id: str, form_id: str) -> Union[str, response.Response]:
     if request.method == "POST" and form.validate():
         try:
             flash("Updated submission data")
+            wizard_page.post_data(bgc_id, form.data)
         except ReferenceNotFound as e:
             flash(str(e), "error")
 
@@ -354,7 +355,7 @@ def edit_biosynth_module(
         else:
             flash("Failed to update biosynthetic module", "error")
 
-        return redirect(url_for("edit.edit_biosynth_module", bgc_id=bgc_id, name=name, module=module, form=form))
+        return redirect(url_for("edit.edit_biosynth_module", bgc_id=bgc_id, name=name, module=module))
 
     return render_template(
         "edit/biosynth_modules.html",

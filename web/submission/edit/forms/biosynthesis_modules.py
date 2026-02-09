@@ -41,8 +41,7 @@ class CalForm(Form):
     modification_domains = FieldList(
         FormField(ModificationDomainForm),
         widget=FieldListAddBtn(),
-        min_entries=1, 
-        max_entries=1
+        min_entries=1
     )
     comments = StringField("Comments (Optional)")
     submit = SubmitField("Save changes")
@@ -69,8 +68,7 @@ class NRPS_I_Form(Form):
     modification_domains = FieldList(
         FormField(ModificationDomainForm),
         widget=FieldListAddBtn(),
-        min_entries=1, 
-        max_entries=1
+        min_entries=1
     )
     comments = StringField("Comments (Optional)")
     submit = SubmitField("Save changes")
@@ -95,8 +93,7 @@ class NRPS_VI_Form(Form):
     modification_domains = FieldList(
         FormField(ModificationDomainForm),
         widget=FieldListAddBtn(),
-        min_entries=1, 
-        max_entries=1
+        min_entries=1
     )
     comments = StringField("Comments (Optional)")
     submit = SubmitField("Save changes")
@@ -118,8 +115,7 @@ class OtherForm(Form):
     modification_domains = FieldList(
         FormField(ModificationDomainForm),
         widget=FieldListAddBtn(),
-        min_entries=1, 
-        max_entries=1
+        min_entries=1
     )
     comments = StringField("Comments (Optional)")
     submit = SubmitField("Save changes")
@@ -151,8 +147,7 @@ class PKSIterativeForm(Form):
     modification_domains = FieldList(
         FormField(ModificationDomainForm),
         widget=FieldListAddBtn(),
-        min_entries=1, 
-        max_entries=1
+        min_entries=1
     )
     comments = StringField("Comments (Optional)")
     submit = SubmitField("Save changes")
@@ -178,8 +173,7 @@ class PKSModularForm(Form):
     modification_domains = FieldList(
         FormField(ModificationDomainForm),
         widget=FieldListAddBtn(),
-        min_entries=1, 
-        max_entries=1
+        min_entries=1
     )
     comments = StringField("Comments (Optional)")
     submit = SubmitField("Save changes")
@@ -204,8 +198,7 @@ class PKSTransForm(Form):
     modification_domains = FieldList(
         FormField(ModificationDomainForm),
         widget=FieldListAddBtn(),
-        min_entries=1, 
-        max_entries=1
+        min_entries=1
     )
     comments = StringField("Comments (Optional)")
     submit = SubmitField("Save changes")
