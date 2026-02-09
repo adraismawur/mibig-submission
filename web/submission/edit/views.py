@@ -77,8 +77,10 @@ def edit_bgc(bgc_id: str, form_id: str) -> Union[str, response.Response]:
 
     if request.method == "POST" and form.validate():
         try:
-            flash("Updated submission data")
-            wizard_page.post_data(bgc_id, form.data)
+            if wizard_page.post_data(bgc_id, form.data):
+                flash("Updated submission data")
+            else:
+                flash("Failed to update submission data", "error")
         except ReferenceNotFound as e:
             flash(str(e), "error")
 

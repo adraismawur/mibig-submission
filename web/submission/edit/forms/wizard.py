@@ -52,6 +52,7 @@ wizard_pages = [
         "locitax",
         "basic information",
         LociTaxonomyForm,
+        data_get_endpoint="/entr/<bgc_id>/locitax",
         data_set_endpoint="/entr/<bgc_id>/locitax",
     ),
     WizardPage(

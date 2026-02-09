@@ -33,3 +33,7 @@ func init() {
 	models.Models = append(models.Models, &Location{})
 	models.Models = append(models.Models, &LocusEvidence{})
 }
+
+func GetLocus(accession string) {
+
+}
