@@ -1,4 +1,4 @@
-package entry
+package locus
 
 import (
 	"github.com/adraismawur/mibig-submission/models"
@@ -32,8 +32,4 @@ func init() {
 	models.Models = append(models.Models, &Locus{})
 	models.Models = append(models.Models, &Location{})
 	models.Models = append(models.Models, &LocusEvidence{})
-}
-
-func GetLocus(accession string) {
-
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/adraismawur/mibig-submission/models/entry/biosynthesis"
 	"github.com/adraismawur/mibig-submission/models/entry/compound"
 	"github.com/adraismawur/mibig-submission/models/entry/gene"
+	"github.com/adraismawur/mibig-submission/models/entry/locus"
 	"github.com/adraismawur/mibig-submission/models/entry/taxonomy"
 	"github.com/adraismawur/mibig-submission/util"
 	"github.com/goccy/go-json"
@@ -48,7 +49,7 @@ type Entry struct {
 	Quality          Quality                   `json:"quality,omitempty"`
 	Status           Status                    `json:"status,omitempty"`
 	Completeness     Completeness              `json:"completeness"`
-	Loci             []Locus                   `json:"loci" gorm:"foreignKey:EntryID"`
+	Loci             []locus.Locus             `json:"loci" gorm:"foreignKey:EntryID"`
 	Biosynthesis     biosynthesis.Biosynthesis `json:"biosynthesis" gorm:"foreignKey:EntryID"`
 	Compounds        []compound.Compound       `json:"compounds" gorm:"ForeignKey:EntryID"`
 	Taxonomy         taxonomy.Taxonomy         `json:"taxonomy" gorm:"ForeignKey:EntryID"`

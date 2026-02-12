@@ -2,7 +2,6 @@ package endpoints
 
 import (
 	"github.com/adraismawur/mibig-submission/models/entry"
-	"github.com/adraismawur/mibig-submission/models/entry/taxonomy"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"net/http"
@@ -33,12 +32,6 @@ func LociTaxEndpoint(db *gorm.DB) Endpoint {
 	}
 }
 
-type LociTax struct {
-	ID       uint              `json:"-"`
-	Loci     []entry.Locus     `json:"loci" gorm:"foreignKey:EntryID"`
-	Taxonomy taxonomy.Taxonomy `json:"taxonomy" gorm:"ForeignKey:EntryID"`
-}
-
 func getEntryLociTax(db *gorm.DB, c *gin.Context) {
 
 	var accession = c.Param("accession")
@@ -54,15 +47,7 @@ func getEntryLociTax(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	var result LociTax
-
-	err = db.
-		Table("entries").
-		Where("accession = ?", accession).
-		Preload("Loci.Location").
-		Preload("Loci.Evidence").
-		Preload("Taxonomy").
-		Find(&result).Error
+	result, err := entry.GetLociTax(db, accession)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
@@ -73,9 +58,9 @@ func getEntryLociTax(db *gorm.DB, c *gin.Context) {
 }
 
 func updateEntryLociTax(db *gorm.DB, c *gin.Context) {
-	var locitax LociTax
+	var newLociTax entry.LociTax
 
-	err := c.ShouldBindJSON(&locitax)
+	err := c.ShouldBindJSON(&newLociTax)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Could not unmarshal json"})
@@ -95,4 +80,19 @@ func updateEntryLociTax(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	oldLociTax, err := entry.GetLociTax(db, accession)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Could not get locus and taxonomy information"})
+		return
+	}
+
+	err = entry.UpdateLociTax(db, accession, *oldLociTax, newLociTax)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+
+	c.Status(http.StatusOK)
 }

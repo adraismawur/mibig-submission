@@ -33,18 +33,20 @@ class WizardPage:
 
             return data
         return None
-    
-    def post_data(self, bgc_id, data: dict[str, any]):
+
+    def post_data(self, bgc_id, data: dict[str, any]) -> tuple[bool, object]:
         replaced_api_endpoint = self.data_set_endpoint.replace("<bgc_id>", bgc_id)
 
         response = requests.post(
             f"{current_app.config['API_BASE']}" + replaced_api_endpoint,
             headers={"Authorization": f"Bearer {session['token']}"},
-            data=data
+            json=data,
         )
 
-        return response.status_code == 200
-            
+        if response.status_code == 200:
+            return True, None
+
+        return False, response.json()
 
 
 wizard_pages = [
@@ -52,8 +54,8 @@ wizard_pages = [
         "locitax",
         "basic information",
         LociTaxonomyForm,
-        data_get_endpoint="/entr/<bgc_id>/locitax",
-        data_set_endpoint="/entr/<bgc_id>/locitax",
+        data_get_endpoint="/entry/<bgc_id>/locitax",
+        data_set_endpoint="/entry/<bgc_id>/locitax",
     ),
     WizardPage(
         "biosynth",
