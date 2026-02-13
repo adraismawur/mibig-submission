@@ -6,15 +6,22 @@ type SubmissionState string
 
 const (
 	DraftSubmission    SubmissionState = "draft"
-	DraftEdit                          = "edit"
 	PendingReview                      = "pending_review"
 	AcceptedSubmission                 = "accepted"
+)
+
+type SubmissionType string
+
+const (
+	NewSubmission  SubmissionType = "new"
+	SubmissionEdit SubmissionType = "edit"
 )
 
 type UserSubmission struct {
 	ID      uint            `json:"-"`
 	EntryID uint            `json:"submission_id"`
 	UserID  uint            `json:"user_id"`
+	Type    SubmissionType  `json:"type"`
 	State   SubmissionState `json:"state"`
 }
 

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block body %}
+
+<div class="content">
+    <div class="form-wrapper">
+        {% if current_user.is_reviewer() %}
+            <a href="{{ url_for('review.list_submissions') }}">
+                <button class="btn btn-primary">Back to submission overview</button>
+            </a>
+        {% endif %}
+        <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id='locitax') }}">
+            <button class="btn btn-primary">Edit this entry/submission</button>
+        </a>
+        <div class="form-group subgroup">
+           <span style="white-space: pre-wrap;">
+                {{ entry }}
+           </span>
+        </div>
+    </div>
+</div>
+{% endblock %}

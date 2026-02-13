@@ -29,12 +29,12 @@
 <div>
     {% if is_reviewer %}
     {% set is_reviewed = "checked" if reviewed else "" %}
-    <div class="form-group" style="background-color: var(--mibig-light)">
+    <!-- <div class="form-group" style="background-color: var(--mibig-light)">
         <label class="form-label fw-bold" for="reviewed">Mark as reviewed</label>
         <input id="reviewed" name="reviewed" class="form-check-input" type="checkbox" value="yes" {{is_reviewed}}>
         <p class="form-text text-muted">Visible to reviewers only, please check this box only when reviewing <u>a
                 colleague's</u> submission</p>
-    </div>
+    </div> -->
     {% endif %}
 
     {{ field(class='btn btn-light')}}
@@ -128,13 +128,39 @@
 
 {% macro list_user_actions(current_user) %}
 <div class="form-group subgroup">
-    <a href="{{url_for('new.new_entry')}}"><button class="btn btn-primary">Create a new submission</button></a>
+    <table class="table">
+        <thead class="table-header">
+            <th>Action</th>
+            <th>Description</th>
+        </thead>
+        {% if current_user.is_submitter() %}
+        <tr>
+            <td><a href="{{url_for('new.new_entry')}}"><button class="btn btn-primary">New submission</button></a></td>
+            <td>Create a new draft submission</td>
+        </tr>
+        {% endif %}
+        {% if current_user.is_reviewer() %}
+        <tr>
+            <td><a href="{{url_for('review.list_submissions')}}"><button class="btn btn-primary">Review</button></a></td>
+            <td>Review pending submissions</td>
+        </tr>
+        {% endif %}
+        {% if current_user.is_admin() %}
+        <tr>
+            <td><a href="{{url_for('new.new_entry')}}"><button class="btn btn-primary">Users</button></a></td>
+            <td>Add, change and remove users</td>
+        </tr>
+        {% endif %}
+    </table>
 </div>
 {% endmacro %}
 
 {% macro list_user_submissions(user_submissions) %}
 
 <div class="form-group subgroup">
+    {% if user_submissions | count == 0 %}
+        You have no (draft) submissions yet. Create one with the controls above
+    {% else %}
     <table class="table">
         <thead class="table-header">
             <th>Accession</th>
@@ -151,6 +177,7 @@
         </tr>
         {% endfor %}
     </table>
+    {% endif %}
 </div>
 
 {% endmacro %}

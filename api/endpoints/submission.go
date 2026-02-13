@@ -25,17 +25,24 @@ func SubmissionEndpoint(db *gorm.DB) Endpoint {
 	return Endpoint{
 		Routes: []Route{
 			{
-				Method: "POST",
-				Path:   "/submission",
-				Handler: func(c *gin.Context) {
-					createSubmission(db, c)
-				},
-			},
-			{
 				Method: "GET",
 				Path:   "/submission/:userId",
 				Handler: func(c *gin.Context) {
 					getUserSubmissions(db, c)
+				},
+			},
+			{
+				Method: "GET",
+				Path:   "/submission/",
+				Handler: func(c *gin.Context) {
+					getSubmissions(db, c)
+				},
+			},
+			{
+				Method: "POST",
+				Path:   "/submission",
+				Handler: func(c *gin.Context) {
+					createSubmission(db, c)
 				},
 			},
 		},
@@ -50,17 +57,52 @@ func getUserSubmissions(db *gorm.DB, c *gin.Context) {
 
 	userID := c.Param("id")
 
-	// join tables
-	q := db.Table("user_submissions").Joins("JOIN entries ON entries.id = user_submissions.entry_id")
-	// select relevant data
-	q = q.Select("entries.accession, user_submissions.state")
-	// find relevant submissions
-	q = q.Find(&submissions)
+	q := db.Table("user_submissions").
+		Joins("JOIN entries ON entries.id = user_submissions.entry_id")
 
-	err := q.Error
+	// optional clause
+	if userID != "" {
+		q.Where("user_submissions.user_id = ?", userID)
+	}
+
+	err := q.Select("entries.accession, user_submissions.state").
+		Find(&submissions).Error
 
 	if err != nil {
 		slog.Error("[endpoints] [submission] Could not find submissions for user", "user_id", userID, "error", err)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, submissions)
+}
+
+func getSubmissions(db *gorm.DB, c *gin.Context) {
+	var submissions []struct {
+		Accession string                `json:"accession"`
+		State     entry.SubmissionState `json:"state"`
+	}
+
+	userID := c.Query("id")
+	state := c.Query("state")
+
+	q := db.Table("user_submissions").
+		Joins("JOIN entries ON entries.id = user_submissions.entry_id")
+
+	// optional clause
+	if userID != "" {
+		q.Where("user_submissions.user_id = ?", userID)
+	}
+
+	if state != "" {
+		q.Where("user_submissions.state = ?", state)
+	}
+
+	err := q.Select("entries.accession, user_submissions.state").
+		Find(&submissions).Error
+
+	if err != nil {
+		slog.Error("[endpoints] [submission] Could not find submissions", "user_id", userID, "error", err)
 		c.Status(http.StatusInternalServerError)
 		return
 	}

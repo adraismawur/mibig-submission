@@ -80,6 +80,14 @@ func init() {
 					UserID: 1,
 					Role:   Admin,
 				},
+				{
+					UserID: 1,
+					Role:   Submitter,
+				},
+				{
+					UserID: 1,
+					Role:   Reviewer,
+				},
 			},
 			Info: UserInfo{
 				UserID:        1,

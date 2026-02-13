@@ -112,6 +112,23 @@ def edit_bgc(bgc_id: str, form_id: str) -> Union[str, response.Response]:
     )
 
 
+@bp_edit.route("/<bgc_id>/json", methods=["GET"])
+@login_required
+def view_json(bgc_id: str):
+    json_endpoint = "/entry/" + bgc_id
+    response = requests.get(
+        f"{current_app.config['API_BASE']}" + json_endpoint + "?pretty=true",
+        headers={"Authorization": f"Bearer {session['token']}"},
+    )
+
+    if response.status_code != 200:
+        flash("Could not retrieve entry")
+
+    entry = response.text
+
+    return render_template("edit/view_json.html", entry=entry)
+
+
 @bp_edit.route("/render_smiles", methods=["POST"])
 @login_required
 def render_smiles() -> Union[str, response.Response]:

@@ -137,13 +137,19 @@ class User(UserMixin):
 
     def has_role(self, role: Role):
         for userRole in self.roles:
-            if userRole.role == role:
+            if userRole.role == role.value:
                 return True
 
         return False
 
     def is_admin(self):
         return self.has_role(Role.ADMIN)
+
+    def is_reviewer(self):
+        return self.has_role(Role.REVIEWER)
+
+    def is_submitter(self):
+        return self.has_role(Role.SUBMITTER)
 
     def to_json(self):
         return json.dumps(

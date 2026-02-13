@@ -56,19 +56,19 @@ def index():
 
     response = requests.get(existing_entries_api_path).json()
 
-    existing_entries = response['entries']
-    record_count = response['record_count']
+    existing_entries = response["entries"]
+    record_count = response["record_count"]
 
     return render_template(
         "main/index.html",
         form=form,
-        user_id=current_user.id,
+        user=current_user,
         user_submissions=user_submissions,
         existing_entries=existing_entries,
         start=start,
         limit=limit,
         search=search,
-        record_count=record_count
+        record_count=record_count,
     )
 
 

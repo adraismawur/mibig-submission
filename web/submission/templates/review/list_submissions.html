@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block body %}
+
+<div class="content">
+    <div class="form-wrapper">
+        <h3>Please select an entry to review</h3>
+        <div class="form-group subgroup">
+            <table class="table">
+                <thead class="table-header">
+                    <th>
+                        Submission ID
+                    </th>
+                    <th>
+                        Type
+                    </th>
+                    <th>
+                        Edit
+                    </th>
+                    <th>
+                        View options
+                    </th>
+                </thead>
+                {% for submission in submissions %}
+                    <tr>
+                        <td>
+                            {{ submission.accession }}
+                        </td>
+                        <td>
+                            TODO
+                        </td>
+                        <td>
+                            <a href="{{ url_for('edit.edit_bgc', bgc_id=submission.accession, form_id='locitax' )}}">
+                                <button class="btn btn-primary">Edit</button>
+                            </a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('edit.view_json', bgc_id=submission.accession )}}">
+                                <button class="btn btn-primary">View as JSON</button>
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
