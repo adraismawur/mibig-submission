@@ -4,10 +4,26 @@
 
 
 {% block body %}
-<h3>Running antismash on your submission...</h3>
 
-<meta http-equiv="refresh" content="1" />
+{% if status.state
+<= 2 %} <meta http-equiv="refresh" content="1" />
+{% endif %}
 
-{{status}}
+<div class="form-wrapper">
+    <h3>Running antismash on your submission...</h3>
+    <div class="form-group subgroup">
+        {% if status.error %}
+        <div class="flash flash-danger">
+            {{ status.error }}
+        </div>
+        {% else %}
+        <div class="text-center">
+            <h4>Your antismash job is: {{ readable_state }}</h4>
+            <h5>Submitted at: {{ readable_date }}</h5>
+            <h5>Time elapsed: {{ time_elapsed }}</h5>
+        </div>
+        {% endif %}
+    </div>
+</div>
 
 {% endblock %}

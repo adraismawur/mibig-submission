@@ -168,9 +168,10 @@ func createSubmission(db *gorm.DB, c *gin.Context) {
 	}
 
 	antismashTask := models.AntismashRun{
-		Accession: newEntry.Loci[0].Accession,
-		BGCID:     newEntry.Accession,
-		GUID:      guid.NewString(),
+		Accession:   newEntry.Loci[0].Accession,
+		BGCID:       newEntry.Accession,
+		GUID:        guid.NewString(),
+		SubmittedAt: time.Now(),
 	}
 
 	err = db.Create(antismashTask).Error
