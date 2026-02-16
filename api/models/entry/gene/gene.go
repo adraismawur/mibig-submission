@@ -1,6 +1,9 @@
 package gene
 
-import "github.com/adraismawur/mibig-submission/models"
+import (
+	"github.com/adraismawur/mibig-submission/models"
+	"gorm.io/gorm"
+)
 
 // TODO: there may be a way to unify this, locus.location and BiosyntheticModuleDomainLocation
 type ExonLocation struct {
@@ -25,6 +28,7 @@ type GeneAddition struct {
 }
 
 type GeneAnnotation struct {
+	ID        uint64 `json:"-"`
 	GeneID    uint64 `json:"-"`       // GeneID is an internal identifier for the API DB
 	Accession string `json:"id"`      // Accession is the gene ID, e.g. 'AEK75497.1'. This is confusing, but GeneID here is internal to the API
 	Name      string `json:"name"`    // Name is the actual gene name, e.g. 'abyA1'
@@ -44,4 +48,22 @@ func init() {
 	models.Models = append(models.Models, &GeneLocation{})
 	models.Models = append(models.Models, &ExonLocation{})
 	models.Models = append(models.Models, &GeneAnnotation{})
+}
+
+func GetEntryGenes(db *gorm.DB, accession string) (*Gene, error) {
+	var gene Gene
+
+	err := db.
+		Table("entries").
+		Where("accession = ?", accession).
+		Preload("Additions.Location.Exons").
+		Preload("Annotations").
+		First(&gene).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &gene, nil
 }

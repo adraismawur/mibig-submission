@@ -65,13 +65,13 @@ def edit_bgc(bgc_id: str, form_id: str) -> Union[str, response.Response]:
     wizard_page = get_wizard_page(form_id)
 
     # try to fill data from existing entry
-    entry = wizard_page.get_data(bgc_id)
+    data = wizard_page.get_data(bgc_id)
 
     form = None
     if wizard_page.form:
-        form = wizard_page.create_form(request.form, entry)
+        form = wizard_page.create_form(request.form, data)
     else:
-        form = wizard_page.create_form(None, entry)
+        form = wizard_page.create_form(None, data)
 
     prev_form = get_prev_page(form_id)
     next_form = get_next_page(form_id)
