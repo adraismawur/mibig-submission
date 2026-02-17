@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block header %}
+<h2 class="edit-header">Redrafting {{ bgc_id }}</h2>
+{% endblock %}
+
+{% block body %}
+
+<div class="form-wrapper">
+    <h4>Confirm redraft</h4>
+
+    <form method="post" class="container">
+        <div class="form-group row">
+            <div class="row">
+                <h3>Are you sure you want to redraft the following BGC?</h3>
+
+                <h2>{{ bgc_id }}</h2>
+    <!-- 
+                <span style="white-space: pre-line;">
+                    {{ entry_json }}
+                </span> -->
+
+                <small>This will prevent a reviewer from reviewing the entry and will allow you to edit it</small>
+
+                
+
+            </div>
+            <div class="row">
+                <div class="col">
+                    <input type="submit" class="btn btn-danger" value="Redraft submission" data-method="post" />
+                </div>
+                <div class="col col-auto">
+                    <a href="{{ url_for('main.index') }}"><button
+                            class="btn btn-primary" type="button">Cancel</button></a>
+                </div>
+            </div>
+        </div>
+    </form>
+
+</div>
+{% endblock %}

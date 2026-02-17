@@ -37,8 +37,9 @@ const (
 type Completeness string
 
 const (
-	Unknown  Completeness = "unknown"
-	Complete Completeness = "complete"
+	Unknown    Completeness = "unknown"
+	Complete   Completeness = "complete"
+	Incomplete Completeness = "incomplete"
 )
 
 type Entry struct {

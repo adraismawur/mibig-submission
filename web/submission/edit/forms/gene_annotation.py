@@ -62,7 +62,7 @@ class AddGeneForm(Form):
 
 
 class DeleteGeneForm(Form):
-    gene_id = GeneIdField("Gene *", validators=[validators.InputRequired()])
+    id = GeneIdField("Gene *", validators=[validators.InputRequired()])
     reason = StringField(
         "Reason",
         description="Rationale why this gene is not a part of this gene cluster",
@@ -168,7 +168,7 @@ class DomainForm(Form):
     )
 
 
-class GeneAnnotationSubForm(Form):
+class GeneAnnotationForm(Form):
     to_add = FieldList(
         FormField(AddGeneForm),
         widget=FieldListAddBtn(
@@ -178,7 +178,7 @@ class GeneAnnotationSubForm(Form):
             "Add extra genes that are <u>missing</u> from the GenBank entry"
         ),
     )
-    delete = FieldList(
+    to_delete = FieldList(
         FormField(DeleteGeneForm),
         widget=FieldListAddBtn(
             label="Add gene to remove",
@@ -204,8 +204,4 @@ class GeneAnnotationSubForm(Form):
             "For NRPS or PKS substrate specificity, refer to the 'Biosynthesis modules' section."
         ),
     )
-    submit = SubmitField("Submit", widget=SubmitIndicator())
-
-
-class GeneAnnotationForm(Form):
-    genes = FormField(GeneAnnotationSubForm)
+    submit = SubmitField("Save changes", widget=SubmitIndicator())

@@ -5,7 +5,9 @@ import requests
 from submission.edit.forms.bio_synth import BioSynthForm
 from submission.edit.forms.compounds import CompoundsForm
 from submission.edit.forms.finalize import FinalizeForm
-from submission.edit.forms.gene_annotation import GeneAnnotationForm, GeneAnnotationSubForm
+from submission.edit.forms.gene_annotation import (
+    GeneAnnotationForm,
+)
 from submission.edit.forms.loci_tax import LociTaxonomyForm
 
 
@@ -68,11 +70,16 @@ wizard_pages = [
     WizardPage(
         "gene_annotation",
         "additional gene annotation",
-        GeneAnnotationSubForm,
+        GeneAnnotationForm,
         data_get_endpoint="/entry/<bgc_id>/genes",
         data_set_endpoint="/entry/<bgc_id>/genes",
-        ),
-    WizardPage("finalize", "final details", FinalizeForm),
+    ),
+    WizardPage(
+        "finalize",
+        "final details",
+        FinalizeForm,
+        data_set_endpoint="/submission/submit/<bgc_id>",
+    ),
 ]
 
 wizard_page_index = {page.id: i for i, page in enumerate(wizard_pages)}

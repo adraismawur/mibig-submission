@@ -24,11 +24,14 @@
         {{ macros.list_user_actions(current_user) }}
 
 
+        {% if current_user.is_submitter() %} 
         <h4>Edit an existing submission</h4>
         {{ macros.list_user_submissions(user_submissions) }}
 
         <h4>Edit an existing entry</h4>
         {{ macros.list_existing_entries(existing_entries, start, limit, search, record_count) }}
+        
+        {% endif %}
     </div>
 </div>
 {% endblock %}

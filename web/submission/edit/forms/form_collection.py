@@ -46,3 +46,5 @@ class FormCollection:
     annotation = GeneAnnotationForm
 
     compounds = CompoundsForm
+
+    gene_annotation = GeneAnnotationForm

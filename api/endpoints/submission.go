@@ -45,6 +45,20 @@ func SubmissionEndpoint(db *gorm.DB) Endpoint {
 					createSubmission(db, c)
 				},
 			},
+			{
+				Method: "POST",
+				Path:   "/submission/submit/:accession",
+				Handler: func(c *gin.Context) {
+					promoteSubmission(db, c)
+				},
+			},
+			{
+				Method: "POST",
+				Path:   "/submission/redraft/:accession",
+				Handler: func(c *gin.Context) {
+					redraftSubmission(db, c)
+				},
+			},
 		},
 	}
 }
@@ -226,4 +240,129 @@ func GetUserSubmissions(db *gorm.DB, userId int) ([]string, error) {
 	}
 
 	return accessions, nil
+}
+
+func promoteSubmission(db *gorm.DB, c *gin.Context) {
+	accession := c.Param("accession")
+
+	exists, err := entry.GetEntryExists(db, accession)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "entry not found"})
+		return
+	}
+
+	targetEntry, err := entry.GetEntryFromAccession(db, accession)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	var finalDetails entry.FinalDetailsRequest
+
+	err = c.ShouldBindJSON(&finalDetails)
+
+	if err != nil {
+		slog.Error("[endpoints] [submission] Failed to unmarshal entry JSON", "error", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid entry submitted"})
+		return
+	}
+
+	var userSubmission entry.UserSubmission
+
+	err = db.
+		Joins("JOIN entries ON entries.id = user_submissions.entry_id").
+		Where("entries.accession = ?", accession).
+		First(&userSubmission).Error
+
+	if err != nil {
+		slog.Error("[endpoints] [submission] Failed to find user submission", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find user submission"})
+		return
+	}
+
+	if userSubmission.State != entry.DraftSubmission {
+		slog.Error("[endpoints] [submission] User Submission is not a draft")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User Submission is not a draft"})
+		return
+	}
+
+	// after this we're past all the checks and we can do stuff
+	// update the changelog with the comment
+	// we know this is a submission, so we can edit the one changelog entry that
+	// exists
+	targetEntry.Changelog.Releases[0].Entries[0].Comment = finalDetails.Comment
+
+	err = db.Save(&targetEntry.Changelog).Error
+
+	if err != nil {
+		slog.Error("[endpoints] [submission] Failed to update entry changelog", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update entry changelog"})
+		return
+	}
+
+	userSubmission.State = entry.PendingReview
+
+	err = db.Save(&userSubmission).Error
+
+	if err != nil {
+		slog.Error("[endpoints] [submission] Failed to update user submission", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user submission"})
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+func redraftSubmission(db *gorm.DB, c *gin.Context) {
+	accession := c.Param("accession")
+
+	exists, err := entry.GetEntryExists(db, accession)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "entry not found"})
+		return
+	}
+
+	var userSubmission entry.UserSubmission
+
+	err = db.
+		Joins("JOIN entries ON entries.id = user_submissions.entry_id").
+		Where("entries.accession = ?", accession).
+		First(&userSubmission).Error
+
+	if err != nil {
+		slog.Error("[endpoints] [submission] Failed to find user submission", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find user submission"})
+		return
+	}
+
+	if userSubmission.State != entry.PendingReview {
+		slog.Error("[endpoints] [submission] User Submission is not pending review")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User Submission is not pending review"})
+		return
+	}
+
+	userSubmission.State = entry.DraftSubmission
+
+	err = db.Save(&userSubmission).Error
+
+	if err != nil {
+		slog.Error("[endpoints] [submission] Failed to update user submission", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user submission"})
+		return
+	}
+
+	c.Status(http.StatusOK)
 }

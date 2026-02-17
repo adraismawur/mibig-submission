@@ -23,7 +23,7 @@
 
 <body>
     <div class="container-fluid navbar-mibig">
-        <h1><a href="{{ url_for('main.index')}}">MIBiG Submission Prototype</a></h1>
+        <h1><a href="{{ url_for('main.index') }}">MIBiG Submission Prototype</a></h1>
         {% block header -%}{%- endblock %}
         {% if current_user and current_user.is_authenticated -%}
         <ul class="user-menu">

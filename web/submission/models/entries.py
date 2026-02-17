@@ -79,6 +79,16 @@ class Entry(db.Model):
             return entry
         return None
 
+    def get_text(bgc_id: str):
+        response = requests.get(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}?pretty=true",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+        if response.status_code == 200:
+            return response.text
+
+        return None
+
     def get_module(bgc_id: str, name: str):
         response = requests.get(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/module/{name}",
@@ -97,29 +107,29 @@ class Entry(db.Model):
         )
         if response.status_code == 200:
             return response.text
-        
+
         return None
-    
+
     def create_module(bgc_id: str, data: dict[str, any]):
         response = requests.post(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/module",
             headers={"Authorization": f"Bearer {session['token']}"},
-            json=data
+            json=data,
         )
         if response.status_code == 200:
             return True
-        
+
         return False
-    
+
     def update_module(bgc_id: str, name: str, data: dict[str, any]):
         response = requests.post(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/module/{name}",
             headers={"Authorization": f"Bearer {session['token']}"},
-            json=data
+            json=data,
         )
         if response.status_code == 200:
             return True
-        
+
         return False
 
     def delete_module(bgc_id: str, name: str):
@@ -129,9 +139,8 @@ class Entry(db.Model):
         )
         if response.status_code == 200:
             return True
-        
-        return False
 
+        return False
 
     @staticmethod
     def get_or_create(bgc_id: str) -> "Entry":

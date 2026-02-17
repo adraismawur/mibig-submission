@@ -25,4 +25,11 @@ class FinalizeForm(Form):
     )
     comments = StringField("Additional comments")
 
-    submit = SubmitField("Submit", widget=SubmitIndicator())
+    acknowledge = BooleanField(
+        "Confirm",
+        description="By checking this you indicate that you have, to the best of your abilities, confirmed "
+        "that the information in this submission is correct",
+        validators=[validators.InputRequired()],
+    )
+
+    submit = SubmitField("Submit for review", widget=SubmitIndicator())

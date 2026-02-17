@@ -27,6 +27,13 @@ type GeneAddition struct {
 	Translation string       `json:"translation"`
 }
 
+type GeneDeletion struct {
+	ID        uint64 `json:"-"`
+	GeneID    uint64 `json:"-"`
+	Accession string `json:"id"`
+	Reason    string `json:"reason"`
+}
+
 type GeneAnnotation struct {
 	ID        uint64 `json:"-"`
 	GeneID    uint64 `json:"-"`       // GeneID is an internal identifier for the API DB
@@ -39,12 +46,14 @@ type Gene struct {
 	ID          uint64           `json:"-"`
 	EntryID     uint64           `json:"-"`
 	Additions   []GeneAddition   `json:"to_add,omitempty" gorm:"ForeignKey:GeneID"`
+	Deletions   []GeneDeletion   `json:"to_delete,omitempty" gorm:"ForeignKey:GeneID"`
 	Annotations []GeneAnnotation `json:"annotations,omitempty" gorm:"ForeignKey:GeneID"`
 }
 
 func init() {
 	models.Models = append(models.Models, &Gene{})
 	models.Models = append(models.Models, &GeneAddition{})
+	models.Models = append(models.Models, &GeneDeletion{})
 	models.Models = append(models.Models, &GeneLocation{})
 	models.Models = append(models.Models, &ExonLocation{})
 	models.Models = append(models.Models, &GeneAnnotation{})
@@ -54,10 +63,12 @@ func GetEntryGenes(db *gorm.DB, accession string) (*Gene, error) {
 	var gene Gene
 
 	err := db.
-		Table("entries").
-		Where("accession = ?", accession).
+		Table("genes").
+		Joins("JOIN entries ON genes.entry_id = entries.id").
 		Preload("Additions.Location.Exons").
+		Preload("Deletions").
 		Preload("Annotations").
+		Where("accession = ?", accession).
 		First(&gene).
 		Error
 

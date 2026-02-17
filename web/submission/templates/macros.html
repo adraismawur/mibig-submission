@@ -171,8 +171,11 @@
         <tr>
             <td>{{ submission.accession }}</td>
             <td>{{ submission.state }}</td>
-            {% if submission.state != pending_review and submission.state != accepted %}
-            <td><a href="/edit/{{submission.accession}}"><button class="btn btn-primary">Edit</button></a></td>
+            {% if submission.state == "draft" %}
+                <td><a href="{{url_for('edit.edit_bgc', bgc_id=submission.accession, form_id='locitax')}}"><button class="btn btn-primary">Edit</button></a></td>
+            {% endif %}
+            {% if submission.state == "pending_review" %}
+                <td><a href="{{url_for('edit.redraft_bgc', bgc_id=submission.accession)}}"><button class="btn btn-danger">Redraft</button></a></td>
             {% endif %}
         </tr>
         {% endfor %}
