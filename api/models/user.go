@@ -71,32 +71,75 @@ func init() {
 	InitData = append(InitData, InitDataEntry{
 		Table: "users",
 		Model: &User{
-			ID:       1,
 			Email:    "admin@localhost",
 			Password: string(defaultPassword),
 			Active:   true,
 			Roles: []UserRole{
 				{
-					UserID: 1,
-					Role:   Admin,
+					Role: Admin,
 				},
 				{
-					UserID: 1,
-					Role:   Submitter,
+					Role: Submitter,
 				},
 				{
-					UserID: 1,
-					Role:   Reviewer,
+					Role: Reviewer,
 				},
 			},
 			Info: UserInfo{
-				UserID:        1,
-				Alias:         "test",
-				Name:          "test",
-				CallName:      "test",
-				Organization1: "test",
-				Organization2: "test",
-				Organization3: "test",
+				Alias:         "Admin",
+				Name:          "Admin",
+				CallName:      "Admin",
+				Organization1: "",
+				Organization2: "",
+				Organization3: "",
+				OrcID:         "",
+				Public:        false,
+			},
+		},
+	})
+
+	InitData = append(InitData, InitDataEntry{
+		Table: "users",
+		Model: &User{
+			Email:    "reviewer@localhost",
+			Password: string(defaultPassword),
+			Active:   true,
+			Roles: []UserRole{
+				{
+					Role: Reviewer,
+				},
+			},
+			Info: UserInfo{
+				Alias:         "Reviewer",
+				Name:          "Reviewer",
+				CallName:      "Reviewer",
+				Organization1: "",
+				Organization2: "",
+				Organization3: "",
+				OrcID:         "",
+				Public:        false,
+			},
+		},
+	})
+
+	InitData = append(InitData, InitDataEntry{
+		Table: "users",
+		Model: &User{
+			Email:    "submitter@localhost",
+			Password: string(defaultPassword),
+			Active:   true,
+			Roles: []UserRole{
+				{
+					Role: Submitter,
+				},
+			},
+			Info: UserInfo{
+				Alias:         "Submitter",
+				Name:          "Submitter",
+				CallName:      "Submitter",
+				Organization1: "",
+				Organization2: "",
+				Organization3: "",
 				OrcID:         "",
 				Public:        false,
 			},

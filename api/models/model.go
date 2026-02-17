@@ -32,16 +32,38 @@ func Migrate(db *gorm.DB) {
 func Populate(db *gorm.DB) {
 	// populate database with starting data if the relevant tables are empty
 	// this is used to create a user when this is the first time we are starting the DB
+
 	var count int64
-	for _, initDataEntry := range InitData {
-		db.Table(initDataEntry.Table).Count(&count)
 
-		if count > int64(0) {
-			return
+	err := db.Table("database_meta").Count(&count).Error
+
+	if err != nil {
+		slog.Error("[db] Error getting database meta count")
+		panic("Error getting database meta count")
+	}
+
+	var meta DatabaseMeta
+
+	if count == 0 {
+		meta = DatabaseMeta{}
+	} else {
+		err = db.Table("database_meta").First(&meta).Error
+
+		if err != nil {
+			slog.Error("[db] Populate error: ", "error", err)
+			panic(err)
 		}
+	}
 
+	if meta.FirstTimeSetupDone {
+		return
+	}
+
+	for _, initDataEntry := range InitData {
 		slog.Info("[db] Creating first time start data", "table", initDataEntry.Table)
 
 		db.Create(initDataEntry.Model)
 	}
+
+	meta.FirstTimeSetupDone = true
 }
