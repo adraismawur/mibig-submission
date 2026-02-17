@@ -69,7 +69,7 @@ func getUserSubmissions(db *gorm.DB, c *gin.Context) {
 		State     entry.SubmissionState `json:"state"`
 	}
 
-	userID := c.Param("id")
+	userID := c.Param("userId")
 
 	q := db.Table("user_submissions").
 		Joins("JOIN entries ON entries.id = user_submissions.entry_id")
@@ -299,7 +299,10 @@ func promoteSubmission(db *gorm.DB, c *gin.Context) {
 	// exists
 	targetEntry.Changelog.Releases[0].Entries[0].Comment = finalDetails.Comment
 
-	err = db.Save(&targetEntry.Changelog).Error
+	err = db.
+		Model(&targetEntry).
+		Association("Changelog").
+		Replace(&targetEntry.Changelog)
 
 	if err != nil {
 		slog.Error("[endpoints] [submission] Failed to update entry changelog", "error", err.Error())

@@ -125,7 +125,7 @@ func DeleteEntryBiosynthesisModule(db *gorm.DB, accession string, name string) e
 	err := db.
 		Table("entries").
 		Where("accession = ?", accession).
-		Preload("Biosynthesis.Modules").
+		Preload("Modules").
 		First(&biosynth).
 		Error
 
