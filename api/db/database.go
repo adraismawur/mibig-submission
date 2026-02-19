@@ -11,35 +11,93 @@ import (
 	"log/slog"
 )
 
+func connectPostres() (*gorm.DB, error) {
+
+	// behold, golang
+
+	var err error
+
+	var DbHost string
+	var DbPort string
+	var DbName string
+	var DbUser string
+	var DbPass string
+	if DbHost, err = config.GetConfig(config.EnvDbHost); err != nil {
+		slog.Error("[db] Could not get env variable for postgres host address", "error", err.Error())
+		return nil, err
+	}
+	if DbPort, err = config.GetConfig(config.EnvDbPort); err != nil {
+		slog.Error("[db] Could not get env variable for postgres port", "error", err.Error())
+		return nil, err
+	}
+	if DbName, err = config.GetConfig(config.EnvDbName); err != nil {
+		slog.Error("[db] Could not get env variable for postgres DB name", "error", err.Error())
+		return nil, err
+	}
+	if DbUser, err = config.GetConfig(config.EnvDbUser); err != nil {
+		slog.Error("[db] Could not get env variable for postgres user", "error", err.Error())
+		return nil, err
+	}
+	if DbPass, err = config.GetConfig(config.EnvDbPass); err != nil {
+		slog.Error("[db] Could not get env variable for postgres password", "error", err.Error())
+		return nil, err
+	}
+
+	connectionUrl := fmt.Sprintf(
+		"host=%s port=%s dbname=%s user=%s password=%s sslmode=disable",
+		DbHost,
+		DbPort,
+		DbName,
+		DbUser,
+		DbPass,
+	)
+
+	db, err := gorm.Open(postgres.Open(connectionUrl))
+
+	if err != nil {
+		slog.Error("[db] Could not open postgres connection", "error", err.Error())
+	}
+
+	return db, err
+}
+
+func connectSqlite() (*gorm.DB, error) {
+	dbPath, err := config.GetConfig(config.EnvDbPath)
+
+	if err != nil {
+		slog.Error("[db] Could not get env variable for sqlite DB path", "error", err.Error())
+		return nil, err
+	}
+
+	db, err := gorm.Open(sqlite.Open(dbPath))
+	return db, err
+}
+
 // Connect uses GORM to connect to a database based on the environment variables.
 // This function relies on the user to have set the environment variables correctly.
 // The function will panic if the dialect is not supported.
-func Connect() *gorm.DB {
+func Connect() (*gorm.DB, error) {
 	slog.Info("[db] Opening database connection")
 
-	var err error
 	var db *gorm.DB
+	var err error
+	var DbDialect string
 
-	dialect := config.Envs["DB_DIALECT"]
-	slog.Info(fmt.Sprintf("[db] Dialect: %s", dialect))
+	if DbDialect, err = config.GetConfig(config.EnvDbDialect); err != nil {
+		return nil, err
+	}
+
+	slog.Info(fmt.Sprintf("[db] Dialect: %s", DbDialect))
 
 	// We want to be specific about what we are expecting to use
 	// Postgres for production and SQLite for testing
-	if dialect == "postgres" {
-		connectionUrl := fmt.Sprintf(
-			"host=%s port=%s dbname=%s user=%s password=%s sslmode=disable",
-			config.Envs["DB_HOST"],
-			config.Envs["DB_PORT"],
-			config.Envs["DB_DBNAME"],
-			config.Envs["DB_USER"],
-			config.Envs["DB_PASS"],
-		)
-		db, err = gorm.Open(postgres.Open(connectionUrl))
-	} else if dialect == "sqlite" {
-		db, err = gorm.Open(sqlite.Open(config.Envs["DB_PATH"]))
+	if DbDialect == "postgres" {
+		db, err = connectPostres()
+	} else if DbDialect == "sqlite" {
+		db, err = connectSqlite()
 	} else {
-		slog.Error(fmt.Sprintf("Unsupported database dialect: %s", dialect))
-		panic(fmt.Sprintf("Unsupported database dialect: %s", dialect))
+		slog.Error(fmt.Sprintf("Unsupported database dialect: %s", DbDialect))
+		panic(fmt.Sprintf("Unsupported database dialect: %s", DbDialect))
 	}
 
 	if err != nil {
@@ -52,5 +110,5 @@ func Connect() *gorm.DB {
 	slog.Info("[db] Migrating models")
 	models.Migrate(db)
 
-	return db
+	return db, nil
 }

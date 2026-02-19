@@ -7,6 +7,11 @@ import (
 
 func TestInit(t *testing.T) {
 	// tests run with defaults
-	assert.Equal(t, Envs["DB_HOST"], "localhost")
-	assert.Equal(t, Envs["DB_DIALECT"], "sqlite")
+	assert.Equal(t, envs["DB_HOST"], "localhost")
+	assert.Equal(t, envs["DB_DIALECT"], "sqlite")
+}
+
+func TestGetConfig(t *testing.T) {
+	val, _ := GetConfig(EnvDbHost)
+	assert.Equal(t, val, "localhost")
 }

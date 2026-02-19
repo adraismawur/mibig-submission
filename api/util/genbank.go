@@ -19,6 +19,7 @@ const entrezIdParam = "id"
 const entrezDbParam = "db"
 const entrezRetmodeParam = "retmode"
 const entrezRettypeParam = "rettype"
+const entrezApiKeyParam = "api_key"
 
 const entrezSummaryEndpoint = "esummary.fcgi"
 const entrezSummaryRetmode = "json"
@@ -89,6 +90,8 @@ func GetGenbankAccessionSummary(accession string) (*EntrezSummaryResult, error) 
 	query.Add(entrezRetmodeParam, entrezSummaryRetmode)
 	query.Add(entrezIdParam, accession)
 
+	//if config.Envs
+
 	request.URL.RawQuery = query.Encode()
 
 	response, err := http.DefaultClient.Do(request)
@@ -146,9 +149,15 @@ func GetGenbankAccessionSummary(accession string) (*EntrezSummaryResult, error) 
 
 // GetGBK downloads a gbk from entrez and returns the path it was saved at as a string
 func GetGBK(accession string) (*string, error) {
-	basePath := path2.Join(config.Envs["DATA_PATH"], GBKSubPath)
+	envDataPath, err := config.GetConfig(config.EnvDataPath)
 
-	err := os.MkdirAll(basePath, 0755)
+	if err != nil {
+		return nil, err
+	}
+
+	basePath := path2.Join(envDataPath, GBKSubPath)
+
+	err = os.MkdirAll(basePath, 0755)
 
 	if err != nil {
 		slog.Error("[util] [genbank] Could not create output directory", "path", basePath)

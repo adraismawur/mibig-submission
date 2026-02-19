@@ -171,7 +171,15 @@ func getEntry(db *gorm.DB, c *gin.Context) {
 func getRawEntry(db *gorm.DB, c *gin.Context) {
 	accession := c.Param("accession")
 
-	jsonPath := path2.Join(config.Envs["DATA_PATH"], "json", accession+".json")
+	dataPath, err := config.GetConfig(config.EnvDataPath)
+
+	if err != nil {
+		slog.Error("[endpoints] [entry] Could not get env variable for data path")
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	jsonPath := path2.Join(dataPath, "json", accession+".json")
 
 	c.File(jsonPath)
 }

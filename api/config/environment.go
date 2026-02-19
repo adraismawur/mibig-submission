@@ -3,6 +3,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -13,20 +14,57 @@ type EnvVar struct {
 	Optional     bool
 }
 
+type EnvKey string
+
+const (
+	EnvServerPort   EnvKey = "SERVER_PORT"
+	EnvDbDialect           = "DB_DIALECT"
+	EnvDbPath              = "DB_PATH"
+	EnvDbHost              = "DB_HOST"
+	EnvDbPort              = "DB_PORT"
+	EnvDbName              = "DB_DBNAME"
+	EnvDbUser              = "DB_USER"
+	EnvDbPass              = "DB_PASS"
+	EnvJwtSecret           = "JWT_SECRET"
+	EnvJwtLifetime         = "JWT_LIFETIME"
+	EnvDataPath            = "DATA_PATH"
+	EnvEntrezApiKey        = "ENTREZ_API_KEY"
+)
+
 // Envs is a map of environment variables and their values
 // by default, it is initialized with the default values
-var Envs = map[string]string{
-	"SERVER_PORT":  ":8000",
-	"DB_DIALECT":   "sqlite",
-	"DB_PATH":      "/tmp/test.db",
-	"DB_HOST":      "localhost",
-	"DB_PORT":      "5432",
-	"DB_DBNAME":    "mibig_submission",
-	"DB_USER":      "postgres",
-	"DB_PASS":      "",
-	"JWT_SECRET":   "CHANGEME",
-	"JWT_LIFETIME": "86400",
-	"DATA_PATH":    "data",
+var envs = map[EnvKey]string{
+	EnvServerPort:   ":8000",
+	EnvDbDialect:    "sqlite",
+	EnvDbPath:       "/tmp/test.db",
+	EnvDbHost:       "localhost",
+	EnvDbPort:       "5432",
+	EnvDbName:       "mibig_submission",
+	EnvDbUser:       "postgres",
+	EnvDbPass:       "",
+	EnvJwtSecret:    "CHANGEME",
+	EnvJwtLifetime:  "86400",
+	EnvDataPath:     "data",
+	EnvEntrezApiKey: "",
+}
+
+func GetConfig(key EnvKey) (val string, err error) {
+	val, contains := envs[key]
+
+	if !contains {
+		errorMsg := fmt.Sprintf("Tried to retrieve nonexistent env item %s", key)
+
+		slog.Error(errorMsg)
+		return "", errors.New(errorMsg)
+	}
+
+	return val, nil
+}
+
+func OverrideEnv(key EnvKey, val string) {
+	slog.Warn(fmt.Sprintf("[env] Overriding %s with %s", string(key), val))
+
+	envs[key] = val
 }
 
 // init initializes the Envs map with the environment variables,
@@ -35,17 +73,17 @@ func init() {
 	slog.Info("[env] Environment variables:")
 
 	// replace with actual values from system environment
-	for name := range Envs {
-		sysValue := os.Getenv(name)
+	for name := range envs {
+		sysValue := os.Getenv(string(name))
 		// if the environment variable is not set, use default value
 		if sysValue == "" {
-			slog.Info(fmt.Sprintf("%s: %s (DEFAULT)", name, Envs[name]))
+			slog.Info(fmt.Sprintf("%s: %s (DEFAULT)", name, envs[name]))
 			continue
 		}
 
-		Envs[name] = sysValue
+		envs[name] = sysValue
 
-		slog.Info(fmt.Sprintf("%s: %s", name, Envs[name]))
+		slog.Info(fmt.Sprintf("%s: %s", name, envs[name]))
 	}
 }
 

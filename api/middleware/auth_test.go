@@ -38,7 +38,9 @@ func TestAuthMiddlewareValidToken(t *testing.T) {
 		RegisteredClaims: jwt.RegisteredClaims{},
 	})
 
-	signedToken, _ := token.SignedString([]byte(config.Envs["JWT_SECRET"]))
+	secret, _ := config.GetConfig(config.EnvJwtSecret)
+
+	signedToken, _ := token.SignedString([]byte(secret))
 
 	c.Request.Header.Add("Authorization", "Bearer "+signedToken)
 
@@ -105,7 +107,9 @@ func TestAuthMiddlewareWrongRole(t *testing.T) {
 		RegisteredClaims: jwt.RegisteredClaims{},
 	})
 
-	signedToken, _ := token.SignedString([]byte(config.Envs["JWT_SECRET"]))
+	secret, _ := config.GetConfig(config.EnvJwtSecret)
+
+	signedToken, _ := token.SignedString([]byte(secret))
 
 	c.Request.Header.Add("Authorization", "Bearer "+signedToken)
 
@@ -132,7 +136,9 @@ func TestAuthMiddlewareParameterizedRoute(t *testing.T) {
 		RegisteredClaims: jwt.RegisteredClaims{},
 	})
 
-	signedToken, _ := token.SignedString([]byte(config.Envs["JWT_SECRET"]))
+	secret, _ := config.GetConfig(config.EnvJwtSecret)
+
+	signedToken, _ := token.SignedString([]byte(secret))
 
 	c.Request.Header.Add("Authorization", "Bearer "+signedToken)
 
@@ -159,7 +165,7 @@ func TestAuthMiddlewareParameterizedRouteWrongRole(t *testing.T) {
 		RegisteredClaims: jwt.RegisteredClaims{},
 	})
 
-	signedToken, _ := token.SignedString([]byte(config.Envs["JWT_SECRET"]))
+	signedToken, _ := token.SignedString([]byte(config.GetConfig("JWT_SECRET")))
 
 	c.Request.Header.Add("Authorization", "Bearer "+signedToken)
 

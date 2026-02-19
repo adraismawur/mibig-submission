@@ -59,7 +59,13 @@ func GetAuthHeaderToken(c *gin.Context) (string, error) {
 
 func ParseToken(token string) (Token, error) {
 	parsedToken, err := jwt.ParseWithClaims(token, &Token{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(config.Envs["JWT_SECRET"]), nil
+		jwtSecret, err := config.GetConfig(config.EnvJwtSecret)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return []byte(jwtSecret), nil
 	})
 
 	if err != nil {
@@ -87,13 +93,27 @@ func GetUserFromToken(token string) (*User, error) {
 
 func GenerateToken(user User) (string, error) {
 	issuedAt := time.Now()
-	lifetime, err := strconv.ParseInt(config.Envs["JWT_LIFETIME"], 10, 64)
-	expirationTime := issuedAt.Add(time.Duration(lifetime) * time.Second)
+
+	jwtSecret, err := config.GetConfig(config.EnvJwtSecret)
 
 	if err != nil {
-		slog.Error(fmt.Sprintf("[token] Error parsing JWT lifetime '%s'", config.Envs["JWT_LIFETIME"]))
 		return "", err
 	}
+
+	jwtLifetime, err := config.GetConfig(config.EnvJwtLifetime)
+
+	if err != nil {
+		return "", err
+	}
+
+	lifetime, err := strconv.ParseInt(jwtLifetime, 10, 64)
+
+	if err != nil {
+		slog.Error(fmt.Sprintf("[token] Error parsing JWT lifetime '%s'", jwtLifetime))
+		return "", err
+	}
+
+	expirationTime := issuedAt.Add(time.Duration(lifetime) * time.Second)
 
 	claims := Token{
 		User: user,
@@ -109,7 +129,7 @@ func GenerateToken(user User) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
 
-	tokenString, err := token.SignedString([]byte(config.Envs["JWT_SECRET"]))
+	tokenString, err := token.SignedString([]byte(jwtSecret))
 
 	if err != nil {
 		slog.Error(fmt.Sprintf("[token] Error signing token: %s", err))

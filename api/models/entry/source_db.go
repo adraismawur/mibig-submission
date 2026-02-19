@@ -46,8 +46,16 @@ func downloadMibigDatabase(url string, dest string) {
 }
 
 func PreloadMibigDatabase(db *gorm.DB) {
-	databaseZipDest := filepath.Join(config.Envs["DATA_PATH"], "mibig_db.tar.gz")
-	databaseJzonDest := filepath.Join(config.Envs["DATA_PATH"], "json")
+	dataPath, err := config.GetConfig("DATA_PATH")
+
+	if err != nil {
+		slog.Error("[source_db] Could not get env variable for data path")
+		slog.Error("[source_db] Did not preload mibig")
+		return
+	}
+
+	databaseZipDest := filepath.Join(dataPath, "mibig_db.tar.gz")
+	databaseJzonDest := filepath.Join(dataPath, "json")
 
 	downloadMibigDatabase(DatabaseURL, databaseZipDest)
 	// TODO: unzip it to data/json/*.json

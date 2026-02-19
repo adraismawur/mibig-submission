@@ -109,7 +109,15 @@ func debugPrefillJson(db *gorm.DB, c *gin.Context) {
 	BGCId := c.Query("bgc_id")
 	accession := c.Query("accession")
 
-	outputDir := path2.Join(config.Envs["DATA_PATH"], "antismash", accession)
+	dataPath, err := config.GetConfig(config.EnvDataPath)
+
+	if err != nil {
+		slog.Error("[source_db] Could not get env variable for data path")
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	outputDir := path2.Join(dataPath, "antismash", accession)
 
 	jsonFile := path2.Join(outputDir, accession+".json")
 
@@ -187,7 +195,15 @@ func getAntismashJson(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	jsonPath := path2.Join(config.Envs["DATA_PATH"], "antismash", accession, accession+".json")
+	dataPath, err := config.GetConfig(config.EnvDataPath)
+
+	if err != nil {
+		slog.Error("[Antismash] Could not get env variable for data path")
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	jsonPath := path2.Join(dataPath, "antismash", accession, accession+".json")
 
 	c.File(jsonPath)
 }
@@ -264,7 +280,14 @@ func AntismashWorker(db *gorm.DB) {
 		request.State = models.Running
 		db.Save(&request)
 
-		outputDir := path2.Join(config.Envs["DATA_PATH"], "antismash", request.Accession)
+		dataPath, err := config.GetConfig(config.EnvDataPath)
+
+		if err != nil {
+			slog.Error("[AntismashWorker] Could not get env variable for data path")
+			panic("The antismash worker panicked: could not get env variable for data path")
+		}
+
+		outputDir := path2.Join(dataPath, "antismash", request.Accession)
 
 		_, err = RunAntismash(*gbkPath, request.Accession, outputDir)
 
