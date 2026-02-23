@@ -4,6 +4,7 @@ import "github.com/adraismawur/mibig-submission/models"
 import "github.com/lib/pq"
 
 type ReleaseEntry struct {
+	ID           uint64         `json:"-"`
 	ReleaseID    uint64         `json:"-"`
 	Contributors pq.StringArray `json:"contributors" gorm:"type:text[]"`
 	Reviewers    pq.StringArray `json:"reviewers" gorm:"type:text[]"`
