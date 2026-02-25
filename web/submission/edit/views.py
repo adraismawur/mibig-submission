@@ -87,6 +87,9 @@ def edit_bgc(bgc_id: str, form_id: str) -> Union[str, response.Response]:
         except ReferenceNotFound as e:
             flash(str(e), "error")
 
+        if wizard_page.post_redirect:
+            return redirect(url_for(**wizard_page.post_redirect))
+
     # get list of antismash accessions associated with this entry
     antismash_list_endpoint = "/antismash/list/"
     response = requests.get(

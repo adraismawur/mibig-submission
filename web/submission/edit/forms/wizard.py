@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from flask import current_app, session
+from flask import current_app, session, url_for
 import requests
 from submission.edit.forms.bio_synth import BioSynthForm
 from submission.edit.forms.compounds import CompoundsForm
@@ -19,6 +19,7 @@ class WizardPage:
     data_get_endpoint: str = "/entry/<bgc_id>"
     data_set_endpoint: str = "/entry/<bgc_id>"
     template: str = "wizard/main.html"
+    post_redirect: str = None
 
     def create_form(self, request_form, entry):
         return self.form(request_form, data=entry)
@@ -79,6 +80,7 @@ wizard_pages = [
         "final details",
         FinalizeForm,
         data_set_endpoint="/submission/submit/<bgc_id>",
+        post_redirect={"endpoint": "main.index"},
     ),
 ]
 
