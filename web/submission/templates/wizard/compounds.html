@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block header %}
+<h2 class="edit-header">Editing {{ bgc_id }}</h2>
+{% endblock %}
+
+{% block body %}
+
+{% import 'bgc_viewer.html' as bgc_viewer %}
+{{ bgc_viewer.bgc_viewer(antismash_accessions, antismash_json_url) }}
+
+<div class="form-wrapper">
+    <h4>Enter {{ form_description }}</h4>
+
+    <div class="form-group">
+        <p class="form-label fw-bold">Compounds</p>
+        <table class="table">
+            <tbody id="module-table">
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Mass</th>
+                    <th>Formula</th>
+                    <th></th>
+                </tr>
+                {% for compound in form.compounds %}
+                <tr>
+                    <td>
+                        {{ loop.index }}
+                    </td>
+                    <td>
+                        {{compound['name'].data}}
+                    </td>
+                    <td>
+                        {{compound['mass'].data}}
+                    </td>
+                    <td>
+                        {{compound['formula'].data}}
+                    </td>
+                    <td>
+                        <a
+                            href="{{ url_for('edit.edit_compound', bgc_id=bgc_id, compound_idx=loop.index0) }}">
+                            <button type="button" class="btn btn-primary" type="button">Edit compound</button>
+                        </a>
+                        <a href="{{ url_for('edit.remove_compound', bgc_id=bgc_id, compound_idx=loop.index0) }}">
+                            <button type="button" class="btn btn-danger" type="button">Delete</button>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{{url_for('edit.create_compound', bgc_id=bgc_id)}}">
+            <button class="btn btn-primary" type="button">Add new compound`</button>
+        </a>
+    </div>
+    {% if prev_form %}
+    <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=prev_form.id) }}"><button id="back-btn"
+            class="btn btn-secondary" type="button">Previous: {{ prev_form.description }}</button></a>
+    {%- endif %}
+    {% if next_form %}
+    <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=next_form.id) }}"><button id="back-btn"
+            class="btn btn-secondary" type="button">Next: {{ next_form.description }}</button></a>
+    {%- endif %}
+
+</div>
+
+{% endblock %}

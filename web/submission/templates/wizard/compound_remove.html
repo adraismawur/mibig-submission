@@ -13,11 +13,11 @@
 
     <form method="post" class="container">
         <div class="form-group row">
-            <h3>Are you sure you want to remove the following module?</h3>
+            <h3>Are you sure you want to remove the following compound?</h3>
 
             <hr>
 
-            <span style="white-space: pre;">{{module_text}}</span>
+            <span style="white-space: pre;">{{ compound_text }}</span>
 
             <hr>
 
@@ -26,7 +26,7 @@
                     <input type="submit" class="btn btn-danger" value="Delete module" data-method="post" />
                 </div>
                 <div class="col col-auto">
-                    <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id='biosynth') }}"><button
+                    <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id='compounds') }}"><button
                             class="btn btn-primary" type="button">Cancel</button></a>
                 </div>
             </div>

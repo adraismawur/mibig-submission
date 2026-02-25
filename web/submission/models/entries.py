@@ -142,6 +142,28 @@ class Entry(db.Model):
 
         return False
 
+    def get_compound(bgc_id: str, compound_idx: int):
+        response = requests.get(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/compound/{compound_idx}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+
+        if response.status_code == 200:
+            return response.json()
+
+        return None
+
+    def get_compound_text(bgc_id: str, compound_idx: int):
+        response = requests.get(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/compound/{compound_idx}?pretty=true",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+
+        if response.status_code == 200:
+            return response.text
+
+        return None
+
     @staticmethod
     def get_or_create(bgc_id: str) -> "Entry":
         """Get an entry from the database or create one if it does not exist

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from flask import current_app, session, url_for
 import requests
 from submission.edit.forms.bio_synth import BioSynthForm
-from submission.edit.forms.compounds import CompoundsForm
+from submission.edit.forms.compounds import CompoundsForm, CompoundsSubForm
 from submission.edit.forms.finalize import FinalizeForm
 from submission.edit.forms.gene_annotation import (
     GeneAnnotationForm,
@@ -67,7 +67,13 @@ wizard_pages = [
         data_get_endpoint="/entry/<bgc_id>/biosynth",
         template="wizard/biosynth.html",
     ),
-    WizardPage("compounds", "compound information", CompoundsForm),
+    WizardPage(
+        "compounds",
+        "compound information",
+        CompoundsForm,
+        data_get_endpoint="/entry/<bgc_id>/compounds",
+        template="wizard/compounds.html",
+    ),
     WizardPage(
         "gene_annotation",
         "additional gene annotation",

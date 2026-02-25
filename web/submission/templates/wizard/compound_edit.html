@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block header %}
+<h2 class="edit-header">Editing {{ bgc_id }}</h2>
+{% endblock %}
+
+{% block body %}
+
+<div class="form-wrapper">
+    {% if new %}
+        <h4>Add a new compound</h4>
+    {% else %}
+        <h4>Editing compound</h4>
+    {% endif %}
+
+    <form method="post" class="container">
+        {{ macros.simple_divform_inner(form, is_reviewer=False, reviewed=False) }}
+        <div class="form-group row">
+            <input type="submit" class="btn btn-primary" value="Save module">
+        </div>
+    </form>
+
+</div>
+<div class="container">
+    <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id='compounds') }}"><button id="back-btn"
+            class="btn btn-outline-secondary">Back to
+            compound overview</button></a>
+</div>
+{% endblock %}

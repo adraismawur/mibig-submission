@@ -23,6 +23,7 @@ from wtforms.widgets import html_params
 from markupsafe import Markup
 
 from submission.edit.forms.biosynthesis_modules import get_module_form
+from submission.edit.forms.compounds import CompoundsSubForm
 from submission.extensions import db
 from submission.edit import bp_edit
 from submission.edit.forms.form_collection import FormCollection
@@ -402,7 +403,7 @@ def edit_biosynth_module(
 @login_required
 def remove_biosynth_module(bgc_id: str, name: str):
     # get pretty printed version of module data
-    moduleData = Entry.get_module_text(bgc_id, name)
+    module_text = Entry.get_module_text(bgc_id, name)
 
     if request.method == "POST":
         Entry.delete_module(bgc_id, name)
@@ -412,7 +413,46 @@ def remove_biosynth_module(bgc_id: str, name: str):
         "wizard/biosynth_module_remove.html",
         bgc_id=bgc_id,
         name=name,
-        moduleData=moduleData,
+        module_text=module_text,
+    )
+
+
+@bp_edit.route("/<bgc_id>/compounds/new")
+@login_required
+def create_compound(bgc_id: str):
+    form = CompoundsSubForm()
+
+    return render_template(
+        "wizard/compound_edit.html", bgc_id=bgc_id, form=form, new=True
+    )
+
+
+@bp_edit.route("/<bgc_id>/compounds/edit/<compound_idx>")
+@login_required
+def edit_compound(bgc_id: str, compound_idx: int):
+
+    if not request.form:
+        compoundData = Entry.get_compound(bgc_id, compound_idx)
+
+        form = CompoundsSubForm(data=compoundData)
+    else:
+        form = form = CompoundsSubForm(request.form)
+
+    return render_template(
+        "wizard/compound_edit.html", bgc_id=bgc_id, form=form, new=False
+    )
+
+
+@bp_edit.route("/<bgc_id>/compounds/remove/<compound_idx>")
+@login_required
+def remove_compound(bgc_id: str, compound_idx: int):
+
+    compound_text = Entry.get_compound_text(bgc_id, compound_idx)
+
+    return render_template(
+        "wizard/compound_delete.html",
+        bgc_id=bgc_id,
+        compound_text=compound_text,
     )
 
 
