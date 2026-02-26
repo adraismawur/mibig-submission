@@ -56,11 +56,19 @@
     {{field}}
 </div>
 
+{% elif field.name == 'structure' %}
+
+<div id="{{field.id}}" class="subform">
+    {{field.label(class='form-label'~is_required)}}
+    {{descr(field)}}
+    {{ field(class='form-control' + (' is-invalid' if field.errors else '')) }}
+    <img src="{{url_for('edit.render_smiles', smiles_string=field.data)}}" alt="SMILES render" style="min-height: 100px;">
+</div>
+
 {% elif field.type == 'FormField' %}
 {{field.label(class='form-label'~is_required)}}
 <div id="{{field.id}}" class="subform">
     {{descr(field)}}
-    {{ simple_divsubform(field, deletebtn=false) }}
 </div>
 
 {% elif field.type == 'BooleanField' %}

@@ -154,9 +154,9 @@ def redraft_bgc(bgc_id: str):
     return render_template("edit/redraft.html", bgc_id=bgc_id, entry_json=entry_json)
 
 
-@bp_edit.route("/render_smiles", methods=["POST"])
+@bp_edit.route("/render_smiles_form", methods=["POST"])
 @login_required
-def render_smiles() -> Union[str, response.Response]:
+def render_smiles_form() -> Union[str, response.Response]:
     origin = request.headers["Hx-Trigger-Name"]
     smiles_string = request.form.get(origin)
 
@@ -164,6 +164,13 @@ def render_smiles() -> Union[str, response.Response]:
         return ""
 
     return draw_smiles_svg(smiles)
+
+
+@bp_edit.route("/render_smiles", methods=["GET"])
+@login_required
+def render_smiles():
+    smiles_string = request.args.get("smiles_string")
+    return draw_smiles_svg(smiles_string)
 
 
 @bp_edit.route("/class_buttons/<bgc_id>", methods=["POST"])
@@ -427,23 +434,26 @@ def create_compound(bgc_id: str):
     )
 
 
-@bp_edit.route("/<bgc_id>/compounds/edit/<compound_idx>")
+@bp_edit.route("/<bgc_id>/compounds/edit/<compound_id>", methods=["GET", "POST"])
 @login_required
-def edit_compound(bgc_id: str, compound_idx: int):
+def edit_compound(bgc_id: str, compound_id: int):
 
     if not request.form:
-        compoundData = Entry.get_compound(bgc_id, compound_idx)
+        compoundData = Entry.get_compound(bgc_id, compound_id)
 
-        form = CompoundsSubForm(data=compoundData)
+        form = CompoundsSubForm(data=compoundData["compounds"][0])
     else:
         form = form = CompoundsSubForm(request.form)
+
+    if request.method == "POST":
+        Entry.update_compound(bgc_id, form.data)
 
     return render_template(
         "wizard/compound_edit.html", bgc_id=bgc_id, form=form, new=False
     )
 
 
-@bp_edit.route("/<bgc_id>/compounds/remove/<compound_idx>")
+@bp_edit.route("/<bgc_id>/compounds/remove/<compound_id>")
 @login_required
 def remove_compound(bgc_id: str, compound_idx: int):
 

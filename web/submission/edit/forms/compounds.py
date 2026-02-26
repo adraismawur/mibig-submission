@@ -4,6 +4,7 @@ import requests
 from wtforms import (
     DecimalField,
     Form,
+    HiddenField,
     StringField,
     IntegerField,
     FieldList,
@@ -44,6 +45,7 @@ class BioactivitySubForm(Form):
 
 
 class CompoundsSubForm(Form):
+    id = HiddenField()
     name = StringField()
     evidence = ReferenceField(
         label="Citation(s) *",

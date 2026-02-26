@@ -1,4 +1,4 @@
-""" Collection of custom widget classes used throughout the submission system """
+"""Collection of custom widget classes used throughout the submission system"""
 
 from typing import Any, Optional
 
@@ -111,7 +111,7 @@ class StructureInput(widgets.TextInput):
         self,
         input_type: Optional[str] = None,
         render_kw={
-            "hx-post": "/edit/render_smiles",
+            "hx-post": "/edit/render_smiles_form",
             "hx-trigger": "change, load",
             "hx-swap": "innerHTML",
             "hx-target": "next .struct",

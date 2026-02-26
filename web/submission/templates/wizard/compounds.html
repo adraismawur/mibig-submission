@@ -41,10 +41,10 @@
                     </td>
                     <td>
                         <a
-                            href="{{ url_for('edit.edit_compound', bgc_id=bgc_id, compound_idx=loop.index0) }}">
+                            href="{{ url_for('edit.edit_compound', bgc_id=bgc_id, compound_id=compound['id'].data) }}">
                             <button type="button" class="btn btn-primary" type="button">Edit compound</button>
                         </a>
-                        <a href="{{ url_for('edit.remove_compound', bgc_id=bgc_id, compound_idx=loop.index0) }}">
+                        <a href="{{ url_for('edit.remove_compound', bgc_id=bgc_id, compound_id=compound['id'].data) }}">
                             <button type="button" class="btn btn-danger" type="button">Delete</button>
                         </a>
                     </td>

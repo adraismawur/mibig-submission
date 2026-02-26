@@ -142,9 +142,14 @@ class Entry(db.Model):
 
         return False
 
-    def get_compound(bgc_id: str, compound_idx: int):
+    def get_compound(bgc_id: str, id: int = None):
+        request_url = f"{current_app.config['API_BASE']}/entry/{bgc_id}/compounds"
+
+        if id:
+            request_url = request_url + "?id=" + str(id)
+
         response = requests.get(
-            f"{current_app.config['API_BASE']}/entry/{bgc_id}/compound/{compound_idx}",
+            request_url,
             headers={"Authorization": f"Bearer {session['token']}"},
         )
 
@@ -152,6 +157,16 @@ class Entry(db.Model):
             return response.json()
 
         return None
+
+    def update_compound(bgc_id: str, compound_data: dict[any]):
+        request_url = f"{current_app.config['API_BASE']}/entry/{bgc_id}/compounds"
+
+        response = requests.post(
+            request_url,
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+
+        return response.json()
 
     def get_compound_text(bgc_id: str, compound_idx: int):
         response = requests.get(

@@ -19,7 +19,7 @@ type CompoundEvidence struct {
 }
 
 type Compound struct {
-	ID            uint64             `json:"-"`
+	ID            uint64             `json:"id"`
 	EntryID       uint64             `json:"-"`
 	Name          string             `json:"name"`
 	Evidence      []CompoundEvidence `json:"evidence" gorm:"foreignKey:CompoundID"`
