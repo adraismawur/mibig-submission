@@ -40,8 +40,7 @@
                         {{compound['formula'].data}}
                     </td>
                     <td>
-                        <a
-                            href="{{ url_for('edit.edit_compound', bgc_id=bgc_id, compound_id=compound['id'].data) }}">
+                        <a href="{{ url_for('edit.edit_compound', bgc_id=bgc_id, compound_id=compound['id'].data) }}">
                             <button type="button" class="btn btn-primary" type="button">Edit compound</button>
                         </a>
                         <a href="{{ url_for('edit.remove_compound', bgc_id=bgc_id, compound_id=compound['id'].data) }}">
@@ -53,7 +52,7 @@
             </tbody>
         </table>
         <a href="{{url_for('edit.create_compound', bgc_id=bgc_id)}}">
-            <button class="btn btn-primary" type="button">Add new compound`</button>
+            <button class="btn btn-primary" type="button">Add new compound</button>
         </a>
     </div>
     {% if prev_form %}

@@ -424,10 +424,18 @@ def remove_biosynth_module(bgc_id: str, name: str):
     )
 
 
-@bp_edit.route("/<bgc_id>/compounds/new")
+@bp_edit.route("/<bgc_id>/compounds/new", methods=["GET", "POST"])
 @login_required
 def create_compound(bgc_id: str):
-    form = CompoundsSubForm()
+    if request.form:
+        form = CompoundsSubForm(request.form)
+    else:
+        form = CompoundsSubForm()
+
+    if request.method == "POST":
+        Entry.create_compound(bgc_id, form.data)
+        flash("Compound created")
+        return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="compounds"))
 
     return render_template(
         "wizard/compound_edit.html", bgc_id=bgc_id, form=form, new=True

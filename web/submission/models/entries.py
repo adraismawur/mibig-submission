@@ -159,14 +159,35 @@ class Entry(db.Model):
         return None
 
     def update_compound(bgc_id: str, compound_data: dict[any]):
+        compound_data['id'] = int(compound_data['id'])
+        compound_data['mass'] = float(compound_data['mass'])
+
+        request_url = f"{current_app.config['API_BASE']}/entry/{bgc_id}/compounds/{compound_data['id']}"
+
+
+        response = requests.post(
+            request_url,
+            headers={"Authorization": f"Bearer {session['token']}"},
+            json=compound_data
+        )
+
+        return response.json()
+    
+    def create_compound(bgc_id: str, compound_data: dict[any]):
+        compound_data['id'] = 0
+        compound_data['mass'] = float(compound_data['mass'])
+
         request_url = f"{current_app.config['API_BASE']}/entry/{bgc_id}/compounds"
 
         response = requests.post(
             request_url,
             headers={"Authorization": f"Bearer {session['token']}"},
+            json=compound_data
         )
 
         return response.json()
+
+
 
     def get_compound_text(bgc_id: str, compound_idx: int):
         response = requests.get(

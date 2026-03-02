@@ -44,10 +44,9 @@ class BioactivitySubForm(Form):
     )
 
 
-class CompoundsSubForm(Form):
-    id = HiddenField()
-    name = StringField()
-    evidence = ReferenceField(
+class CompoundEvidence(Form):
+    method = StringField()
+    references = ReferenceField(
         label="Citation(s) *",
         description=Markup(
             "Accepted formats are (in order of preference):<br>"
@@ -56,6 +55,18 @@ class CompoundsSubForm(Form):
             "is available <u>yet</u>, please use 'doi:pending'."
         ),
         validators=[validators.InputRequired(), ValidateCitations()],
+    )
+
+
+class CompoundsSubForm(Form):
+    id = HiddenField()
+    name = StringField()
+    evidence = FieldList(
+        FormField(CompoundEvidence),
+        widget=FieldListAddBtn(
+            label="Add evidence",
+        ),
+        min_entries=1
     )
     bioactivities = FieldList(
         FormField(BioactivitySubForm),

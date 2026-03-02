@@ -117,8 +117,24 @@ func updateEntryCompound(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	var entryId uint64
+
+	err = db.Table("entries").
+		Where("accession = ?", accession).
+		Select("id").
+		Find(&entryId).
+		Error
+
+	if err != nil {
+		slog.Error("[Endpoints] [Compound] Could not find entry", "error", err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	newCompound.EntryID = entryId
+
 	err = db.Table("compounds").
-		Where("entry_id = (select id from entries where accession = ?)", accession).
+		Where("entry_id = ?", entryId).
 		Save(&newCompound).
 		Error
 

@@ -62,13 +62,15 @@
     {{field.label(class='form-label'~is_required)}}
     {{descr(field)}}
     {{ field(class='form-control' + (' is-invalid' if field.errors else '')) }}
-    <img src="{{url_for('edit.render_smiles', smiles_string=field.data)}}" alt="SMILES render" style="min-height: 100px;">
+    <img src="{{url_for('edit.render_smiles', smiles_string=field.data)}}" alt="SMILES render"
+        style="min-height: 100px;">
 </div>
 
 {% elif field.type == 'FormField' %}
 {{field.label(class='form-label'~is_required)}}
 <div id="{{field.id}}" class="subform">
     {{descr(field)}}
+    {{ simple_divsubform(field, deletebtn=false) }}
 </div>
 
 {% elif field.type == 'BooleanField' %}
@@ -149,7 +151,8 @@
         {% endif %}
         {% if current_user.is_reviewer() %}
         <tr>
-            <td><a href="{{url_for('review.list_submissions')}}"><button class="btn btn-primary">Review</button></a></td>
+            <td><a href="{{url_for('review.list_submissions')}}"><button class="btn btn-primary">Review</button></a>
+            </td>
             <td>Review pending submissions</td>
         </tr>
         {% endif %}
@@ -167,7 +170,7 @@
 
 <div class="form-group subgroup">
     {% if user_submissions | count == 0 %}
-        You have no (draft) submissions yet. Create one with the controls above
+    You have no (draft) submissions yet. Create one with the controls above
     {% else %}
     <table class="table">
         <thead class="table-header">
@@ -180,10 +183,12 @@
             <td>{{ submission.accession }}</td>
             <td>{{ submission.state }}</td>
             {% if submission.state == "draft" %}
-                <td><a href="{{url_for('edit.edit_bgc', bgc_id=submission.accession, form_id='locitax')}}"><button class="btn btn-primary">Edit</button></a></td>
+            <td><a href="{{url_for('edit.edit_bgc', bgc_id=submission.accession, form_id='locitax')}}"><button
+                        class="btn btn-primary">Edit</button></a></td>
             {% endif %}
             {% if submission.state == "pending_review" %}
-                <td><a href="{{url_for('edit.redraft_bgc', bgc_id=submission.accession)}}"><button class="btn btn-danger">Redraft</button></a></td>
+            <td><a href="{{url_for('edit.redraft_bgc', bgc_id=submission.accession)}}"><button
+                        class="btn btn-danger">Redraft</button></a></td>
             {% endif %}
         </tr>
         {% endfor %}
