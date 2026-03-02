@@ -26,11 +26,58 @@ func CompoundsEndpoint(db *gorm.DB) Endpoint {
 				Method: "POST",
 				Path:   "/entry/:accession/compounds",
 				Handler: func(c *gin.Context) {
+					createEntryCompound(db, c)
+				},
+			},
+			{
+				Method: "POST",
+				Path:   "/entry/:accession/compounds/:compoundId",
+				Handler: func(c *gin.Context) {
 					updateEntryCompound(db, c)
 				},
 			},
 		},
 	}
+}
+
+func createEntryCompound(db *gorm.DB, c *gin.Context) {
+	accession := c.Param("accession")
+
+	var newCompound compound.Compound
+
+	err := c.ShouldBindJSON(&newCompound)
+
+	if err != nil {
+		slog.Error("[Endpoints] [Compound] Could not bind compound json", "error", err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var entryId uint64
+
+	err = db.Table("entries").
+		Where("accession = ?", accession).
+		Select("id").
+		Find(&entryId).
+		Error
+
+	if err != nil {
+		slog.Error("[Endpoints] [Compound] Could not find entry", "error", err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	newCompound.EntryID = entryId
+
+	err = db.Create(&newCompound).Error
+
+	if err != nil {
+		slog.Error("[Endpoints] [Compound] Could not update compound", "error", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"compound": newCompound})
 }
 
 func getEntryCompounds(db *gorm.DB, c *gin.Context) {
