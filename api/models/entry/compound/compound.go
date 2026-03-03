@@ -6,21 +6,23 @@ import (
 )
 
 type BioActivities struct {
-	CompoundID uint64 `json:"-"`
+	ID         uint64 `json:"id"`
+	CompoundID uint64 `json:"compound_id"`
 	//Name       string         `json:"name"`
 	Observed   bool           `json:"observed"`
 	References pq.StringArray `json:"references" gorm:"type:text[]"`
 }
 
 type CompoundEvidence struct {
-	CompoundID uint64         `json:"-"`
+	ID         uint64         `json:"id"`
+	CompoundID uint64         `json:"compound_id"`
 	Method     string         `json:"method"`
 	References pq.StringArray `json:"references" gorm:"type:text[]"`
 }
 
 type Compound struct {
 	ID            uint64             `json:"id"`
-	EntryID       uint64             `json:"-"`
+	EntryID       uint64             `json:"entry_id"`
 	Name          string             `json:"name"`
 	Evidence      []CompoundEvidence `json:"evidence" gorm:"foreignKey:CompoundID"`
 	BioActivities []BioActivities    `json:"bioactivities,omitempty" gorm:"foreignKey:CompoundID"`

@@ -88,20 +88,23 @@ func getEntryCompounds(db *gorm.DB, c *gin.Context) {
 	var compounds *[]compound.Compound
 
 	q := db.Table("compounds").
+		Preload("Evidence").
+		Preload("BioActivities").
 		Where("entry_id = (select id from entries where accession = ?)", accession)
 
 	if id != "" {
 		q = q.Where("id = ?", id)
 	}
 
-	err := q.Find(&compounds).Error
+	err := q.Find(&compounds).
+		Error
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"compounds": compounds})
+	c.JSON(http.StatusOK, compounds)
 }
 
 func updateEntryCompound(db *gorm.DB, c *gin.Context) {

@@ -43,7 +43,7 @@ const (
 )
 
 type Entry struct {
-	ID               uint                      `json:"-"`
+	ID               uint                      `json:"id"`
 	Accession        string                    `json:"accession"`
 	Version          int                       `json:"version,omitempty"`
 	Changelog        Changelog                 `json:"changelog" gorm:"foreignKey:EntryID"`
@@ -148,28 +148,41 @@ func LoadEntryTransaction(tx *gorm.DB, path string, skip bool) (*Entry, error) {
 }
 
 // LoadEntries attempts to read all files at a given path and load them as entries into the database
-func LoadEntries(db *gorm.DB, path string) {
+func LoadEntries(db *gorm.DB, path string) error {
 	files, err := os.ReadDir(path)
 
 	if err != nil {
 		slog.Error("[db] Failed to read directory", "path", path)
-		return
+		return err
 	}
 
 	result, err := db.Table("entries").Select("accession").Rows()
+
+	if err != nil {
+		slog.Error("[db] Failed to read entries table", "path", path)
+		return err
+	}
 
 	var accessions = map[string]bool{}
 
 	// load a list of accessions that already exist
 	var accession string
+
 	for result.Next() {
-		result.Scan(&accession)
+
+		err = result.Scan(&accession)
+
+		if err != nil {
+			slog.Error("[db] Failed to scan entry table row", "path", path)
+			return err
+		}
+
 		accessions[accession] = true
 	}
 
 	var _ *Entry
 
-	db.Transaction(func(tx *gorm.DB) error {
+	err = db.Transaction(func(tx *gorm.DB) error {
 
 		for _, file := range files {
 			if file.IsDir() {
@@ -196,6 +209,13 @@ func LoadEntries(db *gorm.DB, path string) {
 
 		return nil
 	})
+
+	if err != nil {
+		slog.Error("[db] Failed to load entries table", "path", path)
+		return err
+	}
+
+	return nil
 }
 
 func GetEntryExists(db *gorm.DB, accession string) (bool, error) {
