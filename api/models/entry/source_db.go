@@ -98,11 +98,17 @@ func unzipMibigDatabase(zipFile string, dest string) error {
 			slog.Warn("[source_db] Unexpected directory. Skipping...", "path", header.Name)
 			continue
 		case tar.TypeReg:
-			slog.Info("[source_db] Unzipping file: ", "file", header.Name)
-
 			fileName := strings.Split(header.Name, "/")[1]
 
 			dstPath := filepath.Join(dest, fileName)
+
+			fi, _ := os.Stat(dstPath)
+
+			if fi != nil {
+				continue
+			}
+
+			slog.Info("[source_db] Unzipping file", "file", header.Name, "destination", dstPath)
 
 			outfile, err := os.Create(dstPath)
 			if err != nil {
@@ -129,29 +135,51 @@ func unzipMibigDatabase(zipFile string, dest string) error {
 	return nil
 }
 
-func PreloadMibigDatabase(db *gorm.DB) {
+func DownloadMIBiGdatabase() error {
 	dataPath, err := config.GetConfig("DATA_PATH")
 
 	if err != nil {
 		slog.Error("[source_db] Could not get env variable for data path")
-		slog.Error("[source_db] Did not preload MIBiG files")
-		return
+		slog.Error("[source_db] Did not download MIBiG database")
+		return err
 	}
 
 	databaseZipDest := filepath.Join(dataPath, "mibig_db.tar.gz")
-	databaseJzonDest := filepath.Join(dataPath, "json")
+	databaseJsonDest := filepath.Join(dataPath, "json")
 
 	err = downloadMibigDatabase(DatabaseURL, databaseZipDest)
 
 	if err != nil {
 		slog.Error("[source_db] Error downloading MIBiG data", "error", err)
+		return err
 	}
 
-	err = unzipMibigDatabase(databaseZipDest, databaseJzonDest)
+	err = unzipMibigDatabase(databaseZipDest, databaseJsonDest)
 
 	if err != nil {
 		slog.Error("[source_db] Error unzipping MIBiG data", "error", err)
+		return err
 	}
 
-	LoadEntries(db, databaseJzonDest)
+	return nil
+}
+
+func PreloadMibigDatabase(db *gorm.DB) error {
+	dataPath, err := config.GetConfig("DATA_PATH")
+
+	if err != nil {
+		slog.Error("[source_db] Could not get env variable for data path")
+		slog.Error("[source_db] Did not preload MIBiG files")
+		return err
+	}
+
+	databaseJsonDest := filepath.Join(dataPath, "json")
+
+	err = LoadEntries(db, databaseJsonDest)
+
+	if err != nil {
+		slog.Error("[source_db] Error loading MIBiG data into database", "error", err)
+	}
+
+	return nil
 }

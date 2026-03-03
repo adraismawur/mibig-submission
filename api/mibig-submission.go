@@ -3,77 +3,53 @@ package main
 
 import (
 	"fmt"
-	"github.com/adraismawur/mibig-submission/config"
-	"github.com/adraismawur/mibig-submission/db"
-	"github.com/adraismawur/mibig-submission/endpoints"
-	"github.com/adraismawur/mibig-submission/middleware"
-	"github.com/adraismawur/mibig-submission/models"
-	"github.com/adraismawur/mibig-submission/models/entry"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
+	"github.com/adraismawur/mibig-submission/functions"
 	"log/slog"
-	path2 "path"
+	"os"
 )
+
+type RunFunction string
+
+const (
+	Run          RunFunction = "run"
+	CheckExports RunFunction = "check-exports"
+)
+
+var functionDescriptions = map[RunFunction]string{
+	Run:          "Run MIBiG Submission Portal API",
+	CheckExports: "Check MIBiG entry exports",
+}
+
+type Args struct {
+	Function RunFunction
+}
 
 // main is the entry point of the application
 func main() {
-	// setup logging
-	slog.Info("Starting MIBiG entry portal API")
-
-	slog.Info("Setting up database")
-	// setup database
-	dbConnection, err := db.Connect()
-
-	if err != nil {
-		slog.Error("[main] Could not connect to database")
-		panic("Panic in main function: Could not connect to database")
+	if len(os.Args) == 1 {
+		slog.Error("[main] Missing required argument")
+		slog.Error("[main]\tUsage: mibig-submission function")
+		slog.Error("[main]\tAvailable functions:")
+		for key, value := range functionDescriptions {
+			slog.Error(fmt.Sprintf("[main]\t\t%s: %s", key, value))
+		}
+		return
 	}
 
-	slog.Info("Setting up router")
-	// setup router
-	router := gin.Default()
+	os.Args = os.Args[1:]
 
-	dataPath, err := config.GetConfig(config.EnvDataPath)
-
-	if err != nil {
-		slog.Error("[main] Could not get env variable for data path")
-		panic("Panic in main function: Could not get env variable for data path")
+	args := &Args{
+		Function: RunFunction(os.Args[0]),
 	}
 
-	outputDir := path2.Join(dataPath, "antismash")
-	router.Static("/antismash/result", outputDir)
+	slog.Info(fmt.Sprintf("[main] Starting main function: %v", args.Function))
 
-	slog.Info("Registering middleware")
-	router.Use(middleware.AuthMiddleware())
-
-	// of cors, we use cors
-	router.Use(cors.Default())
-
-	slog.Info("Registering endpoints")
-	endpoints.RegisterEndpointHandlers(router, dbConnection)
-
-	// populate the database if this is the first time we are starting it
-	models.Populate(dbConnection)
-
-	slog.Info("Preloading MIBiG entries")
-	entry.PreloadMibigDatabase(dbConnection)
-
-	slog.Info("Starting AntiSMASH runner goroutine")
-	go endpoints.AntismashWorker(dbConnection)
-
-	slog.Info("Starting server")
-
-	serverPort, err := config.GetConfig("SERVER_PORT")
-
-	if err != nil {
-		slog.Error("[main] Could not get env variable for server port")
-		panic("Panic in main function: could not start server")
-	}
-
-	err = router.Run(serverPort)
-
-	if err != nil {
-		slog.Error(fmt.Sprintf("[main] Failed to start server: %v", err))
-		panic("Panic in main function: could not start server")
+	switch args.Function {
+	case Run:
+		functions.Run()
+		break
+	case CheckExports:
+		functions.CheckExports()
+		break
 	}
 }
