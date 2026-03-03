@@ -165,7 +165,9 @@ func TestAuthMiddlewareParameterizedRouteWrongRole(t *testing.T) {
 		RegisteredClaims: jwt.RegisteredClaims{},
 	})
 
-	signedToken, _ := token.SignedString([]byte(config.GetConfig("JWT_SECRET")))
+	secret, _ := config.GetConfig("JWT_SECRET")
+
+	signedToken, _ := token.SignedString([]byte(secret))
 
 	c.Request.Header.Add("Authorization", "Bearer "+signedToken)
 
