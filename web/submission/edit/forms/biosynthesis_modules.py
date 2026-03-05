@@ -28,7 +28,7 @@ from submission.edit.forms.biosynthesis_domains import (
 
 class CalForm(Form):
     type = HiddenField(default="cal")
-    name = HiddenField()
+    name = StringField()
     genes = TagListField(
         "Gene(s) *",
         description="Comma separated list of genes in this module",
@@ -39,9 +39,7 @@ class CalForm(Form):
         FormField(MonomerForm), widget=FieldListAddBtn(label="Add addional monomer")
     )
     modification_domains = FieldList(
-        FormField(ModificationDomainForm),
-        widget=FieldListAddBtn(),
-        min_entries=1
+        FormField(ModificationDomainForm), widget=FieldListAddBtn(), min_entries=1
     )
     comments = StringField("Comments (Optional)")
     submit = SubmitField("Save changes")
@@ -50,7 +48,7 @@ class CalForm(Form):
 class NRPS_I_Form(Form):
     # required _type, name, genes, active
     type = HiddenField(default="nrps-type1")
-    name = HiddenField()
+    name = StringField()
     genes = TagListField(
         "Gene(s) *",
         description="Comma separated list of genes in this module",
@@ -66,9 +64,7 @@ class NRPS_I_Form(Form):
         FormField(MonomerForm), widget=FieldListAddBtn(label="Add addional monomer")
     )
     modification_domains = FieldList(
-        FormField(ModificationDomainForm),
-        widget=FieldListAddBtn(),
-        min_entries=1
+        FormField(ModificationDomainForm), widget=FieldListAddBtn(), min_entries=1
     )
     comments = StringField("Comments (Optional)")
     submit = SubmitField("Save changes")
@@ -76,7 +72,7 @@ class NRPS_I_Form(Form):
 
 class NRPS_VI_Form(Form):
     type = HiddenField(default="nrps-type6")
-    name = HiddenField()
+    name = StringField()
     genes = TagListField(
         "Gene(s) *",
         description="Comma separated list of genes in this module",
@@ -91,9 +87,7 @@ class NRPS_VI_Form(Form):
         FormField(MonomerForm), widget=FieldListAddBtn(label="Add addional monomer")
     )
     modification_domains = FieldList(
-        FormField(ModificationDomainForm),
-        widget=FieldListAddBtn(),
-        min_entries=1
+        FormField(ModificationDomainForm), widget=FieldListAddBtn(), min_entries=1
     )
     comments = StringField("Comments (Optional)")
     submit = SubmitField("Save changes")
@@ -101,7 +95,7 @@ class NRPS_VI_Form(Form):
 
 class OtherForm(Form):
     type = HiddenField(default="other")
-    name = HiddenField()
+    name = StringField()
     subtype = StringField("Subtype *", validators=[validators.InputRequired()])
     genes = TagListField(
         "Gene(s) *",
@@ -113,9 +107,7 @@ class OtherForm(Form):
         FormField(MonomerForm), widget=FieldListAddBtn(label="Add addional monomer")
     )
     modification_domains = FieldList(
-        FormField(ModificationDomainForm),
-        widget=FieldListAddBtn(),
-        min_entries=1
+        FormField(ModificationDomainForm), widget=FieldListAddBtn(), min_entries=1
     )
     comments = StringField("Comments (Optional)")
     submit = SubmitField("Save changes")
@@ -123,7 +115,7 @@ class OtherForm(Form):
 
 class PKSIterativeForm(Form):
     type = HiddenField(default="pks-iterative")
-    name = HiddenField()
+    name = StringField()
     genes = TagListField(
         "Gene(s) *",
         description="Comma separated list of genes in this module",
@@ -145,9 +137,7 @@ class PKSIterativeForm(Form):
         FormField(MonomerForm), widget=FieldListAddBtn(label="Add addional monomer")
     )
     modification_domains = FieldList(
-        FormField(ModificationDomainForm),
-        widget=FieldListAddBtn(),
-        min_entries=1
+        FormField(ModificationDomainForm), widget=FieldListAddBtn(), min_entries=1
     )
     comments = StringField("Comments (Optional)")
     submit = SubmitField("Save changes")
@@ -155,7 +145,7 @@ class PKSIterativeForm(Form):
 
 class PKSModularForm(Form):
     type = HiddenField(default="pks-modular")
-    name = HiddenField()
+    name = StringField()
     genes = TagListField(
         "Gene(s) *",
         description="Comma separated list of genes in this module",
@@ -171,9 +161,7 @@ class PKSModularForm(Form):
         FormField(MonomerForm), widget=FieldListAddBtn(label="Add addional monomer")
     )
     modification_domains = FieldList(
-        FormField(ModificationDomainForm),
-        widget=FieldListAddBtn(),
-        min_entries=1
+        FormField(ModificationDomainForm), widget=FieldListAddBtn(), min_entries=1
     )
     comments = StringField("Comments (Optional)")
     submit = SubmitField("Save changes")
@@ -181,7 +169,7 @@ class PKSModularForm(Form):
 
 class PKSTransForm(Form):
     type = HiddenField(default="pks-trans")
-    name = HiddenField()
+    name = StringField()
     genes = TagListField(
         "Gene(s) *",
         description="Comma separated list of genes in this module",
@@ -196,9 +184,7 @@ class PKSTransForm(Form):
         FormField(MonomerForm), widget=FieldListAddBtn(label="Add addional monomer")
     )
     modification_domains = FieldList(
-        FormField(ModificationDomainForm),
-        widget=FieldListAddBtn(),
-        min_entries=1
+        FormField(ModificationDomainForm), widget=FieldListAddBtn(), min_entries=1
     )
     comments = StringField("Comments (Optional)")
     submit = SubmitField("Save changes")
@@ -250,6 +236,7 @@ module_map = {
     "pks-trans-at": PKSTransForm,
     "other": OtherForm,
 }
+
 
 def get_module_form(module: str):
     if module not in module_map:
