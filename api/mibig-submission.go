@@ -11,12 +11,12 @@ import (
 type RunFunction string
 
 const (
-	Run          RunFunction = "run"
+	StartApi     RunFunction = "start-api"
 	CheckExports RunFunction = "check-exports"
 )
 
 var functionDescriptions = map[RunFunction]string{
-	Run:          "Run MIBiG Submission Portal API",
+	StartApi:     "StartApi MIBiG Submission Portal API",
 	CheckExports: "Check MIBiG entry exports",
 }
 
@@ -24,15 +24,19 @@ type Args struct {
 	Function RunFunction
 }
 
+func printFunctionError() {
+	slog.Error("[main]\tAvailable functions:")
+	for key, value := range functionDescriptions {
+		slog.Error(fmt.Sprintf("[main]\t\t%s: %s", key, value))
+	}
+}
+
 // main is the entry point of the application
 func main() {
 	if len(os.Args) == 1 {
 		slog.Error("[main] Missing required argument")
 		slog.Error("[main]\tUsage: mibig-submission function")
-		slog.Error("[main]\tAvailable functions:")
-		for key, value := range functionDescriptions {
-			slog.Error(fmt.Sprintf("[main]\t\t%s: %s", key, value))
-		}
+		printFunctionError()
 		return
 	}
 
@@ -45,11 +49,14 @@ func main() {
 	slog.Info(fmt.Sprintf("[main] Starting main function: %v", args.Function))
 
 	switch args.Function {
-	case Run:
-		functions.Run()
+	case StartApi:
+		functions.StartApi()
 		break
 	case CheckExports:
 		functions.CheckExports()
 		break
+	default:
+		slog.Error(fmt.Sprintf("[main] Unknown function: %v", args.Function))
+		printFunctionError()
 	}
 }

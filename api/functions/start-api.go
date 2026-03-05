@@ -14,7 +14,7 @@ import (
 	path2 "path"
 )
 
-func Run() {
+func StartApi() {
 	// setup logging
 	slog.Info("Starting MIBiG entry portal API")
 
