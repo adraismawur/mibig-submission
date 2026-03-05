@@ -25,9 +25,21 @@
                     <th>Gene</th>
                     <th>Type</th>
                     <th></th>
+                    <th></th>
+                    <th></th>
                 </tr>
                 {% for module in form.modules %}
                 <tr>
+                    <td>
+                        <a
+                            href="{{ url_for('edit.edit_biosynth_module', bgc_id=bgc_id, name=module['name'].data, module=module['type'].data) }}">
+                            <button type="button" class="btn btn-primary" type="button">{{ m.icon('chevron-up') | safe}}</button>
+                        </a>
+                        <a
+                            href="{{ url_for('edit.edit_biosynth_module', bgc_id=bgc_id, name=module['name'].data, module=module['type'].data) }}">
+                            <button type="button" class="btn btn-primary" type="button">{{ m.icon('chevron-down') | safe}}</button>
+                        </a>
+                    </td>
                     <td>
                         {{module['name'].data}}
                     </td>
@@ -40,8 +52,10 @@
                     <td>
                         <a
                             href="{{ url_for('edit.edit_biosynth_module', bgc_id=bgc_id, name=module['name'].data, module=module['type'].data) }}">
-                            <button type="button" class="btn btn-primary" type="button">Edit module</button>
+                            <button type="button" class="btn btn-primary" type="button">Edit</button>
                         </a>
+                    </td>
+                    <td>
                         <a href="{{ url_for('edit.remove_biosynth_module', bgc_id=bgc_id, name=module['name'].data) }}">
                             <button type="button" class="btn btn-danger" type="button">X</button>
                         </a>
