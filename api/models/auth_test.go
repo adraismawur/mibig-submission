@@ -8,15 +8,23 @@ import (
 )
 
 func TestParseToken(t *testing.T) {
-	token := "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoxLCJlbWFpbCI6InRlc3RAbG9jYWxob3N0IiwicGFzc3dvcmQiOiIiLCJhY3RpdmUiOmZhbHNlLCJyb2xlcyI6W3sicm9sZSI6MH1dLCJpbmZvIjp7InVzZXJfaWQiOjAsImFsaWFzIjoiIiwibmFtZSI6IiIsImNhbGxfbmFtZSI6IiIsIm9yZ2FuaXphdGlvbjEiOiIiLCJvcmdhbml6YXRpb24yIjoiIiwib3JnYW5pemF0aW9uMyI6IiIsIm9yY19pZCI6IiIsIlB1YmxpYyI6ZmFsc2V9fSwiaXNzIjoibWliaWctc3VibWlzc2lvbi1iZSIsInN1YiI6InRlc3RAbG9jYWxob3N0IiwiYXVkIjpbIm1pYmlnLXN1Ym1pc3Npb24tZmUiXSwiZXhwIjoxNzUyODYzMjMyMCwibmJmIjoxNzQ3MjM1NzQ0LCJpYXQiOjE3NDcyMzU3NDR9.h4oCp9s1DlwgrQn4JoU8hj2vQbPOu6G8hhRoTuYMq_aXRQfIvQgdwXFwQNY6fHnEU9i0lOrdlRGC5oIxQazSzg"
+	token := "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoxLCJlbWFpbCI6InRlc3RAbG9jYWxob3N0IiwicGFzc3dvcmQiOiIiLCJhY3RpdmUiOmZhbHNlLCJyb2xlcyI6W3sicm9sZSI6ImFkbWluIn0seyJyb2xlIjoicmV2aWV3ZXIifSx7InJvbGUiOiJzdWJtaXR0ZXIifV0sImluZm8iOnsidXNlcl9pZCI6MCwiYWxpYXMiOiIiLCJuYW1lIjoiIiwiY2FsbF9uYW1lIjoiIiwib3JnYW5pemF0aW9uMSI6IiIsIm9yZ2FuaXphdGlvbjIiOiIiLCJvcmdhbml6YXRpb24zIjoiIiwib3JjX2lkIjoiIiwiUHVibGljIjpmYWxzZX19LCJpc3MiOiJtaWJpZy1zdWJtaXNzaW9uLWJlIiwic3ViIjoidGVzdEBsb2NhbGhvc3QiLCJhdWQiOlsibWliaWctc3VibWlzc2lvbi1mZSJdLCJleHAiOjE3NTI4NjMyMzIwLCJuYmYiOjE3NDcyMzU3NDQsImlhdCI6MTc0NzIzNTc0NH0.6tmrr83TXkkfcrlybBH8TzvtFZCEsNXoMWaXePqIBe50Z3eX1Zm7UwuSnglEJvYvBnEynJ-74eojgeqrX1qoGw"
 
-	parsedToken, _ := ParseToken(token)
+	parsedToken, err := ParseToken(token)
+
+	assert.Nil(t, err)
 
 	assert.Equal(t, Token{
 		User: User{
 			ID:    1,
 			Email: "test@localhost",
 			Roles: []UserRole{
+				{
+					Role: Admin,
+				},
+				{
+					Role: Reviewer,
+				},
 				{
 					Role: Submitter,
 				},

@@ -42,7 +42,7 @@ var envs = map[EnvKey]string{
 	EnvDbName:       "mibig_submission",
 	EnvDbUser:       "postgres",
 	EnvDbPass:       "",
-	EnvJwtSecret:    "CHANGEME",
+	EnvJwtSecret:    "CHANGEMECHANGEMECHANGEMECHANGEMECHANGEMECHANGEMECHANGEMECHANGEMECHANGEMECHANGEMECHANGEME",
 	EnvJwtLifetime:  "86400",
 	EnvDataPath:     "data",
 	EnvEntrezApiKey: "",

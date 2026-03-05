@@ -32,27 +32,25 @@ func TestCreateUserNoEmail(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, c.Writer.Status(), "Status code should be 400")
 
 	response := r.Body.String()
-	assert.Contains(t, response, "Email and password are required", "Response should contain 'Email and password are required'")
+	assert.Contains(t, response, "Email is required", "Response should contain 'Email is required'")
 }
 
 func TestCreateUserNoPassword(t *testing.T) {
-	c, r := util.CreateTestGinJsonRequestWithRecorder("{\"email\": \"test@localhost\", \"password\": \"\", \"role\": 2}")
+	c, _ := util.CreateTestGinJsonRequestWithRecorder("{\"email\": \"test@localhost\", \"password\": \"\", \"role\": 2}")
 
 	c.Request.Method = "POST"
 	c.Request.URL.Path = "/user"
 
 	createUser(testDb, c)
 
-	assert.Equal(t, http.StatusBadRequest, c.Writer.Status(), "Status code should be 400")
+	assert.Equal(t, http.StatusOK, c.Writer.Status(), "Status code should be 200")
 
-	response := r.Body.String()
-	assert.Contains(t, response, "Email and password are required", "Response should contain 'Email and password are required'")
 }
 
 func TestCreateUserInvalidRole(t *testing.T) {
 	testUserEmail := "test@localhost"
 	testUserPassword := "test"
-	c, r := util.CreateTestGinJsonRequestWithRecorder("{\"email\": \"" + testUserEmail + "\", \"password\": \"" + testUserPassword + "\", \"roles\": [{\"role\": 11037}]}")
+	c, _ := util.CreateTestGinJsonRequestWithRecorder("{\"email\": \"" + testUserEmail + "\", \"password\": \"" + testUserPassword + "\", \"roles\": [{\"role\": \"test\"}]}")
 
 	c.Request.Method = "POST"
 	c.Request.URL.Path = "/user"
@@ -60,13 +58,10 @@ func TestCreateUserInvalidRole(t *testing.T) {
 	createUser(testDb, c)
 
 	assert.Equal(t, http.StatusBadRequest, c.Writer.Status(), "Status code should be 400")
-
-	response := r.Body.String()
-	assert.Contains(t, response, "Invalid role", "Response should contain 'Invalid role'")
 }
 
 func TestCreateUserAlreadyExists(t *testing.T) {
-	c, r := util.CreateTestGinJsonRequestWithRecorder("{\"email\": \"testadmin@localhost\", \"password\": \"test\", \"roles\": [{\"role\": 2}]}")
+	c, r := util.CreateTestGinJsonRequestWithRecorder("{\"email\": \"testadmin@localhost\", \"password\": \"test\", \"roles\": [{\"role\": \"admin\"}]}")
 
 	c.Request.Method = "POST"
 	c.Request.URL.Path = "/user"

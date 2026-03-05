@@ -10,17 +10,25 @@ from submission.extensions import db
 
 
 class Role(Enum):
-    SUBMITTER = 0
-    REVIEWER = 1
-    ADMIN = 2
+    SUBMITTER = "submitter"
+    REVIEWER = "reviewer"
+    ADMIN = "admin"
 
 
 @dataclass
 class UserRole:
     role: Role
 
+    def __str__(self):
+        return str(self.role)
+
     def asdict(self):
-        return asdict(self)
+        return {"role": self.role.value}
+
+    @classmethod
+    def from_enum(cls, value: Role):
+        c = cls(value)
+        return c
 
 
 @dataclass

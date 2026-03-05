@@ -10,12 +10,12 @@ import (
 )
 
 // Role type that represents a user's role
-type Role uint
+type Role string
 
 const (
-	Submitter Role = iota
-	Reviewer
-	Admin
+	Submitter Role = "submitter"
+	Reviewer  Role = "reviewer"
+	Admin     Role = "admin"
 )
 
 // User model that represents a singular user
@@ -24,7 +24,7 @@ type User struct {
 	Email    string     `json:"email"`
 	Password string     `json:"password,omitempty"`
 	Active   bool       `json:"active,omitempty"`
-	Roles    []UserRole `json:"roles,omitempty" gorm:"foreignKey:UserID"`
+	Roles    []UserRole `json:"roles" gorm:"foreignKey:UserID"`
 	Info     UserInfo   `json:"info,omitempty"  gorm:"foreignKey:UserID"`
 }
 
@@ -203,14 +203,20 @@ func GetUser(db *gorm.DB, id int) (*User, error) {
 }
 
 // GetUsers returns all users from the database with the given offset and limit
-func GetUsers(db *gorm.DB, offset int, limit int) ([]User, error) {
+func GetUsers(db *gorm.DB, offset int, limit int, search string) ([]User, error) {
 	var users []User
 
 	tx := db.
 		Preload("Roles").
 		Preload("Info").
 		Omit("password").
-		Offset(offset).
+		Joins("LEFT OUTER JOIN user_infos ON user_infos.user_id = users.id")
+
+	if search != "" {
+		tx = tx.Where("user_infos.name LIKE ?", "%"+search+"%")
+	}
+
+	tx = tx.Offset(offset).
 		Limit(limit).
 		Find(&users)
 
@@ -259,44 +265,34 @@ func GetUserExistsByID(db *gorm.DB, id int) (bool, error) {
 // so if anything is set to default values, it will be overwritten.
 // this function will **not** update the password
 func UpdateUser(db *gorm.DB, id int, oldUser *User, newUser *User) error {
-	tx := db.
+	err := db.
 		Model(oldUser).
 		Where("id = ?", id).
 		Omit("Password").
-		Save(newUser)
+		Save(newUser).Error
 
-	err := db.Model(&oldUser).
+	if err != nil {
+		slog.Error("[user] Error saving user info")
+		return err
+	}
+
+	err = db.Model(&oldUser).
 		Association("Info").
 		Replace(&newUser.Info)
 
 	if err != nil {
-		slog.Error("[user] Error replacing user roles", "error", err)
+		slog.Error("[user] Error replacing user info", "error", err)
 		return err
 	}
 
 	// remove old roles
 	err = db.Model(&oldUser).
 		Association("Roles").
-		Clear()
+		Replace(&newUser.Roles)
 
 	if err != nil {
 		slog.Error("[user] Error deleting user roles", "error", err)
 		return err
-	}
-
-	// add new ones
-	err = db.Model(&oldUser).
-		Association("Roles").
-		Append(&newUser.Roles)
-
-	if err != nil {
-		slog.Error("[user] Error replacing user roles", "error", err)
-		return err
-	}
-
-	if tx.Error != nil {
-		slog.Error("[user] Error updating user", "id", id, "error", tx.Error)
-		return tx.Error
 	}
 	return nil
 }

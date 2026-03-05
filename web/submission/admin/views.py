@@ -1,13 +1,24 @@
-from flask import request, render_template, redirect, url_for
+from flask import (
+    current_app,
+    flash,
+    request,
+    render_template,
+    redirect,
+    session,
+    url_for,
+)
+import requests
 from sqlalchemy import or_
 
 
 from submission.admin import bp_admin
 from submission.auth import auth_role
-from submission.extensions import db
 from submission.models import Role, User, UserInfo
 
 from submission.admin.forms import UserAdd, UserEdit
+from submission.models.users import UserRole
+
+USER_ENDPOINT = "/user"
 
 
 @bp_admin.route("/")
@@ -17,19 +28,27 @@ def index() -> str:
 
 @bp_admin.route("/users", methods=["GET"])
 def list_users() -> str:
-    users = User.query.join(UserInfo).order_by(UserInfo.name).all()
+    response = requests.get(
+        f"{current_app.config['API_BASE']}" + USER_ENDPOINT,
+        headers={"Authorization": f"Bearer {session['token']}"},
+    )
+
+    users = [User.from_json(user) for user in response.json()]
+
     return render_template("admin/users.html.j2", users=users)
 
 
 @bp_admin.route("/users", methods=["POST"])
 def search_users() -> str:
     search = request.form["search"]
-    users = (
-        User.query.join(UserInfo)
-        .filter(or_(UserInfo.name.like(f"{search}%"), User.email.like(f"{search}%")))
-        .order_by(UserInfo.name)
-        .all()
+
+    response = requests.get(
+        f"{current_app.config['API_BASE']}{USER_ENDPOINT}?search={search}",
+        headers={"Authorization": f"Bearer {session['token']}"},
     )
+
+    users = [User.from_json(user) for user in response.json()]
+
     return render_template("admin/user_search.html.j2", users=users)
 
 
@@ -41,15 +60,15 @@ def user(user_id: int) -> str:
 
 @bp_admin.route("/user/<user_id>/edit", methods=["GET", "PUT"])
 def user_edit(user_id: int) -> str:
-    user = User.query.get_or_404(user_id)
-    all_roles = Role.query.order_by(Role.slug).all()
+    user = User.get_user(user_id)
+    all_roles = [role for role in Role]
     form = UserEdit(
         request.form,
         data={
             "email": user.email,
         },
     )
-    form.roles.choices = [(role.slug, role.name) for role in all_roles]
+    form.roles.choices = [(role.value, role.value) for role in all_roles]
 
     if form.validate_on_submit():
         user.email = form.email.data
@@ -57,14 +76,27 @@ def user_edit(user_id: int) -> str:
         roles = []
         for wanted_role in form.roles.data:
             for role in all_roles:
-                if role.slug == wanted_role:
-                    roles.append(role)
+                if role.value == wanted_role:
+                    roles.append(UserRole.from_enum(role))
         user.roles = roles
-        db.session.add(user)
-        db.session.commit()
+
+        response = requests.patch(
+            f"{current_app.config['API_BASE']}/user/{user.id}",
+            headers={
+                "Authorization": f"Bearer {session['token']}",
+                "Content-Type": "application/json",
+            },
+            data=user.to_json(),
+        )
+
+        if response.status_code != 200:
+            error = response.json()["error"]
+            flash(f"Could not add user: {error}", "error")
+            return redirect(url_for("admin.list_users"), code=302)
+
         return render_template("admin/user_list_line.html.j2", user=user)
 
-    form.roles.data = [role.slug for role in user.roles]
+    form.roles.data = [role for role in user.roles]
     form.active.data = user.active
 
     return render_template("admin/user_edit_form.html.j2", form=form, user=user)
@@ -73,30 +105,50 @@ def user_edit(user_id: int) -> str:
 @bp_admin.route("/user/new", methods=["GET", "POST"])
 def user_create() -> str:
     form = UserAdd(request.form)
-    all_roles = Role.query.order_by(Role.slug).all()
-    form.roles.choices = [(role.slug, role.name) for role in all_roles]
+    all_roles = [role for role in Role]
+    form.roles.choices = [(role.value, role.value) for role in all_roles]
 
     if form.validate_on_submit():
-        user = User(
-            email=form.email.data, active=form.active.data, _password="deactivated"
-        )
-        db.session.add(user)
-        db.session.commit()
         name = form.name.data
         info = UserInfo(
-            id=user.id,
             alias=UserInfo.generate_alias(),
             name=name,
             call_name=UserInfo.guess_call_name(name),
+            orc_id="",
             organisation_1=form.affiliation.data,
+            organisation_2="",
+            organisation_3="",
+            public=False,
         )
-        db.session.add(info)
+
+        roles = []
+
         for wanted_role in form.roles.data:
             for role in all_roles:
-                if role.slug == wanted_role:
-                    user.roles.append(role)
-        db.session.add(user)
-        db.session.commit()
-        return redirect(url_for("admin.list_users"))
+                if role.value == wanted_role:
+                    roles.append(UserRole.from_enum(role))
+
+        user = User(
+            id=None,
+            email=form.email.data,
+            active=form.active.data,
+            roles=roles,
+            info=info,
+        )
+
+        # save user
+        response = requests.put(
+            f"{current_app.config['API_BASE']}/user",
+            headers={
+                "Authorization": f"Bearer {session['token']}",
+                "Content-Type": "application/json",
+            },
+            data=user.to_json(),
+        )
+        if response.status_code != 200:
+            flash(f"Error creating user: {response.json()['error']}", "error")
+            return render_template("admin/user_add.html.j2", form=form)
+
+        return redirect(url_for("admin.list_users"), code=302)
 
     return render_template("admin/user_add.html.j2", form=form)

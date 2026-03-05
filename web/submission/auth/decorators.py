@@ -3,7 +3,10 @@ from functools import wraps
 from flask import redirect, url_for, flash
 from flask_login import current_user
 
-def auth_role(role):
+from submission.models.users import Role
+
+
+def auth_role(role: Role):
     def wrapper(fn):
         @wraps(fn)
         def decorator(*args, **kwargs):

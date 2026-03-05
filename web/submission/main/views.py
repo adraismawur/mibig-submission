@@ -15,7 +15,7 @@ import requests
 from submission.main import bp_main
 from submission.main.forms import SelectExisting, UserDetailsEditForm
 from submission.auth import auth_role
-from submission.models.users import User, UserInfo
+from submission.models.users import Role, User, UserInfo
 from submission.utils import Storage
 
 
@@ -122,13 +122,13 @@ def profile():
 
 @bp_main.route("/submitter")
 @login_required
-@auth_role("submitter")
+@auth_role(Role.SUBMITTER)
 def submitter():
     return render_template("main/submitter.html.j2", name=current_user.info.name)
 
 
 @bp_main.route("/reviewer")
 @login_required
-@auth_role("reviewer")
+@auth_role(Role.REVIEWER)
 def reviewer():
     return render_template("main/reviewer.html.j2", name=current_user.info.name)

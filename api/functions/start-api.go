@@ -51,7 +51,12 @@ func StartApi() {
 	endpoints.RegisterEndpointHandlers(router, dbConnection)
 
 	// populate the database if this is the first time we are starting it
-	models.Populate(dbConnection)
+	err = models.Populate(dbConnection)
+
+	if err != nil {
+		slog.Error("[main] Could not populate database")
+		panic("Panic in main function: Could not populate database")
+	}
 
 	slog.Info("Downloading MIBiG database")
 	err = entry.DownloadMIBiGdatabase()

@@ -158,7 +158,7 @@
         {% endif %}
         {% if current_user.is_admin() %}
         <tr>
-            <td><a href="{{url_for('new.new_entry')}}"><button class="btn btn-primary">Users</button></a></td>
+            <td><a href="{{url_for('admin.list_users')}}"><button class="btn btn-primary">Users</button></a></td>
             <td>Add, change and remove users</td>
         </tr>
         {% endif %}

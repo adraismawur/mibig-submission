@@ -96,7 +96,7 @@ func TestGetUser(t *testing.T) {
 }
 
 func TestGetUsers(t *testing.T) {
-	users, err := GetUsers(testDb, 0, 10)
+	users, err := GetUsers(testDb, 0, 10, "")
 
 	assert.Nil(t, err)
 
@@ -117,7 +117,7 @@ func TestGetUsers(t *testing.T) {
 func TestGetUsersWithOffset(t *testing.T) {
 	expectedTestUsers := 5
 
-	users, err := GetUsers(testDb, 5, 10)
+	users, err := GetUsers(testDb, 5, 10, "")
 
 	assert.Nil(t, err)
 
@@ -127,7 +127,7 @@ func TestGetUsersWithOffset(t *testing.T) {
 func TestGetUsersWithLimit(t *testing.T) {
 	expectedTestUsers := 7
 
-	users, err := GetUsers(testDb, 0, expectedTestUsers)
+	users, err := GetUsers(testDb, 0, expectedTestUsers, "")
 
 	assert.Nil(t, err)
 

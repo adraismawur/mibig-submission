@@ -4,6 +4,7 @@ import (
 	"github.com/adraismawur/mibig-submission/middleware"
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/gin-gonic/gin"
+	"github.com/sethvargo/go-password/password"
 	"gorm.io/gorm"
 	"log/slog"
 	"net/http"
@@ -20,6 +21,7 @@ func init() {
 }
 
 const DefaultGetLimit = 10
+const DefaultPasswordLength = 8
 
 // UserEndpoint returns the user endpoint. This endpoint will implement creating, updating, and deleting users.
 func UserEndpoint(db *gorm.DB) Endpoint {
@@ -82,17 +84,20 @@ func createUser(db *gorm.DB, c *gin.Context) {
 
 	// validate user
 	// needs to have email and password
-	if request.Email == "" || request.Password == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Email and password are required"})
+	if request.Email == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email is required"})
 		return
 	}
 
-	// validate roles
-	for _, userRole := range request.Roles {
-		if userRole.Role < models.Submitter || userRole.Role > models.Admin {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid role"})
-			return
+	if request.Password == "" {
+		pass, err := password.Generate(DefaultPasswordLength, DefaultPasswordLength/2, 0, true, false)
+
+		if err != nil {
+			slog.Error("[endpoints] [user] Failed to generate password", "error", err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		}
+
+		request.Password = pass
 	}
 
 	// ensure a minimum role is set
@@ -155,7 +160,9 @@ func getUsers(db *gorm.DB, c *gin.Context) {
 		offset = 0
 	}
 
-	users, err := models.GetUsers(db, int(offset), int(limit))
+	search := c.Query("search")
+
+	users, err := models.GetUsers(db, int(offset), int(limit), search)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -218,8 +225,8 @@ func updateUser(db *gorm.DB, c *gin.Context) {
 	oldUser, err := models.GetUser(db, id)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		slog.Error("[endpoints] [oldUser] Error getting existing oldUser", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -243,6 +250,7 @@ func updateUser(db *gorm.DB, c *gin.Context) {
 	err = models.UpdateUser(db, id, oldUser, &newUser)
 
 	if err != nil {
+		slog.Error("[user] Error when updating user", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
