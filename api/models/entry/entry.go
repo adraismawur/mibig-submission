@@ -74,6 +74,8 @@ func ParseEntry(jsonString []byte) (*Entry, error) {
 
 	EnsureEntryDefaults(entry)
 
+	PopulateBiosynthIndexes(entry)
+
 	return entry, nil
 }
 
@@ -92,6 +94,14 @@ func EnsureEntryDefaults(entry *Entry) {
 
 			entry.Loci[i].Evidence[j].References = references
 		}
+	}
+}
+
+// PopulateBiosynthIndexes fills in the Index fields in biosynth module lists. These fields are later used to maintain
+// order in the list of modules
+func PopulateBiosynthIndexes(entry *Entry) {
+	for i := range entry.Biosynthesis.Modules {
+		entry.Biosynthesis.Modules[i].Index = uint64(i + 1)
 	}
 }
 

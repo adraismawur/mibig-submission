@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/adraismawur/mibig-submission/models"
 	"gorm.io/gorm"
+	"log/slog"
 	"strconv"
 )
 
@@ -68,6 +69,63 @@ func CreateEntryBiosynthesisModule(db *gorm.DB, accession string, module Biosynt
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+// ReorderEntryBiosynthesisModules swaps the indexes of biosynthesis modules. This uses database IDs as input, not the
+// indexes
+func ReorderEntryBiosynthesisModules(db *gorm.DB, idFrom uint64, idTo uint64) error {
+
+	tx := db.Table("biosynthetic_modules").Begin()
+
+	var moduleFrom BiosyntheticModule
+	var moduleTo BiosyntheticModule
+
+	err := tx.
+		Where("id = ?", idFrom).
+		First(&moduleFrom).
+		Error
+
+	if err != nil {
+		slog.Error("Could not get first module in module reorder operation")
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.
+		Where("id = ?", idTo).
+		First(&moduleTo).
+		Error
+
+	if err != nil {
+		slog.Error("Could not get second module in module reorder operation")
+		tx.Rollback()
+		return err
+	}
+
+	swap := moduleTo.Index
+
+	moduleTo.Index = moduleFrom.Index
+	moduleFrom.Index = swap
+
+	err = tx.Save(&moduleFrom).Error
+
+	if err != nil {
+		slog.Error("Could not save first module in module reorder operation")
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Save(&moduleTo).Error
+
+	if err != nil {
+		slog.Error("Could not save second module in module reorder operation")
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
 
 	return nil
 }

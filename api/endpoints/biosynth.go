@@ -18,14 +18,14 @@ func BiosynthEndpoint(db *gorm.DB) Endpoint {
 	return Endpoint{
 		Routes: []Route{
 			{
-				Method: "GET",
+				Method: http.MethodGet,
 				Path:   "/entry/:accession/biosynth",
 				Handler: func(c *gin.Context) {
 					getEntryBiosynthesis(db, c)
 				},
 			},
 			{
-				Method: "GET",
+				Method: http.MethodGet,
 				Path:   "/entry/:accession/biosynth/module/:name",
 				Handler: func(c *gin.Context) {
 					getEntryBiosynthesisModule(db, c)
@@ -40,13 +40,20 @@ func BiosynthEndpoint(db *gorm.DB) Endpoint {
 			},
 			{
 				Method: http.MethodPost,
+				Path:   "/entry/:accession/biosynth/module_reorder",
+				Handler: func(c *gin.Context) {
+					reorderBiosynthModules(db, c)
+				},
+			},
+			{
+				Method: http.MethodPost,
 				Path:   "/entry/:accession/biosynth/module/:name",
 				Handler: func(c *gin.Context) {
 					updateEntryBiosynthesisModule(db, c)
 				},
 			},
 			{
-				Method: "DELETE",
+				Method: http.MethodDelete,
 				Path:   "/entry/:accession/biosynth/module/:name",
 				Handler: func(c *gin.Context) {
 					deleteEntryBiosynthesisModule(db, c)
@@ -105,6 +112,24 @@ func createEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+func reorderBiosynthModules(db *gorm.DB, c *gin.Context) {
+	type ReorderRequest struct {
+		IDFrom uint64 `json:"id_from"`
+		IDTo   uint64 `json:"id_to"`
+	}
+
+	var request ReorderRequest
+
+	err := c.ShouldBindJSON(&request)
+
+	if err != nil {
+		slog.Error("[endpoints] [biosynth] Failed to unmarshal reorder request")
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
+		return
+	}
+
+}
+
 func updateEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 	accession := c.Param("accession")
 	name := c.Param("name")
@@ -114,7 +139,7 @@ func updateEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
-		slog.Error("[endpoints] [entry] Failed to marshal existing module", "error", err.Error())
+		slog.Error("[endpoints] [biosynth] Failed to marshal existing module", "error", err.Error())
 		return
 	}
 
@@ -140,7 +165,7 @@ func updateEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
-		slog.Error("[endpoints] [entry] Failed to update biosynthesis module", "error", err.Error())
+		slog.Error("[endpoints] [biosynth] Failed to update biosynthesis module", "error", err.Error())
 		return
 	}
 
@@ -184,7 +209,7 @@ func getEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-		slog.Error("[endpoints] [entry] Failed to marshal existing entry", "error", err.Error())
+		slog.Error("[endpoints] [biosynth] Failed to marshal existing entry", "error", err.Error())
 		return
 	}
 
