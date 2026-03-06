@@ -21,6 +21,7 @@
         <table class="table">
             <tbody id="module-table">
                 <tr>
+                    <th></th>
                     <th>Name</th>
                     <th>Gene</th>
                     <th>Type</th>
@@ -31,14 +32,20 @@
                 {% for module in form.modules %}
                 <tr>
                     <td>
+                        {% if not loop.first %}
                         <a
-                            href="{{ url_for('edit.edit_biosynth_module', bgc_id=bgc_id, name=module['name'].data, module=module['type'].data) }}">
-                            <button type="button" class="btn btn-primary" type="button">{{ m.icon('chevron-up') | safe}}</button>
+                            href="{{ url_for('edit.move_biosynth_module', bgc_id=bgc_id, id_from=module['id'].data, id_to=form.modules[loop.index0 - 1]['id'].data) }}">
+                            <button type="button" class="btn btn-primary" type="button">{{ m.icon('chevron-up') |
+                                safe}}</button>
                         </a>
+                        {% endif %}
+                        {% if not loop.last %}
                         <a
-                            href="{{ url_for('edit.edit_biosynth_module', bgc_id=bgc_id, name=module['name'].data, module=module['type'].data) }}">
-                            <button type="button" class="btn btn-primary" type="button">{{ m.icon('chevron-down') | safe}}</button>
+                            href="{{ url_for('edit.move_biosynth_module', bgc_id=bgc_id, id_from=module['id'].data, id_to=form.modules[loop.index0 + 1]['id'].data) }}">
+                            <button type="button" class="btn btn-primary" type="button">{{ m.icon('chevron-down') |
+                                safe}}</button>
                         </a>
+                        {% endif %}
                     </td>
                     <td>
                         {{module['name'].data}}

@@ -47,7 +47,7 @@ type ModificationModuleDomain struct {
 }
 
 type BiosyntheticModule struct {
-	ID                  uint64                     `json:"-"`
+	ID                  uint64                     `json:"id"`
 	Index               uint64                     `json:"-"`
 	BiosynthesisID      uint64                     `json:"-"`
 	Type                string                     `json:"type"`

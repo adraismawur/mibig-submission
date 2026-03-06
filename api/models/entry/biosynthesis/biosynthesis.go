@@ -26,16 +26,20 @@ func GetEntryBiosynthesis(db *gorm.DB, accession string) (*Biosynthesis, error) 
 		Table("entries").
 		Where("accession = ?", accession).
 		Preload("Classes").
-		Preload("Modules.Carriers.Location").
-		Preload("Modules.ModificationDomains.Location").
-		Preload("Modules.ATDomain.Location").
-		Preload("Modules.KSDomain.Location").
 		First(&biosynth).
 		Error
 
 	if err != nil {
 		return nil, err
 	}
+
+	modules, err := GetEntryBiosynthesisModulesById(db, biosynth.ID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	biosynth.Modules = *modules
 
 	return &biosynth, nil
 }
@@ -219,10 +223,6 @@ func GetEntryBiosynthesisModule(db *gorm.DB, accession string, name string) (*Bi
 		return nil, err
 	}
 
-	if err != nil {
-		return nil, err
-	}
-
 	for _, module := range biosynth.Modules {
 		if module.Name == name {
 			return &module, nil
@@ -231,4 +231,27 @@ func GetEntryBiosynthesisModule(db *gorm.DB, accession string, name string) (*Bi
 
 	// not found
 	return nil, nil
+}
+
+func GetEntryBiosynthesisModulesById(db *gorm.DB, biosynthId uint64) (*[]BiosyntheticModule, error) {
+	var modules []BiosyntheticModule
+
+	err := db.
+		Table("biosynthetic_modules").
+		Where("biosynthesis_id = ?", biosynthId).
+		Preload("Carriers.Location").
+		Preload("ModificationDomains.Location").
+		Preload("ADomain.Location").
+		Preload("ATDomain.Location").
+		Preload("KSDomain.Location").
+		Order("`index` ASC").
+		Find(&modules).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	// not found
+	return &modules, nil
 }

@@ -376,8 +376,8 @@ func ReadAntismashJson(asJsonPath string) (*AntismashResult, error) {
 
 func PrefillAntismash(entry *entry.Entry, antismashResult *AntismashResult) {
 	var err error
-	// moduleName is an integer here for easy counting, but will be converted to a string later
-	moduleName := 1
+	// moduleNum is used to prefill module names and indexes
+	moduleNum := 1
 
 	for _, record := range antismashResult.Records {
 		for _, feature := range record.Features {
@@ -395,7 +395,7 @@ func PrefillAntismash(entry *entry.Entry, antismashResult *AntismashResult) {
 				}
 				break
 			case "aSModule": // these are modules we want to add to the biosynthetic modules part
-				module, err := GenerateAntismashBiosynthesisModule(&feature, moduleName)
+				module, err := GenerateAntismashBiosynthesisModule(&feature, moduleNum)
 
 				if err != nil {
 					slog.Error("[Antismash] Could not parse biosynthesis", "error", err)
@@ -414,7 +414,7 @@ func PrefillAntismash(entry *entry.Entry, antismashResult *AntismashResult) {
 
 				entry.Biosynthesis.Modules = append(entry.Biosynthesis.Modules, *module)
 
-				moduleName++
+				moduleNum++
 				break
 			case "CDS": // CDS can be a biosynthetic gene kind, which has to be added to the annotations
 				if len(feature.Qualifiers.GeneKind) == 0 || feature.Qualifiers.GeneKind[0] != "biosynthetic" {
@@ -492,6 +492,7 @@ func GenerateAntismashBiosynthesisModule(feature *AntismashResultFeature, module
 	module.Genes = append(module.Genes, feature.Qualifiers.LocusTags[0])
 	module.Active = true
 	module.Type = feature.Qualifiers.Type[0]
+	module.Index = uint64(moduleName)
 	module.Name = strconv.Itoa(moduleName)
 
 	var err error

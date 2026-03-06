@@ -123,11 +123,20 @@ func reorderBiosynthModules(db *gorm.DB, c *gin.Context) {
 	err := c.ShouldBindJSON(&request)
 
 	if err != nil {
-		slog.Error("[endpoints] [biosynth] Failed to unmarshal reorder request")
+		slog.Error("[endpoints] [biosynth] Failed to unmarshal reorder request", "error", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
 		return
 	}
 
+	err = biosynthesis.ReorderEntryBiosynthesisModules(db, request.IDFrom, request.IDTo)
+
+	if err != nil {
+		slog.Error("[endpoints] [biosynth] Could not reorder modules", "error", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+
+	c.Status(http.StatusOK)
 }
 
 func updateEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {

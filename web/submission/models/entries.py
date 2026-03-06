@@ -99,6 +99,20 @@ class Entry(db.Model):
 
             return entry
         return None
+    
+    def move_module(bgc_id, id_from, id_to):
+        response = requests.post(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/module_reorder",
+            headers={"Authorization": f"Bearer {session['token']}"},
+            json={
+                "id_from": int(id_from),
+                "id_to": int(id_to)
+            }
+        )
+        if response.status_code == 200:
+            return None
+    
+        return response.json()['error']
 
     def get_module_text(bgc_id: str, name: str):
         response = requests.get(

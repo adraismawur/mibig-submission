@@ -405,6 +405,19 @@ def edit_biosynth_module(
         reviewed=reviewed,
     )
 
+@bp_edit.route("/<bgc_id>/biosynth/move/<id_from>/<id_to>")
+@login_required
+def move_biosynth_module(bgc_id: str, id_from: int, id_to: int):
+
+    error = Entry.move_module(bgc_id, id_from, id_to)
+
+    if error:
+        flash("Could not reorder modules: " + str(error), "error")
+        return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="biosynth"))
+    
+    return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="biosynth"))
+        
+
 
 @bp_edit.route("/<bgc_id>/biosynth/delete/<name>", methods=["GET", "POST"])
 @login_required
