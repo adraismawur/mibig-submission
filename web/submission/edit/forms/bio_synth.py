@@ -2,6 +2,7 @@ from flask import current_app, session
 import requests
 from wtforms import (
     Form,
+    HiddenField,
     StringField,
     IntegerField,
     FieldList,
@@ -106,6 +107,7 @@ class ModuleLocationForm(Form):
 
 
 class BiosynthModuleForm(Form):
+    id = HiddenField()
     genes = FieldList(
         StringField(default="Gene ID"),
         widget=FieldListAddBtn(label="Add gene"),
