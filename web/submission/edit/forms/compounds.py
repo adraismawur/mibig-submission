@@ -16,6 +16,7 @@ from wtforms import (
     validators,
     SubmitField,
 )
+from wtforms.widgets import HiddenInput
 from submission.utils.custom_fields import ReferenceField, TagListField
 from submission.utils.custom_forms import location_form_factory, EvidenceForm
 from submission.utils.custom_widgets import (
@@ -34,17 +35,25 @@ from submission.utils.custom_validators import (
 
 
 class BioactivitySubForm(Form):
+    id = IntegerField(widget=HiddenInput())
+    compound_id = IntegerField(widget=HiddenInput())
     name = StringField()
     observed = BooleanField()
-    references = FieldList(
-        StringField(),
-        widget=FieldListAddBtn(
-            label="Add reference",
+    references = ReferenceField(
+        label="Citation(s) *",
+        description=Markup(
+            "Accepted formats are (in order of preference):<br>"
+            "'doi:10.1016/j.chembiol.2020.11.009', 'pubmed:33321099', 'patent:US7070980B2', "
+            "'url:https://example.com'.<br>If no publication "
+            "is available <u>yet</u>, please use 'doi:pending'."
         ),
+        validators=[validators.InputRequired(), ValidateCitations()],
     )
 
 
 class CompoundEvidence(Form):
+    id = IntegerField(widget=HiddenInput())
+    compound_id = IntegerField(widget=HiddenInput())
     method = StringField()
     references = ReferenceField(
         label="Citation(s) *",
@@ -59,7 +68,7 @@ class CompoundEvidence(Form):
 
 
 class CompoundsSubForm(Form):
-    id = HiddenField()
+    id = IntegerField(widget=HiddenInput())
     name = StringField()
     evidence = FieldList(
         FormField(CompoundEvidence),

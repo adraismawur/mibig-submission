@@ -6,9 +6,9 @@ import (
 )
 
 type BioActivities struct {
-	ID         uint64 `json:"id"`
-	CompoundID uint64 `json:"compound_id"`
-	//Name       string         `json:"name"`
+	ID         uint64         `json:"id"`
+	CompoundID uint64         `json:"compound_id"`
+	Name       *string        `json:"name,omitempty"`
 	Observed   bool           `json:"observed"`
 	References pq.StringArray `json:"references" gorm:"type:text[]"`
 }

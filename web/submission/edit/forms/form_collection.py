@@ -18,7 +18,7 @@ from submission.edit.forms.biosynthesis_paths import PathMultipleForm
 from submission.edit.forms.biosynthesis_modules import ModulesForm
 from submission.edit.forms.tailoring import TailoringMultipleForm
 from submission.edit.forms.gene_annotation import GeneAnnotationForm
-from submission.edit.forms.compounds import CompoundsForm
+from submission.edit.forms.compounds import CompoundsForm, CompoundsSubForm
 from submission.edit.forms.finalize import FinalizeForm
 
 
@@ -46,5 +46,7 @@ class FormCollection:
     annotation = GeneAnnotationForm
 
     compounds = CompoundsForm
+    edit_compound = CompoundsSubForm 
+    new_compound = CompoundsSubForm
 
     gene_annotation = GeneAnnotationForm

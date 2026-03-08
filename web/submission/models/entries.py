@@ -185,7 +185,7 @@ class Entry(db.Model):
             json=compound_data
         )
 
-        return response.json()
+        return response
     
     def create_compound(bgc_id: str, compound_data: dict[any]):
         compound_data['id'] = 0
@@ -203,9 +203,9 @@ class Entry(db.Model):
 
 
 
-    def get_compound_text(bgc_id: str, compound_idx: int):
+    def get_compound_text(bgc_id: str, compound_id: int):
         response = requests.get(
-            f"{current_app.config['API_BASE']}/entry/{bgc_id}/compound/{compound_idx}?pretty=true",
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/compounds?id={compound_id}&pretty=true",
             headers={"Authorization": f"Bearer {session['token']}"},
         )
 
@@ -213,6 +213,16 @@ class Entry(db.Model):
             return response.text
 
         return None
+    
+    def delete_compound(bgc_id: str, compound_id: int):
+        response = requests.delete(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/compounds/{compound_id}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+        if response.status_code == 200:
+            return True
+
+        return False
 
     @staticmethod
     def get_or_create(bgc_id: str) -> "Entry":

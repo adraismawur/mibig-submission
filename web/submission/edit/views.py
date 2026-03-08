@@ -437,7 +437,7 @@ def remove_biosynth_module(bgc_id: str, name: str):
     )
 
 
-@bp_edit.route("/<bgc_id>/compounds/new", methods=["GET", "POST"])
+@bp_edit.route("/<bgc_id>/compounds/new_compound", methods=["GET", "POST"])
 @login_required
 def create_compound(bgc_id: str):
     if request.form:
@@ -455,7 +455,7 @@ def create_compound(bgc_id: str):
     )
 
 
-@bp_edit.route("/<bgc_id>/compounds/edit/<compound_id>", methods=["GET", "POST"])
+@bp_edit.route("/<bgc_id>/compounds/<compound_id>/edit_compound", methods=["GET", "POST"])
 @login_required
 def edit_compound(bgc_id: str, compound_id: int):
 
@@ -467,21 +467,29 @@ def edit_compound(bgc_id: str, compound_id: int):
         form = form = CompoundsSubForm(request.form)
 
     if request.method == "POST":
-        Entry.update_compound(bgc_id, form.data)
+        response = Entry.update_compound(bgc_id, form.data)
+        if response.status_code == 200:
+            flash("Compound updated successfully")
+        else:
+            flash("Failed to update compound: " + response.json()['error'], "error")
 
     return render_template(
         "wizard/compound_edit.html", bgc_id=bgc_id, form=form, new=False
     )
 
 
-@bp_edit.route("/<bgc_id>/compounds/remove/<compound_id>")
+@bp_edit.route("/<bgc_id>/compounds/remove/<compound_id>", methods=["GET", "POST"])
 @login_required
-def remove_compound(bgc_id: str, compound_idx: int):
+def remove_compound(bgc_id: str, compound_id: int):
 
-    compound_text = Entry.get_compound_text(bgc_id, compound_idx)
+    compound_text = Entry.get_compound_text(bgc_id, compound_id)
+
+    if request.method == "POST":
+        Entry.delete_compound(bgc_id, compound_id)
+        return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="compounds"))
 
     return render_template(
-        "wizard/compound_delete.html",
+        "wizard/compound_remove.html",
         bgc_id=bgc_id,
         compound_text=compound_text,
     )
