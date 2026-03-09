@@ -70,13 +70,8 @@ class NewEntryForm(Form):
             ),
         )
 
-    loci = FieldList(
-        FormField(LocusForm),
-        min_entries=1,
-        description="Locus or loci where the gene cluster is located",
-        widget=FieldListAddBtn(
-            label="Add additional locus",
-        ),
-    )
+    name = StringField("Name", description="Fill in to give this entry a descriptive name. Leave empty to automatically generate a name for this submission")
+
+    locus = FormField(LocusForm)
 
     submit = SubmitField("Submit", widget=SubmitIndicator())

@@ -126,15 +126,27 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 
 // createSubmission creates a minimal draft submission from a request
 func createSubmission(db *gorm.DB, c *gin.Context) {
-	var newEntry entry.Entry
+	var minimalEntry entry.MinimalEntry
 
-	if err := c.BindJSON(&newEntry); err != nil {
+	if err := c.BindJSON(&minimalEntry); err != nil {
 		slog.Error("[endpoints] [submission] Failed to unmarshal submission JSON", "error", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid entry submitted"})
 		return
 	}
 
+	var newEntry entry.Entry
+
+	// first thing we do is add the one locus someone can submit
+	newEntry.Loci = append(newEntry.Loci, minimalEntry.Locus)
+
+	// then we copy over the compounds
+	// TODO: validate these compounds
+	newEntry.Compounds = minimalEntry.Compounds
+
+	// generate a new changelog
 	var currentDate = time.Now().Format(time.DateOnly)
+
+	user, err := models.GetUserFromContext(c)
 
 	newEntry.Changelog = entry.Changelog{
 		Releases: []entry.Release{
@@ -155,15 +167,17 @@ func createSubmission(db *gorm.DB, c *gin.Context) {
 		},
 	}
 
-	user, err := models.GetUserFromContext(c)
-
 	if err != nil {
 		slog.Error("[endpoints] [submission] Failed to generate new entry accession", "error", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to generate new entry accession"})
 		return
 	}
 
-	newEntry.Accession = entry_utils.GeneratePlaceholderAccession(*user)
+	if minimalEntry.Name == "" {
+		newEntry.Accession = entry_utils.GeneratePlaceholderAccession()
+	} else {
+		newEntry.Accession = minimalEntry.Name
+	}
 
 	db.Create(&newEntry)
 

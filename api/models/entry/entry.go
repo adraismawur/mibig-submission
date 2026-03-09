@@ -42,6 +42,12 @@ const (
 	Incomplete Completeness = "incomplete"
 )
 
+type MinimalEntry struct {
+	Name      string
+	Locus     locus.Locus
+	Compounds []compound.Compound
+}
+
 type Entry struct {
 	ID               uint                      `json:"id"`
 	Accession        string                    `json:"accession"`
