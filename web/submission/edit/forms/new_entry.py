@@ -13,6 +13,7 @@ from wtforms import (
     validators,
     SubmitField,
 )
+from submission.edit.forms.compounds import CompoundsSubForm
 from submission.utils.custom_fields import TagListField
 from submission.utils.custom_forms import location_form_factory, EvidenceForm
 from submission.utils.custom_widgets import (
@@ -70,8 +71,16 @@ class NewEntryForm(Form):
             ),
         )
 
-    name = StringField("Name", description="Fill in to give this entry a descriptive name. Leave empty to automatically generate a name for this submission")
+    name = StringField("Name", description="Fill in to give this submission a descriptive name. Leave empty to automatically generate a name for this submission")
 
     locus = FormField(LocusForm)
+
+    compounds = FieldList(
+        FormField(CompoundsSubForm),
+        min_entries=1,
+        widget=FieldListAddBtn(
+            label="Add additional compound",
+        ),
+    )
 
     submit = SubmitField("Submit", widget=SubmitIndicator())
