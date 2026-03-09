@@ -1,5 +1,6 @@
 from wtforms import (
     Form,
+    IntegerField,
     StringField,
     FieldList,
     FormField,
@@ -8,6 +9,7 @@ from wtforms import (
     validators,
 )
 from markupsafe import Markup
+from wtforms.widgets import HiddenInput
 
 from submission.utils.custom_fields import (
     ReferenceField,
@@ -51,7 +53,8 @@ class GeneLocationForm(Form):
 
 
 class AddGeneForm(Form):
-    id = StringField(
+    id = IntegerField(widget=HiddenInput())
+    accession = StringField(
         "Gene identifier", description="The commonly used gene name (e.g. nisA)"
     )
     location = FormField(GeneLocationForm)
@@ -62,7 +65,8 @@ class AddGeneForm(Form):
 
 
 class DeleteGeneForm(Form):
-    id = GeneIdField("Gene *", validators=[validators.InputRequired()])
+    id = IntegerField(widget=HiddenInput())
+    accession = GeneIdField("Gene *", validators=[validators.InputRequired()])
     reason = StringField(
         "Reason",
         description="Rationale why this gene is not a part of this gene cluster",
@@ -122,7 +126,8 @@ class AnnotationForm(Form):
             MutationPhenotype, label="Mutation phenotype (Optional)"
         )
 
-    id = GeneIdField("Gene *", validators=[validators.InputRequired()])
+    id = IntegerField(widget=HiddenInput())
+    accession = GeneIdField("Gene *", validators=[validators.InputRequired()])
     name = StringField("Gene name", description="Commonly used gene name (e.g. scbA)")
     product = StringField(
         "Gene product name",
@@ -168,7 +173,7 @@ class DomainForm(Form):
     )
 
 
-class GeneAnnotationForm(Form):
+class GeneInformationForm(Form):
     to_add = FieldList(
         FormField(AddGeneForm),
         widget=FieldListAddBtn(

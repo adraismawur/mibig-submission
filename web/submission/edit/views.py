@@ -464,7 +464,7 @@ def edit_compound(bgc_id: str, compound_id: int):
 
         form = CompoundsSubForm(data=compoundData["compounds"][0])
     else:
-        form = form = CompoundsSubForm(request.form)
+        form = CompoundsSubForm(request.form)
 
     if request.method == "POST":
         response = Entry.update_compound(bgc_id, form.data)
@@ -493,6 +493,129 @@ def remove_compound(bgc_id: str, compound_id: int):
         bgc_id=bgc_id,
         compound_text=compound_text,
     )
+
+def render_gene_information_edit(bgc_id: str, type: str, form_type: str, id: int, new: bool):
+    data_get_function = {
+        "new_addition": Entry.get_gene_addition,
+        "new_deletion": Entry.get_gene_deletion,
+        "new_annotation": Entry.get_gene_annotation,
+        "edit_addition": Entry.get_gene_addition,
+        "edit_deletion": Entry.get_gene_deletion,
+        "edit_annotation":Entry.get_gene_annotation ,
+    }
+
+    data_set_function = {
+        "new_addition": Entry.update_or_create_gene_addition,
+        "new_deletion": Entry.update_or_create_gene_deletion,
+        "new_annotation": Entry.update_or_create_gene_annotation,
+        "edit_addition": Entry.update_or_create_gene_addition,
+        "edit_deletion": Entry.update_or_create_gene_deletion,
+        "edit_annotation":Entry.update_or_create_gene_annotation,
+    }
+
+    if new and request.method == "GET":
+        form = getattr(FormCollection, form_type)()
+    else:
+        if request.method == "POST":
+            form = getattr(FormCollection, form_type)(request.form)
+            data, error  = data_set_function[form_type](bgc_id, form.data)
+
+            if error:
+                flash(error, "error")
+            else:
+                flash("Update successful")
+
+        else:
+            data, error = data_get_function[form_type](bgc_id, id)
+
+            if error:
+                flash(error, "error")
+
+            form = getattr(FormCollection, form_type)(data=data)
+
+    return render_template(
+        "wizard/genes_edit.html",
+        form=form,
+        new=new,
+        bgc_id=bgc_id,
+        type=type
+    )
+
+@bp_edit.route("/<bgc_id>/gene_information/new_addition", methods=["GET", "POST"])
+@login_required
+def add_gene_addition(bgc_id: str):
+    return render_gene_information_edit(bgc_id, "gene addition", "new_addition", None, True)
+
+@bp_edit.route("/<bgc_id>/gene_information/new_deletion", methods=["GET", "POST"])
+@login_required
+def  add_gene_deletion(bgc_id: str):
+    return render_gene_information_edit(bgc_id, "gene deletion", "new_deletion", None, True)
+
+@bp_edit.route("/<bgc_id>/gene_information/new_annotation", methods=["GET", "POST"])
+@login_required
+def add_gene_annotation(bgc_id: str):
+    return render_gene_information_edit(bgc_id, "gene annotation", "new_annotation", None, True)
+
+@bp_edit.route("/<bgc_id>/gene_information/<addition_id>/edit_addition", methods=["GET", "POST"])
+@login_required
+def edit_gene_addition(bgc_id: str, addition_id: int):
+    return render_gene_information_edit(bgc_id, "gene addition", "edit_addition", addition_id, False)
+
+@bp_edit.route("/<bgc_id>/gene_information/<deletion_id>/edit_deletion", methods=["GET", "POST"])
+@login_required
+def edit_gene_deletion(bgc_id: str, deletion_id: int):
+    return render_gene_information_edit(bgc_id, "gene addition", "edit_deletion", deletion_id, False)
+
+@bp_edit.route("/<bgc_id>/gene_information/<annotation_id>/edit_annotation", methods=["GET", "POST"])
+@login_required
+def edit_gene_annotation(bgc_id: str, annotation_id: int):
+    return render_gene_information_edit(bgc_id, "gene addition", "edit_annotation", annotation_id, False)
+
+@bp_edit.route("/<bgc_id>/gene_information/delete/<type>/<information_id>", methods=["GET", "POST"])
+@login_required
+def remove_gene_information(bgc_id: str, type: str, information_id: int):
+
+    types = {
+        "gene_addition": {
+            "human_readable": "gene addition",
+            "get_method": Entry.get_gene_addition,
+            "delete_method": Entry.remove_gene_addition,
+        },
+        "gene_deletion": {
+            "human_readable": "gene deletion",
+            "get_method": Entry.get_gene_deletion,
+            "delete_method": Entry.remove_gene_deletion,
+        },
+        "gene_annotation": {
+            "human_readable": "gene annotation",
+            "get_method": Entry.get_gene_annotation,
+            "delete_method": Entry.remove_gene_annotation,
+        },
+    }
+
+    type_dict = types[type]
+
+    if request.method == "POST":
+        error = type_dict["delete_method"](bgc_id, information_id)
+
+        if error is not None:
+            flash(error, "error")
+
+        return redirect(url_for('edit.edit_bgc', bgc_id=bgc_id, form_id="gene_information"))
+
+    data_text, error = type_dict['get_method'](bgc_id, information_id, pretty=True)
+
+    if error is not None:
+        flash(f"Could not retrieve data for {type_dict['human_readable']} to delete: {error}", "error")
+        return(redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="gene_information")))
+
+    return render_template(
+        "wizard/genes_remove.html",
+        bgc_id=bgc_id,
+        description=type_dict['human_readable'],
+        data_text=data_text,
+    )
+
 
 
 @bp_edit.route("/render_smarts", methods=["POST"])

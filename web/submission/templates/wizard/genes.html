@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block header %}
+<h2 class="edit-header">Editing {{ bgc_id }}</h2>
+{% endblock %}
+
+{% block body %}
+
+{% import 'bgc_viewer.html' as bgc_viewer %}
+{{ bgc_viewer.bgc_viewer(antismash_accessions, antismash_json_url) }}
+
+<div class="form-wrapper">
+    <h4>Enter {{ form_description }}</h4>
+
+    <div class="form-group">
+        <p class="form-label fw-bold">Genes to add</p>
+        {{ macros.descr(form.to_add) }}
+        <table class="table">
+            <tbody id="module-table">
+                <tr>
+                    <th>Accession</th>
+                    <th></th>
+                </tr>
+                {% for gene_to_add in form.to_add %}
+                <tr>
+                    <td>
+                        {{gene_to_add['accession'].data}}
+                    </td>
+                    <td>
+                        <a
+                            href="{{ url_for('edit.edit_gene_addition', bgc_id=bgc_id, addition_id=gene_to_add['id'].data) }}">
+                            <button type="button" class="btn btn-primary" type="button">Edit gene addition</button>
+                        </a>
+                        <a
+                            href="{{ url_for('edit.remove_gene_information', bgc_id=bgc_id, type='gene_addition', information_id=gene_to_add['id'].data) }}">
+                            <button type="button" class="btn btn-danger" type="button">Delete</button>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{{url_for('edit.add_gene_addition', bgc_id=bgc_id)}}">
+            <button class="btn btn-primary" type="button">Add new gene addition</button>
+        </a>
+    </div>
+
+    <div class="form-group">
+        <p class="form-label fw-bold">Genes to remove</p>
+        {{ macros.descr(form.to_delete) }}
+        <table class="table">
+            <tbody id="module-table">
+                <tr>
+                    <th>Accession</th>
+                    <th></th>
+                </tr>
+                {% for gene_to_delete in form.to_delete %}
+                <tr>
+                    <td>
+                        {{gene_to_delete['accession'].data}}
+                    </td>
+                    <td>
+                        <a
+                            href="{{ url_for('edit.edit_gene_deletion', bgc_id=bgc_id, deletion_id=gene_to_delete['id'].data) }}">
+                            <button type="button" class="btn btn-primary" type="button">Edit gene deletion</button>
+                        </a>
+                        <a
+                            href="{{ url_for('edit.remove_gene_information', bgc_id=bgc_id, type='gene_deletion', information_id=gene_to_delete['id'].data) }}">
+                            <button type="button" class="btn btn-danger" type="button">Delete</button>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{{url_for('edit.add_gene_deletion', bgc_id=bgc_id)}}">
+            <button class="btn btn-primary" type="button">Add new gene deletion</button>
+        </a>
+    </div>
+
+    <div class="form-group">
+        <p class="form-label fw-bold">Additional gene annotations</p>
+        {{ macros.descr(form.annotations) }}
+        <table class="table">
+            <tbody id="module-table">
+                <tr>
+                    <th>Accession</th>
+                    <th></th>
+                </tr>
+                {% for gene_annotation in form.annotations %}
+                <tr>
+                    <td>
+                        {{gene_annotation['accession'].data}}
+                    </td>
+                    <td>
+                        <a
+                            href="{{ url_for('edit.edit_gene_annotation', bgc_id=bgc_id, annotation_id=gene_annotation['id'].data) }}">
+                            <button type="button" class="btn btn-primary" type="button">Edit gene annotation</button>
+                        </a>
+                        <a
+                            href="{{ url_for('edit.remove_gene_information', bgc_id=bgc_id, type='gene_annotation', information_id=gene_annotation['id'].data) }}">
+                            <button type="button" class="btn btn-danger" type="button">Delete</button>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{{url_for('edit.add_gene_annotation', bgc_id=bgc_id)}}">
+            <button class="btn btn-primary" type="button">Add new gene annotation</button>
+        </a>
+    </div>
+
+
+    {% if prev_form %}
+    <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=prev_form.id) }}"><button id="back-btn"
+            class="btn btn-secondary" type="button">Previous: {{ prev_form.description }}</button></a>
+    {%- endif %}
+    {% if next_form %}
+    <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=next_form.id) }}"><button id="back-btn"
+            class="btn btn-secondary" type="button">Next: {{ next_form.description }}</button></a>
+    {%- endif %}
+
+</div>
+
+{% endblock %}

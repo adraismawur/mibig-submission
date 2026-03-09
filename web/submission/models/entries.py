@@ -223,6 +223,118 @@ class Entry(db.Model):
             return True
 
         return False
+    
+
+    def get_gene_addition(bgc_id: str, addition_id: int, pretty=False):
+        pretty = str(pretty).lower()
+        response = requests.get(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/genes/to_add/{addition_id}?pretty={pretty}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+
+        if response.status_code == 200:
+            return response.json(), None
+        
+        return None, response.json()['error']
+    
+
+    def get_gene_deletion(bgc_id: str, deletion_id: int, pretty=False):
+        pretty = str(pretty).lower()
+        response = requests.get(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/genes/to_delete/{deletion_id}?pretty={pretty}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+
+        if response.status_code == 200:
+            return response.json(), None
+        
+        return None, response.json()['error']
+    
+
+    def get_gene_annotation(bgc_id: str, annotation_id: int, pretty=False):
+        pretty = str(pretty).lower()
+        response = requests.get(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/genes/annotation/{annotation_id}?pretty={pretty}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+
+        if response.status_code == 200:
+            return response.json(), None
+        
+        return None, response.json()['error']
+    
+    def update_or_create_gene_addition(bgc_id: str, data_json):
+        # have to fix the strand here
+        data_json['location']['strand'] = int(data_json['location']['strand'])
+
+
+        response = requests.post(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/genes/to_add",
+            headers={"Authorization": f"Bearer {session['token']}"},
+            json=data_json
+        )
+
+        if response.status_code == 200:
+            return response.json(), None
+        
+        return None, response.json()['error']
+
+    def update_or_create_gene_deletion(bgc_id: str, data_json):
+        response = requests.post(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/genes/to_delete",
+            headers={"Authorization": f"Bearer {session['token']}"},
+            json=data_json
+        )
+
+        if response.status_code == 200:
+            return response.json(), None
+        
+        return None, response.json()['error']
+
+    def update_or_create_gene_annotation(bgc_id: str, data_json):
+        response = requests.post(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/genes/annotation",
+            headers={"Authorization": f"Bearer {session['token']}"},
+            json=data_json
+        )
+
+        if response.status_code == 200:
+            return response.json(), None
+        
+        return None, response.json()['error']
+    
+    def remove_gene_addition(bgc_id, addition_id: int):
+        response = requests.delete(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/genes/to_add/{addition_id}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+
+        if response.status_code == 200:
+            return None
+        
+        return response.json()['error']
+    
+    def remove_gene_deletion(bgc_id, deletion_id: int):
+        response = requests.delete(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/genes/to_delete/{deletion_id}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+
+        if response.status_code == 200:
+            return None
+        
+        return response.json()['error']
+    
+    def remove_gene_annotation(bgc_id, annotation_id: int):
+        response = requests.delete(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/genes/annotation/{annotation_id}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+
+        if response.status_code == 200:
+            return None
+        
+        return response.json()['error']
 
     @staticmethod
     def get_or_create(bgc_id: str) -> "Entry":
