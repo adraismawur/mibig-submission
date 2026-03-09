@@ -1,12 +1,12 @@
 {% macro bgc_viewer(antismash_accessions, antismash_json_url) %}
 
 
-<div id="bgc-viewer-container"  class="region-viewer-container">
-    <div id="bgc-viewer-region-browser">
+<div id="bgc-viewer-container" class="region-viewer-container">
+    <!-- <div id="bgc-viewer-region-browser">
         {% for accession in antismash_accessions %}
         {{ accession }}
         {% endfor %}
-    </div>
+    </div> -->
     <bgc-region-viewer id="viewer"></bgc-region-viewer>
 </div>
 
@@ -36,6 +36,13 @@
 
     // Get the viewer element and configure it
     const viewer = document.getElementById('viewer');
+
+    // CSS shenanigans
+    const styleSheet = await fetch('/static/css/bgc-viewer.css')
+    const styleSheetText = await styleSheet.text()
+    const bgcStyleSheet = new CSSStyleSheet()
+    bgcStyleSheet.replace(styleSheetText)
+    viewer.shadowRoot.adoptedStyleSheets = [bgcStyleSheet]
 
     viewer.addEventListener('error', (err) => {
         console.error(err);
