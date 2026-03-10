@@ -14,9 +14,10 @@ import (
 type SubmissionState string
 
 const (
-	DraftSubmission    SubmissionState = "draft"
-	PendingReview                      = "pending_review"
-	AcceptedSubmission                 = "accepted"
+	DraftSubmission     SubmissionState = "draft"
+	PendingReview                       = "pending_review"
+	AcceptedSubmission                  = "accepted"
+	DiscardedSubmission                 = "discarded"
 )
 
 type SubmissionType string

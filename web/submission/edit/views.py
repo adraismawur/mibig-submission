@@ -154,6 +154,26 @@ def redraft_bgc(bgc_id: str):
 
     return render_template("edit/redraft.html", bgc_id=bgc_id, entry_json=entry_json)
 
+@bp_edit.route("/discard/<bgc_id>", methods=["GET", "POST"])
+@login_required
+def discard_bgc(bgc_id: str):
+
+    entry_json = Entry.get_text(bgc_id)
+
+    if request.method == "POST":
+        submission_endpoint = "/submission/discard/" + bgc_id
+        response = requests.post(
+            f"{current_app.config['API_BASE']}" + submission_endpoint,
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+
+        if response.status_code != 200:
+            flash(response.json()["error"], "error")
+
+        return redirect(url_for("main.index"))
+
+    return render_template("edit/discard.html", bgc_id=bgc_id, entry_json=entry_json)
+
 
 @bp_edit.route("/render_smiles_form", methods=["POST"])
 @login_required

@@ -177,15 +177,24 @@
             <th>Accession</th>
             <th>State</th>
             <th></th>
+            <th></th>
         </thead>
         {% for submission in user_submissions %}
         <tr>
             <td>{{ submission.accession }}</td>
             <td>{{ submission.state }}</td>
-            {% if submission.state == "draft" %}
-            <td><a href="{{url_for('edit.edit_bgc', bgc_id=submission.accession, form_id='locitax')}}"><button
-                        class="btn btn-primary">Edit</button></a></td>
-            {% endif %}
+            <td></td>
+            <td>
+                {% if submission.state == "draft" %}
+                <a href="{{url_for('edit.edit_bgc', bgc_id=submission.accession, form_id='locitax')}}"><button
+                        class="btn btn-primary">Edit</button></a>
+                {% endif %}
+                {% if submission.state == "draft" %}
+                <a href="{{url_for('edit.discard_bgc', bgc_id=submission.accession)}}"><button
+                        class="btn btn-danger">Discard</button></a>
+                {% endif %}
+            </td>
+
             {% if submission.state == "pending_review" %}
             <td><a href="{{url_for('edit.redraft_bgc', bgc_id=submission.accession)}}"><button
                         class="btn btn-danger">Redraft</button></a></td>
