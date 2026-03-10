@@ -374,7 +374,7 @@ func ReadAntismashJson(asJsonPath string) (*AntismashResult, error) {
 	return &antismashResult, nil
 }
 
-func PrefillAntismash(entry *entry.Entry, antismashResult *AntismashResult) {
+func PrefillAntismash(newEntry *entry.Entry, antismashResult *AntismashResult) {
 	var err error
 	// moduleNum is used to prefill module names and indexes
 	moduleNum := 1
@@ -383,13 +383,13 @@ func PrefillAntismash(entry *entry.Entry, antismashResult *AntismashResult) {
 		for _, feature := range record.Features {
 			switch feature.Type {
 			case "source": // source contains taxonomy information
-				err = PrefillAntismashTaxonomy(entry, &feature)
+				err = PrefillAntismashTaxonomy(newEntry, &feature)
 				if err != nil {
 					slog.Error("[Antismash] Could not parse taxonomy", "error", err)
 				}
 				break
 			case "region": // regions contain class and subclass information
-				err = PrefillAntismashBiosynthesisClass(entry, &feature)
+				err = PrefillAntismashBiosynthesisClass(newEntry, &feature)
 				if err != nil {
 					slog.Error("[Antismash] Could not parse biosynthetic class", "error", err)
 				}
@@ -412,11 +412,17 @@ func PrefillAntismash(entry *entry.Entry, antismashResult *AntismashResult) {
 				// convert the type into the type as it is in MIBiG
 				module.Type = val
 
-				entry.Biosynthesis.Modules = append(entry.Biosynthesis.Modules, *module)
+				newEntry.Biosynthesis.Modules = append(newEntry.Biosynthesis.Modules, *module)
 
 				moduleNum++
 				break
-			case "CDS": // CDS can be a biosynthetic gene kind, which has to be added to the annotations
+			case "CDS":
+				if len(feature.Qualifiers.Gene) > 0 {
+					newEntry.Genes = append(newEntry.Genes, entry.Gene{
+						Name: feature.Qualifiers.Gene[0],
+					})
+				}
+
 				if len(feature.Qualifiers.GeneKind) == 0 || feature.Qualifiers.GeneKind[0] != "biosynthetic" {
 					continue
 				}
@@ -428,11 +434,11 @@ func PrefillAntismash(entry *entry.Entry, antismashResult *AntismashResult) {
 					continue
 				}
 
-				if entry.Genes == nil {
-					entry.Genes = &gene.Gene{}
+				if newEntry.GeneInformation == nil {
+					newEntry.GeneInformation = &gene.GeneInformation{}
 				}
 
-				entry.Genes.Annotations = append(entry.Genes.Annotations, *annotation)
+				newEntry.GeneInformation.Annotations = append(newEntry.GeneInformation.Annotations, *annotation)
 
 				break
 			}
@@ -466,18 +472,29 @@ func PrefillAntismashBiosynthesisClass(entry *entry.Entry, feature *AntismashRes
 		return errors.New("antismash feature is not a region feature")
 	}
 
-	var class biosynthesis.BiosyntheticClass
+	for _, product := range feature.Qualifiers.Product {
+		var class biosynthesis.BiosyntheticClass
 
-	switch feature.Qualifiers.Product[0] {
-	case "T1PKS":
-		class.Class = "PKS"
-		class.Subclass = "Type I"
+		switch product {
+		case "T1PKS":
+			class.Class = "PKS"
+			class.Subclass = "Type I"
 
-	case "T2PKS":
-		class.Class = "PKS"
-		class.Subclass = "Type II"
+		case "T2PKS":
+			class.Class = "PKS"
+			class.Subclass = "Type II"
+
+		case "T3PKS":
+			class.Class = "PKS"
+			class.Subclass = "Type III"
+		case "NRPS":
+			class.Class = "NRPS"
+		}
+
+		if class.Class != "" {
+			entry.Biosynthesis.Classes = append(entry.Biosynthesis.Classes, class)
+		}
 	}
-	entry.Biosynthesis.Classes = append(entry.Biosynthesis.Classes, class)
 
 	return nil
 }
@@ -583,8 +600,14 @@ func GenerateAnnotation(feature AntismashResultFeature) (*gene.GeneAnnotation, e
 
 	annotation := gene.GeneAnnotation{}
 
-	annotation.Name = feature.Qualifiers.Gene[0]
-	annotation.Accession = feature.Qualifiers.ProteinID[0]
+	if len(feature.Qualifiers.Gene) > 0 {
+		annotation.Name = feature.Qualifiers.Gene[0]
+	}
+
+	if len(feature.Qualifiers.ProteinID) > 0 {
+		annotation.Accession = feature.Qualifiers.ProteinID[0]
+	}
+
 	annotation.Product = feature.Qualifiers.Product[0]
 
 	return &annotation, nil

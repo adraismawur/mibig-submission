@@ -63,18 +63,6 @@ class Entry(db.Model):
         if response.status_code == 200:
             entry = response.json()
 
-            # we have a python keyword conflict and no good way to tell the form to
-            # behave, so we have to mess with the json
-            # for i in range(len(entry["loci"])):
-            #     entry["loci"][i]["location"]["from_"] = entry["loci"][i]["location"][
-            #         "from"
-            #     ]
-
-            # and another
-            if entry["biosynthesis"]["classes"] is not None:
-                for i in range(len(entry["biosynthesis"]["classes"])):
-                    c = entry["biosynthesis"]["classes"][i]["class"]
-                    entry["biosynthesis"]["classes"][i]["class_"] = c
 
             return entry
         return None
@@ -89,7 +77,71 @@ class Entry(db.Model):
 
         return None
 
-    def get_module(bgc_id: str, name: str):
+    def get_class(bgc_id: str, class_id: int):
+        response = requests.get(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/class/{class_id}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+        if response.status_code == 200:
+            biosynthetic_class = response.json()
+
+            biosynthetic_class['class_'] = biosynthetic_class['class']
+
+            return biosynthetic_class
+        return None
+    
+
+    def get_class_text(bgc_id: str, class_id: int):
+        response = requests.get(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/class/{class_id}?pretty=true",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+        if response.status_code == 200:
+            return response.text
+
+        return None
+
+    def create_class(bgc_id: str, data: dict[str, any]):
+
+        if 'class_' in data:
+            data['class'] = data['class_']
+
+        response = requests.post(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/class",
+            headers={"Authorization": f"Bearer {session['token']}"},
+            json=data,
+        )
+        if response.status_code == 200:
+            return True
+
+        return False
+
+    def update_class(bgc_id: str, class_id: int, data: dict[str, any]):
+
+        if 'class_' in data:
+            data['class'] = data['class_']
+            
+        response = requests.post(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/class/{class_id}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+            json=data,
+        )
+        if response.status_code == 200:
+            return None
+
+        return response.json()['error']
+
+    def delete_class(bgc_id: str, class_id: int):
+        response = requests.delete(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/class/{class_id}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+        if response.status_code == 200:
+            return True
+
+        return False
+
+    def get_module(bgc_id: str, name: int):
         response = requests.get(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/module/{name}",
             headers={"Authorization": f"Bearer {session['token']}"},
@@ -228,7 +280,7 @@ class Entry(db.Model):
     def get_gene_addition(bgc_id: str, addition_id: int, pretty=False):
         pretty = str(pretty).lower()
         response = requests.get(
-            f"{current_app.config['API_BASE']}/entry/{bgc_id}/genes/to_add/{addition_id}?pretty={pretty}",
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/gene_information/to_add/{addition_id}?pretty={pretty}",
             headers={"Authorization": f"Bearer {session['token']}"},
         )
 
@@ -241,7 +293,7 @@ class Entry(db.Model):
     def get_gene_deletion(bgc_id: str, deletion_id: int, pretty=False):
         pretty = str(pretty).lower()
         response = requests.get(
-            f"{current_app.config['API_BASE']}/entry/{bgc_id}/genes/to_delete/{deletion_id}?pretty={pretty}",
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/gene_information/to_delete/{deletion_id}?pretty={pretty}",
             headers={"Authorization": f"Bearer {session['token']}"},
         )
 
@@ -254,7 +306,7 @@ class Entry(db.Model):
     def get_gene_annotation(bgc_id: str, annotation_id: int, pretty=False):
         pretty = str(pretty).lower()
         response = requests.get(
-            f"{current_app.config['API_BASE']}/entry/{bgc_id}/genes/annotation/{annotation_id}?pretty={pretty}",
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/gene_information/annotation/{annotation_id}?pretty={pretty}",
             headers={"Authorization": f"Bearer {session['token']}"},
         )
 
@@ -269,7 +321,7 @@ class Entry(db.Model):
 
 
         response = requests.post(
-            f"{current_app.config['API_BASE']}/entry/{bgc_id}/genes/to_add",
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/gene_information/to_add",
             headers={"Authorization": f"Bearer {session['token']}"},
             json=data_json
         )
@@ -281,7 +333,7 @@ class Entry(db.Model):
 
     def update_or_create_gene_deletion(bgc_id: str, data_json):
         response = requests.post(
-            f"{current_app.config['API_BASE']}/entry/{bgc_id}/genes/to_delete",
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/gene_information/to_delete",
             headers={"Authorization": f"Bearer {session['token']}"},
             json=data_json
         )
@@ -293,7 +345,7 @@ class Entry(db.Model):
 
     def update_or_create_gene_annotation(bgc_id: str, data_json):
         response = requests.post(
-            f"{current_app.config['API_BASE']}/entry/{bgc_id}/genes/annotation",
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/gene_information/annotation",
             headers={"Authorization": f"Bearer {session['token']}"},
             json=data_json
         )
@@ -305,7 +357,7 @@ class Entry(db.Model):
     
     def remove_gene_addition(bgc_id, addition_id: int):
         response = requests.delete(
-            f"{current_app.config['API_BASE']}/entry/{bgc_id}/genes/to_add/{addition_id}",
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/gene_information/to_add/{addition_id}",
             headers={"Authorization": f"Bearer {session['token']}"},
         )
 
@@ -316,7 +368,7 @@ class Entry(db.Model):
     
     def remove_gene_deletion(bgc_id, deletion_id: int):
         response = requests.delete(
-            f"{current_app.config['API_BASE']}/entry/{bgc_id}/genes/to_delete/{deletion_id}",
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/gene_information/to_delete/{deletion_id}",
             headers={"Authorization": f"Bearer {session['token']}"},
         )
 
@@ -327,7 +379,7 @@ class Entry(db.Model):
     
     def remove_gene_annotation(bgc_id, annotation_id: int):
         response = requests.delete(
-            f"{current_app.config['API_BASE']}/entry/{bgc_id}/genes/annotation/{annotation_id}",
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/gene_information/annotation/{annotation_id}",
             headers={"Authorization": f"Bearer {session['token']}"},
         )
 

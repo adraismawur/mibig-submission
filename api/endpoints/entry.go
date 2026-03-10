@@ -31,6 +31,13 @@ func EntryEndpoint(db *gorm.DB) Endpoint {
 			},
 			{
 				Method: "GET",
+				Path:   "/entry/:accession/genes",
+				Handler: func(c *gin.Context) {
+					getEntryGeneList(db, c)
+				},
+			},
+			{
+				Method: "GET",
 				Path:   "/entry/:accession",
 				Handler: func(c *gin.Context) {
 					getEntry(db, c)
@@ -188,4 +195,35 @@ func deleteEntry(db *gorm.DB, c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "delete entry",
 	})
+}
+
+// getEntryGeneList gets a complete list of genes that are valid within this entry/submission
+func getEntryGeneList(db *gorm.DB, c *gin.Context) {
+	accession := c.Param("accession")
+
+	if accession == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "bad accession"})
+		return
+	}
+
+	exists, err := entry.GetEntryExists(db, accession)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+
+	if !exists {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "accession not found"})
+		return
+	}
+
+	genes, err := entry.GetEntryGenes(db, accession)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+
+	c.JSON(http.StatusOK, genes)
 }

@@ -24,6 +24,12 @@ type MinimalEntry struct {
 	Compounds []compound.Compound
 }
 
+type Gene struct {
+	ID      uint64
+	EntryID uint64
+	Name    string
+}
+
 type Entry struct {
 	ID               uint64                    `json:"db_id"`
 	Accession        string                    `json:"accession"`
@@ -36,13 +42,18 @@ type Entry struct {
 	Biosynthesis     biosynthesis.Biosynthesis `json:"biosynthesis" gorm:"foreignKey:EntryID"`
 	Compounds        []compound.Compound       `json:"compounds" gorm:"ForeignKey:EntryID"`
 	Taxonomy         taxonomy.Taxonomy         `json:"taxonomy" gorm:"ForeignKey:EntryID"`
-	Genes            *gene.Gene                `json:"genes,omitempty" gorm:"ForeignKey:EntryID"`
+	GeneInformation  *gene.GeneInformation     `json:"genes,omitempty" gorm:"ForeignKey:EntryID"`
 	LegacyReferences pq.StringArray            `json:"legacy_references,omitempty" gorm:"type:text[]"`
-	Embargo          bool                      `json:"embargo,omitempty"`
+
+	// internal data starts here
+
+	Genes   []Gene `json:"-" gorm:"ForeignKey:EntryID"`
+	Embargo bool   `json:"embargo,omitempty"`
 }
 
 func init() {
 	models.Models = append(models.Models, &Entry{})
+	models.Models = append(models.Models, &Gene{})
 }
 
 // ParseEntry attempts to parse an entry json given as a byte array into an entry struct
@@ -238,8 +249,8 @@ func GetEntryFromAccession(db *gorm.DB, accession string) (*Entry, error) {
 		Preload("Biosynthesis.Modules.ModificationDomains.Location").
 		Preload("Biosynthesis.Modules.ATDomain.Location").
 		Preload("Biosynthesis.Modules.KSDomain.Location").
-		Preload("Genes.Additions.Location.Exons").
-		Preload("Genes.Annotations").
+		Preload("GeneInformation.Additions.Location.Exons").
+		Preload("GeneInformation.Annotations").
 		Preload("Compounds.Evidence").
 		Preload("Compounds.BioActivities").
 		Preload(clause.Associations).
@@ -251,4 +262,15 @@ func GetEntryFromAccession(db *gorm.DB, accession string) (*Entry, error) {
 	}
 
 	return &entry, nil
+}
+
+func GetEntryGenes(db *gorm.DB, accession string) (*[]string, error) {
+	genes := make([]string, 0)
+
+	db.Model(&Gene{}).
+		Select("name").
+		Where("genes.entry_id = (select id from entries where accession = ?)", accession).
+		Find(&genes)
+
+	return &genes, nil
 }

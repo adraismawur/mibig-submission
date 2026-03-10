@@ -1,6 +1,7 @@
 from markupsafe import Markup
 from wtforms import (
     Form,
+    HiddenField,
     StringField,
     FieldList,
     FormField,
@@ -9,6 +10,7 @@ from wtforms import (
     SubmitField,
     validators,
 )
+from wtforms.widgets import HiddenInput
 from submission.utils.custom_fields import (
     GeneIdField,
     ReferenceField,
@@ -26,6 +28,8 @@ from submission.utils.custom_validators import ValidateTagListRegexp, ValidateCi
 
 
 class NRPSForm(Form):
+    db_id = IntegerField(widget=HiddenInput(), default=0)
+    class_ = HiddenField(default="NRPS")
     class ReleaseTypeForm(Form):
         name = SelectField(
             "Release type",
@@ -83,6 +87,8 @@ class NRPSForm(Form):
 
 
 class PKSForm(Form):
+    db_id = IntegerField(widget=HiddenInput(), default=0)
+    class_ = HiddenField(default="PKS")
     subclass = SelectField(
         "Sub-class *",
         choices=[
@@ -110,6 +116,8 @@ class PKSForm(Form):
 
 
 class RibosomalForm(Form):
+    db_id = IntegerField(widget=HiddenInput(), default=0)
+    class_ = HiddenField(default="ribosomal")
     class PrecursorForm(Form):
         class CrosslinkForm(Form):
             from_loc = IntegerField(
@@ -223,6 +231,8 @@ class RibosomalForm(Form):
 
 
 class SaccharideForm(Form):
+    db_id = IntegerField(widget=HiddenInput(), default=0)
+    class_ = HiddenField(default="saccharide")
     class GlycosylTranferaseForm(Form):
         gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
         evidence = SelectField(
@@ -283,6 +293,8 @@ class SaccharideForm(Form):
 
 
 class TerpeneForm(Form):
+    db_id = IntegerField(widget=HiddenInput(), default=0)
+    class_ = HiddenField(default="terpene")
     subclass = SelectField(
         "Sub-class",
         choices=[
@@ -315,6 +327,8 @@ class TerpeneForm(Form):
 
 
 class OtherForm(Form):
+    db_id = IntegerField(widget=HiddenInput(), default=0)
+    class_ = HiddenField(default="other")
     subclass = SelectField(
         "Sub-class *",
         choices=["aminocoumarin", "cyclitol", "other"],
@@ -348,3 +362,20 @@ class OperonMultipleForm(Form):
         FormField(OperonForm), widget=FieldListAddBtn(label="Add additional operon")
     )
     submit = SubmitField("Submit", widget=SubmitIndicator())
+
+
+class_map = {
+    "NRPS": NRPSForm,
+    "PKS": PKSForm,
+    "ribosomal": RibosomalForm,
+    "saccharide": SaccharideForm,
+    "terpene": TerpeneForm,
+    "other": OtherForm,
+}
+
+def get_class_form(class_type: str):
+    if class_type not in class_map:
+        return None
+
+    return class_map[class_type]
+

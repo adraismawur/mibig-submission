@@ -12,78 +12,78 @@ import (
 )
 
 func init() {
-	RegisterEndpointGenerator(GeneEndpoint)
+	RegisterEndpointGenerator(GeneInformationEndpoint)
 }
 
-func GeneEndpoint(db *gorm.DB) Endpoint {
+func GeneInformationEndpoint(db *gorm.DB) Endpoint {
 	return Endpoint{
 		Routes: []Route{
 			{
 				Method: http.MethodGet,
-				Path:   "/entry/:accession/genes",
+				Path:   "/entry/:accession/gene_information",
 				Handler: func(c *gin.Context) {
-					getEntryGene(db, c)
+					getEntryGeneInformation(db, c)
 				},
 			},
 			{
 				Method: http.MethodGet,
-				Path:   "/entry/:accession/genes/to_add/:addition_id",
+				Path:   "/entry/:accession/gene_information/to_add/:addition_id",
 				Handler: func(c *gin.Context) {
 					getEntryGeneAddition(db, c)
 				},
 			},
 			{
 				Method: http.MethodGet,
-				Path:   "/entry/:accession/genes/to_delete/:deletion_id",
+				Path:   "/entry/:accession/gene_information/to_delete/:deletion_id",
 				Handler: func(c *gin.Context) {
 					getEntryGeneDeletion(db, c)
 				},
 			},
 			{
 				Method: http.MethodGet,
-				Path:   "/entry/:accession/genes/annotation/:annotation_id",
+				Path:   "/entry/:accession/gene_information/annotation/:annotation_id",
 				Handler: func(c *gin.Context) {
 					getEntryGeneAnnotation(db, c)
 				},
 			},
 			{
 				Method: http.MethodPost,
-				Path:   "/entry/:accession/genes/to_add",
+				Path:   "/entry/:accession/gene_information/to_add",
 				Handler: func(c *gin.Context) {
 					updateOrCreateEntryGeneAddition(db, c)
 				},
 			},
 			{
 				Method: http.MethodPost,
-				Path:   "/entry/:accession/genes/to_delete",
+				Path:   "/entry/:accession/gene_information/to_delete",
 				Handler: func(c *gin.Context) {
 					updateOrCreateEntryGeneDeletion(db, c)
 				},
 			},
 			{
 				Method: http.MethodPost,
-				Path:   "/entry/:accession/genes/annotation",
+				Path:   "/entry/:accession/gene_information/annotation",
 				Handler: func(c *gin.Context) {
 					updateOrCreateEntryGeneAnnotation(db, c)
 				},
 			},
 			{
 				Method: http.MethodDelete,
-				Path:   "/entry/:accession/genes/to_add/:addition_id",
+				Path:   "/entry/:accession/gene_information/to_add/:addition_id",
 				Handler: func(c *gin.Context) {
 					deleteEntryGeneAddition(db, c)
 				},
 			},
 			{
 				Method: http.MethodDelete,
-				Path:   "/entry/:accession/genes/to_delete/:deletion_id",
+				Path:   "/entry/:accession/gene_information/to_delete/:deletion_id",
 				Handler: func(c *gin.Context) {
 					deleteEntryGeneDeletion(db, c)
 				},
 			},
 			{
 				Method: http.MethodDelete,
-				Path:   "/entry/:accession/genes/annotation/:annotation_id",
+				Path:   "/entry/:accession/gene_information/annotation/:annotation_id",
 				Handler: func(c *gin.Context) {
 					deleteEntryGeneAnnotation(db, c)
 				},
@@ -92,7 +92,7 @@ func GeneEndpoint(db *gorm.DB) Endpoint {
 	}
 }
 
-func getEntryGene(db *gorm.DB, c *gin.Context) {
+func getEntryGeneInformation(db *gorm.DB, c *gin.Context) {
 	accession := c.Param("accession")
 
 	exists, err := entry.GetEntryExists(db, accession)
@@ -107,7 +107,7 @@ func getEntryGene(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	entryGene, err := gene.GetEntryGenes(db, accession)
+	entryGene, err := gene.GetEntryGeneInformation(db, accession)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
@@ -264,7 +264,7 @@ func getEntryGeneAnnotation(db *gorm.DB, c *gin.Context) {
 func updateOrCreateEntryGeneAddition(db *gorm.DB, c *gin.Context) {
 	accession := c.Param("accession")
 
-	genes, err := gene.GetEntryGenes(db, accession)
+	genes, err := gene.GetEntryGeneInformation(db, accession)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
@@ -280,7 +280,7 @@ func updateOrCreateEntryGeneAddition(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	addition.GeneID = genes.ID
+	addition.GeneInformationID = genes.ID
 
 	newAddition, err := gene.UpdateOrCreateGeneAddition(db, &addition)
 
@@ -296,7 +296,7 @@ func updateOrCreateEntryGeneAddition(db *gorm.DB, c *gin.Context) {
 func updateOrCreateEntryGeneDeletion(db *gorm.DB, c *gin.Context) {
 	accession := c.Param("accession")
 
-	genes, err := gene.GetEntryGenes(db, accession)
+	geneInformation, err := gene.GetEntryGeneInformation(db, accession)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
@@ -312,7 +312,7 @@ func updateOrCreateEntryGeneDeletion(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	deletion.GeneID = genes.ID
+	deletion.GeneInformationID = geneInformation.ID
 
 	newDeletion, err := gene.UpdateOrCreateGeneDeletion(db, &deletion)
 
@@ -328,7 +328,7 @@ func updateOrCreateEntryGeneDeletion(db *gorm.DB, c *gin.Context) {
 func updateOrCreateEntryGeneAnnotation(db *gorm.DB, c *gin.Context) {
 	accession := c.Param("accession")
 
-	genes, err := gene.GetEntryGenes(db, accession)
+	geneInformation, err := gene.GetEntryGeneInformation(db, accession)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
@@ -344,7 +344,7 @@ func updateOrCreateEntryGeneAnnotation(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	annotation.GeneID = genes.ID
+	annotation.GeneInformationID = geneInformation.ID
 
 	newDeletion, err := gene.UpdateOrCreateGeneAnnotation(db, &annotation)
 

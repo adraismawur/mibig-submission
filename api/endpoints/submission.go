@@ -3,15 +3,11 @@ package endpoints
 import (
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/models/entry"
-	"github.com/adraismawur/mibig-submission/util/constants"
-	"github.com/adraismawur/mibig-submission/util/entry_utils"
-	"github.com/beevik/guid"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"log/slog"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 func init() {
@@ -134,18 +130,6 @@ func createSubmission(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	var newEntry entry.Entry
-
-	// first thing we do is add the one locus someone can submit
-	newEntry.Loci = append(newEntry.Loci, minimalEntry.Locus)
-
-	// then we copy over the compounds
-	// TODO: validate these compounds
-	newEntry.Compounds = minimalEntry.Compounds
-
-	// generate a new changelog
-	var currentDate = time.Now().Format(time.DateOnly)
-
 	user, err := models.GetUserFromContext(c)
 
 	if err != nil {
@@ -154,42 +138,7 @@ func createSubmission(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	newEntry.Changelog = entry.Changelog{
-		Releases: []entry.Release{
-			{
-				Version: "1",
-				Date:    currentDate,
-				Entries: []entry.ReleaseEntry{
-					{
-						Contributors: []string{
-							constants.AnonymousUserId,
-						},
-						Reviewers: nil,
-						Date:      currentDate,
-						Comment:   constants.NewEntryComment,
-					},
-				},
-			},
-		},
-	}
-
-	newEntry.Accession, err = entry_utils.GeneratePlaceholderAccession(db)
-
-	if err != nil {
-		slog.Error("[endpoints] [submission] Failed to generate new entry accession", "error", err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
-		return
-	}
-
-	db.Create(&newEntry)
-
-	var userSubmission entry.UserSubmission
-
-	userSubmission.UserID = user.ID
-	userSubmission.EntryID = newEntry.ID
-	userSubmission.State = entry.DraftSubmission
-
-	err = db.Create(&userSubmission).Error
+	newEntry, err := entry.CreateNewUserSubmission(db, minimalEntry, *user)
 
 	if err != nil {
 		slog.Error("[endpoints] [submission] Failed to create user submission record", "error", err.Error())
@@ -197,14 +146,7 @@ func createSubmission(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	antismashTask := models.AntismashRun{
-		Accession:   newEntry.Loci[0].Accession,
-		BGCID:       newEntry.Accession,
-		GUID:        guid.NewString(),
-		SubmittedAt: time.Now(),
-	}
-
-	err = db.Create(antismashTask).Error
+	antismashTask, err := entry.CreateAntismashWorkerTask(db, *newEntry)
 
 	if err != nil {
 		slog.Error("[endpoints] [entry] Failed to create antismash task", "error", err.Error())

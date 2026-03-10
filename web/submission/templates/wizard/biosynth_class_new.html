@@ -9,13 +9,13 @@
 {% block body %}
 
 <script type="application/javascript">
-    const createNewModule = () => {
-        const moduleSelect = document.getElementById('module-select');
+    const createNewClass = () => {
+        const moduleSelect = document.getElementById('class-select');
         const module = moduleSelect.value;
         const hrefParts = document.location.href.split('/');
 
         // no module, just paste the module at the end
-        if (hrefParts[hrefParts.length - 1] == 'new_module') {
+        if (hrefParts[hrefParts.length - 1] == 'new_class') {
             document.location.href = document.location.href + '/' + module;
             return;
         }
@@ -28,26 +28,26 @@
 </script>
 
 <div class="form-wrapper">
-    <h4>Add a new module</h4>
+    <h4>Add a new class</h4>
 
     <div class="form-group row">
         <div class="col">
-            <select id="module-select" class="form-select">
+            <select id="class-select" class="form-select">
                 {% for choice in choices %}
-                <option value="{{choice.value}}" {{'selected' if module==choice.value}}>{{choice.label}}</option>
+                <option value="{{choice.value}}" {{'selected' if class_type==choice.value}}>{{choice.label}}</option>
                 {% endfor %}
             </select>
         </div>
         <div class="col">
-            <button class="btn btn-primary" onclick="createNewModule()">{{'Select' if module == None else 'Change'}}
-                module</button>
+            <button class="btn btn-primary" onclick="createNewClass()">{{'Select' if class_type == None else 'Change'}}
+                class</button>
         </div>
     </div>
     {% if form %}
     <form method="post" class="container">
         {{ macros.simple_divform_inner(form, is_reviewer=is_reviewer, reviewed=reviewed) }}
         <div class="form-group row">
-            <input type="submit" class="btn btn-primary" value="Create module">
+            <input type="submit" class="btn btn-primary" value="Create class">
         </div>
     </form>
     {% endif %}

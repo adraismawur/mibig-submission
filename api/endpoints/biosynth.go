@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 	"log/slog"
 	"net/http"
+	"strconv"
 )
 
 func init() {
@@ -22,6 +23,34 @@ func BiosynthEndpoint(db *gorm.DB) Endpoint {
 				Path:   "/entry/:accession/biosynth",
 				Handler: func(c *gin.Context) {
 					getEntryBiosynthesis(db, c)
+				},
+			},
+			{
+				Method: http.MethodGet,
+				Path:   "/entry/:accession/biosynth/class/:id",
+				Handler: func(c *gin.Context) {
+					getEntryBiosynthesisClass(db, c)
+				},
+			},
+			{
+				Method: http.MethodPost,
+				Path:   "/entry/:accession/biosynth/class",
+				Handler: func(c *gin.Context) {
+					createEntryBiosynthesisClass(db, c)
+				},
+			},
+			{
+				Method: http.MethodPost,
+				Path:   "/entry/:accession/biosynth/class/:id",
+				Handler: func(c *gin.Context) {
+					updateEntryBiosynthesisClass(db, c)
+				},
+			},
+			{
+				Method: http.MethodDelete,
+				Path:   "/entry/:accession/biosynth/class/:id",
+				Handler: func(c *gin.Context) {
+					deleteEntryBiosynthesisClass(db, c)
 				},
 			},
 			{
@@ -61,6 +90,138 @@ func BiosynthEndpoint(db *gorm.DB) Endpoint {
 			},
 		},
 	}
+}
+
+func getEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
+	id := c.Param("id")
+
+	if id == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad parameter: id"})
+		return
+	}
+
+	class_id, err := strconv.Atoi(id)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "could not parse parameter: id"})
+		return
+	}
+
+	class, err := biosynthesis.GetEntryBiosynthesisClass(db, class_id)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+
+	c.JSON(http.StatusOK, class)
+}
+
+func createEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
+	accession := c.Param("accession")
+
+	var class biosynthesis.BiosyntheticClass
+	c.ShouldBindJSON(&class)
+
+	exists, err := entry.GetEntryExists(db, accession)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+	}
+
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"message": "entry not found"})
+		return
+	}
+
+	err = biosynthesis.CreateEntryBiosynthesisClass(db, accession, class)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+func updateEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
+	accession := c.Param("accession")
+	id := c.Param("id")
+
+	if id == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad parameter: id"})
+		return
+	}
+
+	class_id, err := strconv.Atoi(id)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "could not parse parameter: id"})
+		return
+	}
+
+	var class biosynthesis.BiosyntheticClass
+	err = c.ShouldBindJSON(&class)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		slog.Error("[endpoints] [biosynth] Failed to marshal existing class", "error", err.Error())
+		return
+	}
+
+	if uint64(class_id) != class.ID {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Name mismatch between request URL and data"})
+		return
+	}
+
+	exists, err := entry.GetEntryExists(db, accession)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		slog.Error("[endpoints] [entry] Error finding entry", "error", err.Error())
+		return
+	}
+
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"message": "entry not found"})
+		return
+	}
+
+	err = biosynthesis.UpdateEntryBiosynthesisClass(db, accession, &class)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		slog.Error("[endpoints] [biosynth] Failed to update biosynthesis class", "error", err.Error())
+		return
+	}
+
+	c.Status(http.StatusOK)
+
+}
+
+func deleteEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
+	id := c.Param("id")
+
+	if id == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad parameter: id"})
+		return
+	}
+
+	class_id, err := strconv.Atoi(id)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "could not parse parameter: id"})
+		return
+	}
+
+	err = biosynthesis.DeleteEntryBiosynthesisClass(db, class_id)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+
+	c.Status(http.StatusOK)
 }
 
 func getEntryBiosynthesis(db *gorm.DB, c *gin.Context) {

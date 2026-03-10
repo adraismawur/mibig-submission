@@ -62,7 +62,7 @@ var testEntry = entry.Entry{
 		},
 	},
 	Taxonomy:         taxonomy.Taxonomy{},
-	Genes:            nil,
+	GeneInformation:  nil,
 	LegacyReferences: nil,
 	Embargo:          false,
 }

@@ -86,7 +86,7 @@ func checkEntryIdentity(db *gorm.DB, accession string) error {
 
 	sourceJsonBytes = sourceJsonBytesIndented.Bytes()
 
-	dbEntry, err := entry.GetEntryFromAccession(db, accession)
+	dbEntry, err := entry.GetEntryExportFromAccession(db, accession)
 
 	if err != nil {
 		return err

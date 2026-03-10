@@ -22,38 +22,38 @@ type GeneLocation struct {
 }
 
 type GeneAddition struct {
-	ID          uint64       `json:"db_id"`
-	GeneID      uint64       `json:"gene_id"`
-	Accession   string       `json:"accession"`
-	Location    GeneLocation `json:"location" gorm:"ForeignKey:GeneID"`
-	Translation string       `json:"translation"`
+	ID                uint64       `json:"db_id"`
+	GeneInformationID uint64       `json:"gene_information_id"`
+	Accession         string       `json:"accession"`
+	Location          GeneLocation `json:"location" gorm:"ForeignKey:GeneID"`
+	Translation       string       `json:"translation"`
 }
 
 type GeneDeletion struct {
-	ID        uint64 `json:"db_id"`
-	GeneID    uint64 `json:"gene_id"`
-	Accession string `json:"accession"`
-	Reason    string `json:"reason"`
+	ID                uint64 `json:"db_id"`
+	GeneInformationID uint64 `json:"gene_information_id"`
+	Accession         string `json:"accession"`
+	Reason            string `json:"reason"`
 }
 
 type GeneAnnotation struct {
-	ID        uint64 `json:"db_id"`
-	GeneID    uint64 `json:"gene_id"`   // GeneID is an internal identifier for the API DB
-	Accession string `json:"accession"` // Accession is the gene ID, e.g. 'AEK75497.1'. This is confusing, but GeneID here is internal to the API
-	Name      string `json:"name"`      // Name is the actual gene name, e.g. 'abyA1'
-	Product   string `json:"product"`   // Product is the product of this gene, e.g. '3-oxoacyl-ACP synthase III'
+	ID                uint64 `json:"db_id"`
+	GeneInformationID uint64 `json:"gene_information_id"`
+	Accession         string `json:"accession"` // Accession is the gene ID, e.g. 'AEK75497.1'. This is confusing, but GeneID here is internal to the API
+	Name              string `json:"name"`      // Name is the actual gene name, e.g. 'abyA1'
+	Product           string `json:"product"`   // Product is the product of this gene, e.g. '3-oxoacyl-ACP synthase III'
 }
 
-type Gene struct {
+type GeneInformation struct {
 	ID          uint64           `json:"db_id"`
 	EntryID     uint64           `json:"entry_id"`
-	Additions   []GeneAddition   `json:"to_add,omitempty" gorm:"ForeignKey:GeneID"`
-	Deletions   []GeneDeletion   `json:"to_delete,omitempty" gorm:"ForeignKey:GeneID"`
-	Annotations []GeneAnnotation `json:"annotations,omitempty" gorm:"ForeignKey:GeneID"`
+	Additions   []GeneAddition   `json:"to_add,omitempty" gorm:"ForeignKey:GeneInformationID"`
+	Deletions   []GeneDeletion   `json:"to_delete,omitempty" gorm:"ForeignKey:GeneInformationID"`
+	Annotations []GeneAnnotation `json:"annotations,omitempty" gorm:"ForeignKey:GeneInformationID"`
 }
 
 func init() {
-	models.Models = append(models.Models, &Gene{})
+	models.Models = append(models.Models, &GeneInformation{})
 	models.Models = append(models.Models, &GeneAddition{})
 	models.Models = append(models.Models, &GeneDeletion{})
 	models.Models = append(models.Models, &GeneLocation{})
@@ -61,24 +61,24 @@ func init() {
 	models.Models = append(models.Models, &GeneAnnotation{})
 }
 
-func GetEntryGenes(db *gorm.DB, accession string) (*Gene, error) {
-	var gene Gene
+func GetEntryGeneInformation(db *gorm.DB, accession string) (*GeneInformation, error) {
+	var geneInformation GeneInformation
 
 	err := db.
-		Table("genes").
-		Joins("JOIN entries ON genes.entry_id = entries.id").
+		Table("gene_informations").
+		Joins("JOIN entries ON gene_informations.entry_id = entries.id").
 		Preload("Additions.Location.Exons").
 		Preload("Deletions").
 		Preload("Annotations").
 		Where("accession = ?", accession).
-		First(&gene).
+		First(&geneInformation).
 		Error
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &gene, nil
+	return &geneInformation, nil
 }
 
 func GetGeneAdditionExists(db *gorm.DB, additionId int) (bool, error) {

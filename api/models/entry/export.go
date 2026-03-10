@@ -22,8 +22,8 @@ func GetEntryExportFromAccession(db *gorm.DB, accession string) (*export.Entry, 
 		Preload("Biosynthesis.Modules.ModificationDomains.Location").
 		Preload("Biosynthesis.Modules.ATDomain.Location").
 		Preload("Biosynthesis.Modules.KSDomain.Location").
-		Preload("Genes.Additions.Location.Exons").
-		Preload("Genes.Annotations").
+		Preload("GeneInformation.Additions.Location.Exons").
+		Preload("GeneInformation.Annotations").
 		Preload("Compounds.Evidence").
 		Preload("Compounds.BioActivities").
 		Preload(clause.Associations).

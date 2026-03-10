@@ -22,6 +22,7 @@ from werkzeug.wrappers import response
 from wtforms.widgets import html_params
 from markupsafe import Markup
 
+from submission.edit.forms.biosynthesis import get_class_form
 from submission.edit.forms.biosynthesis_modules import get_module_form
 from submission.edit.forms.compounds import CompoundsSubForm
 from submission.extensions import db
@@ -196,45 +197,6 @@ def class_buttons(bgc_id: str) -> str:
     return class_btns
 
 
-@bp_edit.route("/<bgc_id>/biosynth/<b_class>", methods=["GET", "POST"])
-@login_required
-def edit_biosynth_class(bgc_id: str, b_class: str) -> Union[str, response.Response]:
-    """Form to enter class-specific biosynthesis information
-
-    Args:
-        bgc_id (str): BGC identifier
-        b_class (str): Biosynthetic class
-
-    Returns:
-        str | Response: rendered template or redirect to edit_bgc overview
-    """
-    entry = Entry.get(bgc_id)
-    if not request.form:
-
-        form = getattr(FormCollection, b_class)(data=entry)
-        reviewed = True
-    else:
-        form = getattr(FormCollection, b_class)(request.form)
-        reviewed = False
-
-    if request.method == "POST" and form.validate():
-        try:
-            Entry.save_biosynth(bgc_id=bgc_id, b_class=b_class, data=form.data)
-            Storage.save_data(bgc_id, f"BioSynth_{b_class}", request.form, current_user)
-            flash(f"Submitted {b_class} biosynthesis information!")
-            return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="biosynth"))
-        except ReferenceNotFound as e:
-            flash(str(e), "error")
-
-    return render_template(
-        "edit/biosynth_class_specific.html",
-        form=form,
-        b_class=b_class,
-        bgc_id=bgc_id,
-        is_reviewer=current_user.has_role(Role.REVIEWER),
-        reviewed=reviewed,
-    )
-
 
 @bp_edit.route("/<bgc_id>/biosynth/operons", methods=["GET", "POST"])
 @login_required
@@ -313,14 +275,124 @@ def edit_biosynth_paths(bgc_id: str) -> Union[str, response.Response]:
     )
 
 
-@bp_edit.route("/<bgc_id>/biosynth/new", methods=["GET"])
+@bp_edit.route("/<bgc_id>/biosynth/new_class", methods=["GET"])
+@login_required
+def create_biosynth_class_new(bgc_id):
+    return create_biosynth_class(bgc_id, None)
+
+
+@bp_edit.route("/<bgc_id>/biosynth/new_class/<class_type>", methods=["GET", "POST"])
+@login_required
+def create_biosynth_class(bgc_id: str, class_type: str) -> Union[str, response.Response]:
+    """Create a new biosynthetic module for a certain BGC"""
+
+    choices = [
+        {"label": "NRPS", "value": "NRPS"},
+        {"label": "PKS", "value": "PKS"},
+        {"label": "Ribosomal", "value": "ribosomal"},
+        {"label": "Saccharide", "value": "saccharide"},
+        {"label": "Terpene", "value": "terpene"},
+        {"label": "Other", "value": "other"},
+    ]
+
+    entry = Entry.get(bgc_id)
+
+    if class_type:
+        form = get_class_form(class_type)(request.form)
+    else:
+        form = None
+
+    if request.method == "POST" and form.validate():
+
+        if Entry.create_class(bgc_id, form.data):
+            flash("Created new biosynthetic module!")
+            return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="biosynth"))
+        else:
+            flash("Error creating new biosynthetic module", "error")
+            return redirect(
+                url_for("edit.create_biosynth_class", bgc_id=bgc_id, class_type=class_type)
+            )
+
+    return render_template(
+        "wizard/biosynth_class_new.html",
+        bgc_id=bgc_id,
+        form=form,
+        choices=choices,
+        class_type=class_type,
+    )
+
+
+@bp_edit.route("/<bgc_id>/biosynth/edit_class/<class_id>/<class_type>", methods=["GET", "POST"])
+@login_required
+def edit_biosynth_class(
+    bgc_id: str, class_id: str, class_type: str
+) -> Union[str, response.Response]:
+    """Form to enter biosynthetic class information
+
+    Args:
+        bgc_id (str): BGC identifier
+
+    Returns:
+        str | Response: rendered template or redirect to edit_biosynth overview
+    """
+
+    if not request.form:
+        classData = Entry.get_class(bgc_id, class_id)
+        form = get_class_form(class_type)(data=classData)
+        reviewed = False
+    else:
+        form = form = get_class_form(class_type)(request.form)
+        reviewed = False
+
+    if request.method == "POST" and form.validate():
+        error = Entry.update_class(bgc_id, class_id, form.data)
+        if error:
+            flash(f"Failed to update biosynthetic class: {error}", "error")
+        else:
+            flash("Updated biosynthetic class")
+
+        return redirect(
+            url_for(
+                "edit.edit_biosynth_class", bgc_id=bgc_id, class_id=class_id, class_type=class_type
+            )
+        )
+
+    return render_template(
+        "wizard/biosynth_class_edit.html",
+        bgc_id=bgc_id,
+        class_type=class_type,
+        form=form,
+        is_reviewer=current_user.has_role(Role.REVIEWER),
+        reviewed=reviewed,
+    )
+
+@bp_edit.route("/<bgc_id>/biosynth/delete_class/<class_id>", methods=["GET", "POST"])
+@login_required
+def remove_biosynth_class(bgc_id: str, class_id: int):
+    # get pretty printed version of module data
+    class_text = Entry.get_class_text(bgc_id, class_id)
+
+    if request.method == "POST":
+        Entry.delete_class(bgc_id, class_id)
+        return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="biosynth"))
+
+    return render_template(
+        "wizard/biosynth_class_remove.html",
+        bgc_id=bgc_id,
+        class_id=class_id,
+        class_text=class_text,
+    )
+
+
+
+@bp_edit.route("/<bgc_id>/biosynth/new_module", methods=["GET"])
 @login_required
 def create_biosynth_module_new(bgc_id):
 
     return create_biosynth_module(bgc_id, None)
 
 
-@bp_edit.route("/<bgc_id>/biosynth/new/<module>", methods=["GET", "POST"])
+@bp_edit.route("/<bgc_id>/biosynth/new_module/<module>", methods=["GET", "POST"])
 @login_required
 def create_biosynth_module(bgc_id: str, module: str) -> Union[str, response.Response]:
     """Create a new biosynthetic module for a certain BGC"""
@@ -362,7 +434,7 @@ def create_biosynth_module(bgc_id: str, module: str) -> Union[str, response.Resp
     )
 
 
-@bp_edit.route("/<bgc_id>/biosynth/edit/<name>/<module>", methods=["GET", "POST"])
+@bp_edit.route("/<bgc_id>/biosynth/edit_module/<name>/<module>", methods=["GET", "POST"])
 @login_required
 def edit_biosynth_module(
     bgc_id: str, name: str, module: str
@@ -397,7 +469,7 @@ def edit_biosynth_module(
         )
 
     return render_template(
-        "edit/biosynth_modules.html",
+        "wizard/biosynth_module_edit.html",
         bgc_id=bgc_id,
         module=module,
         form=form,
@@ -405,7 +477,7 @@ def edit_biosynth_module(
         reviewed=reviewed,
     )
 
-@bp_edit.route("/<bgc_id>/biosynth/move/<id_from>/<id_to>")
+@bp_edit.route("/<bgc_id>/biosynth/move_module/<id_from>/<id_to>")
 @login_required
 def move_biosynth_module(bgc_id: str, id_from: int, id_to: int):
 
@@ -419,7 +491,7 @@ def move_biosynth_module(bgc_id: str, id_from: int, id_to: int):
         
 
 
-@bp_edit.route("/<bgc_id>/biosynth/delete/<name>", methods=["GET", "POST"])
+@bp_edit.route("/<bgc_id>/biosynth/delete_module/<name>", methods=["GET", "POST"])
 @login_required
 def remove_biosynth_module(bgc_id: str, name: str):
     # get pretty printed version of module data
@@ -534,7 +606,7 @@ def render_gene_information_edit(bgc_id: str, type: str, form_type: str, id: int
             form = getattr(FormCollection, form_type)(data=data)
 
     return render_template(
-        "wizard/genes_edit.html",
+        "wizard/gene_information_edit.html",
         form=form,
         new=new,
         bgc_id=bgc_id,
@@ -610,7 +682,7 @@ def remove_gene_information(bgc_id: str, type: str, information_id: int):
         return(redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="gene_information")))
 
     return render_template(
-        "wizard/genes_remove.html",
+        "wizard/gene_information_remove.html",
         bgc_id=bgc_id,
         description=type_dict['human_readable'],
         data_text=data_text,

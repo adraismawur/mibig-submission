@@ -12,7 +12,7 @@ def view_diff() -> Union[str, response.Response]:
     left = request.args.get("left")
     right = request.args.get("right")
 
-    mibig_json_url = current_app.config["API_BASE"] + "/entry/"
+    mibig_json_url = current_app.config["API_BASE"] + "/export/entry/"
 
     return render_template(
         "diff/diff.html", left=left, right=right, mibig_json_url=mibig_json_url

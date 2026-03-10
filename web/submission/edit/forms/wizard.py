@@ -17,6 +17,7 @@ class WizardPage:
     description: str
     form: type = None
     data_get_endpoint: str = "/entry/<bgc_id>"
+    data_get_transform: object = None
     data_set_endpoint: str = "/entry/<bgc_id>"
     template: str = "wizard/main.html"
     post_redirect: str = None
@@ -33,6 +34,9 @@ class WizardPage:
         )
         if response.status_code == 200:
             data = response.json()
+
+            if self.data_get_transform:
+                data = self.data_get_transform(data)
 
             return data
         return None
@@ -52,6 +56,13 @@ class WizardPage:
         return False, response.json()
 
 
+def biosynth_class_transform(data):
+    for class_entry in data['classes']:
+        class_entry['class_'] = class_entry['class']
+
+    return data
+
+
 wizard_pages = [
     WizardPage(
         "locitax",
@@ -64,6 +75,7 @@ wizard_pages = [
         "biosynth",
         "biosynthetic information",
         BioSynthForm,
+        data_get_transform = biosynth_class_transform,
         data_get_endpoint="/entry/<bgc_id>/biosynth",
         template="wizard/biosynth.html",
     ),
@@ -78,9 +90,9 @@ wizard_pages = [
         "gene_information",
         "additional gene information",
         GeneInformationForm,
-        data_get_endpoint="/entry/<bgc_id>/genes",
-        data_set_endpoint="/entry/<bgc_id>/genes",
-        template="wizard/genes.html",
+        data_get_endpoint="/entry/<bgc_id>/gene_information",
+        data_set_endpoint="/entry/<bgc_id>/gene_information",
+        template="wizard/gene_information.html",
     ),
     WizardPage(
         "finalize",

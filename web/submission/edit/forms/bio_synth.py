@@ -85,6 +85,7 @@ biosynthetic_sub_classes = [
 
 
 class BiosynthClassForm(Form):
+    db_id = IntegerField(widget=HiddenField, default=0)
     class_ = SelectField(id="class", name="class", choices=biosynthetic_classes)
     subclass = SelectField(choices=biosynthetic_sub_classes)
     cyclases = FieldList(

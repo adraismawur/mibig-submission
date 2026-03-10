@@ -44,6 +44,89 @@ func GetEntryBiosynthesis(db *gorm.DB, accession string) (*Biosynthesis, error) 
 	return &biosynth, nil
 }
 
+func CreateEntryBiosynthesisClass(db *gorm.DB, accession string, class BiosyntheticClass) error {
+	var biosynth *Biosynthesis
+
+	err := db.
+		Table("entries").
+		Where("accession = ?", accession).
+		Preload("Classes").
+		First(&biosynth).
+		Error
+
+	if err != nil {
+		return err
+	}
+
+	err = db.Model(&biosynth).Association("Classes").Append(&class)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UpdateEntryBiosynthesisClass(db *gorm.DB, accession string, newClass *BiosyntheticClass) error {
+	var biosynth Biosynthesis
+
+	err := db.
+		Table("entries").
+		Where("accession = ?", accession).
+		Preload("Classes").
+		First(&biosynth).
+		Error
+
+	if err != nil {
+		return err
+	}
+
+	err = db.
+		Session(&gorm.Session{FullSaveAssociations: true}).
+		Model(&biosynth).
+		Association("Classes").
+		Replace(newClass)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DeleteEntryBiosynthesisClass(db *gorm.DB, id int) error {
+	err := db.
+		Model(&BiosyntheticClass{}).
+		Delete("id = ?", id).
+		Error
+
+	return err
+}
+
+func GetEntryBiosynthesisClass(db *gorm.DB, id int) (*BiosyntheticClass, error) {
+	var class BiosyntheticClass
+
+	err := db.
+		Table("biosynthetic_classes").
+		Preload("AcetylTransferase.Location").
+		Preload("AcetylTransferase.Substrates").
+		Preload("AcetylTransferase.Evidence").
+		Preload("Adenylation.Location").
+		Preload("Adenylation.Evidence").
+		Preload("Adenylation.Substrates").
+		Preload("Thioesterase.Location").
+		Preload("Precursors.Crosslinks").
+		Where("id = ?", id).
+		First(&class).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &class, nil
+}
+
 func CreateEntryBiosynthesisModule(db *gorm.DB, accession string, module BiosyntheticModule) error {
 	var biosynth *Biosynthesis
 
