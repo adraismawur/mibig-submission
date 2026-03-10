@@ -148,6 +148,12 @@ func createSubmission(db *gorm.DB, c *gin.Context) {
 
 	user, err := models.GetUserFromContext(c)
 
+	if err != nil {
+		slog.Error("[endpoints] [submission] Failed to retrieve user from context", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to retrieve user from context"})
+		return
+	}
+
 	newEntry.Changelog = entry.Changelog{
 		Releases: []entry.Release{
 			{
@@ -167,16 +173,12 @@ func createSubmission(db *gorm.DB, c *gin.Context) {
 		},
 	}
 
-	if err != nil {
-		slog.Error("[endpoints] [submission] Failed to generate new entry accession", "error", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to generate new entry accession"})
-		return
-	}
+	newEntry.Accession, err = entry_utils.GeneratePlaceholderAccession(db)
 
-	if minimalEntry.Name == "" {
-		newEntry.Accession = entry_utils.GeneratePlaceholderAccession()
-	} else {
-		newEntry.Accession = minimalEntry.Name
+	if err != nil {
+		slog.Error("[endpoints] [submission] Failed to generate new entry accession", "error", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
 	}
 
 	db.Create(&newEntry)

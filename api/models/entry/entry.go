@@ -43,7 +43,6 @@ const (
 )
 
 type MinimalEntry struct {
-	Name      string
 	Locus     locus.Locus
 	Compounds []compound.Compound
 }
