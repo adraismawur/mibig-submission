@@ -35,7 +35,7 @@ from submission.utils.custom_validators import (
 
 
 class BioactivitySubForm(Form):
-    id = IntegerField(widget=HiddenInput())
+    db_id = IntegerField(widget=HiddenInput())
     compound_id = IntegerField(widget=HiddenInput())
     name = StringField()
     observed = BooleanField()
@@ -52,7 +52,7 @@ class BioactivitySubForm(Form):
 
 
 class CompoundEvidence(Form):
-    id = IntegerField(widget=HiddenInput(), default=0, validators=None)
+    db_id = IntegerField(widget=HiddenInput(), default=0, validators=None)
     compound_id = IntegerField(widget=HiddenInput(), default=0)
     method = StringField()
     references = ReferenceField(
@@ -68,7 +68,7 @@ class CompoundEvidence(Form):
 
 
 class CompoundsSubForm(Form):
-    id = IntegerField(widget=HiddenInput(), default=0)
+    db_id = IntegerField(widget=HiddenInput(), default=0)
     name = StringField()
     evidence = FieldList(
         FormField(CompoundEvidence),

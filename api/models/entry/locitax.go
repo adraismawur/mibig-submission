@@ -7,7 +7,7 @@ import (
 )
 
 type LociTax struct {
-	ID       uint              `json:"-"`
+	ID       uint              `json:"db_id"`
 	Loci     []locus.Locus     `json:"loci" gorm:"foreignKey:EntryID"`
 	Taxonomy taxonomy.Taxonomy `json:"taxonomy" gorm:"ForeignKey:EntryID"`
 }

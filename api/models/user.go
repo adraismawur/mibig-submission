@@ -20,7 +20,7 @@ const (
 
 // User model that represents a singular user
 type User struct {
-	ID       uint       `json:"id,omitempty"`
+	ID       uint64     `json:"id,omitempty"`
 	Email    string     `json:"email"`
 	Password string     `json:"password,omitempty"`
 	Active   bool       `json:"active,omitempty"`

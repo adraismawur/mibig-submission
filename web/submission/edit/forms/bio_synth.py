@@ -14,6 +14,7 @@ from wtforms import (
     validators,
     SubmitField,
 )
+from wtforms.widgets import HiddenInput
 from submission.utils.custom_fields import TagListField
 from submission.utils.custom_forms import location_form_factory, EvidenceForm
 from submission.utils.custom_widgets import (
@@ -107,7 +108,7 @@ class ModuleLocationForm(Form):
 
 
 class BiosynthModuleForm(Form):
-    id = HiddenField()
+    db_id = IntegerField(widget=HiddenInput())
     genes = FieldList(
         StringField(default="Gene ID"),
         widget=FieldListAddBtn(label="Add gene"),

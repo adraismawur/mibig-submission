@@ -18,9 +18,9 @@ const (
 )
 
 type UserSubmission struct {
-	ID      uint            `json:"-"`
-	EntryID uint            `json:"submission_id"`
-	UserID  uint            `json:"user_id"`
+	ID      uint64          `json:"db_id"`
+	EntryID uint64          `json:"submission_id"`
+	UserID  uint64          `json:"user_id"`
 	Type    SubmissionType  `json:"type"`
 	State   SubmissionState `json:"state"`
 }

@@ -6,7 +6,8 @@ import (
 )
 
 type BiosyntheticClass struct {
-	BiosynthesisID uint64         `json:"-"`
+	ID             uint64         `json:"db_id"`
+	BiosynthesisID uint64         `json:"db_biosynth_id"`
 	Class          string         `json:"class"`
 	Subclass       string         `json:"subclass"`
 	Cyclases       pq.StringArray `json:"cyclases" gorm:"type:text[]"`

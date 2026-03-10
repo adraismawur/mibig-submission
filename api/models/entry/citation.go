@@ -1,9 +1,15 @@
 package entry
 
-import "time"
+import (
+	"time"
+)
 
 type Citation struct {
-	ID              int64 `json:"-"`
+	ID uint64 `json:"db_id"`
+	ExportCitation
+}
+
+type ExportCitation struct {
 	Title           string
 	PublicationDate time.Time
 	DOI             string

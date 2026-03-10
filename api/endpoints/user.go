@@ -191,7 +191,7 @@ func getUserWithId(db *gorm.DB, c *gin.Context) {
 	}
 
 	// if user is not the requested user and is not an admin, return forbidden
-	if token.User.ID != uint(id) && !models.HasRole(token.User, models.Admin) {
+	if token.User.ID != uint64(id) && !models.HasRole(token.User, models.Admin) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
 		c.Abort()
 		return

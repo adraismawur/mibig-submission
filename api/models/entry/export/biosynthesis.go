@@ -1,21 +1,17 @@
-package biosynthesis
+package export
 
-import (
-	"github.com/adraismawur/mibig-submission/models"
-	"github.com/lib/pq"
-)
+import "github.com/lib/pq"
 
-// TODO: maybe unify with loci.location and gene location
 type BiosyntheticModuleDomainLocation struct {
-	ID                   uint64 `json:"db_id"`
-	BiosyntheticModuleID uint64 `json:"db_biosynth_module_id"`
+	ID                   uint64 `json:"-"`
+	BiosyntheticModuleID uint64 `json:"-"`
 	From                 int    `json:"from"`
 	To                   int    `json:"to"`
 }
 
 type BiosyntheticModuleDomain struct {
-	ID                   uint64                           `json:"db_id"`
-	BiosyntheticModuleID uint64                           `json:"db_biosynth_module_id"`
+	ID                   uint64                           `json:"-"`
+	BiosyntheticModuleID uint64                           `json:"-"`
 	DomainType           string                           `json:"type"`
 	Gene                 string                           `json:"gene"`
 	Location             BiosyntheticModuleDomainLocation `gorm:"foreignKey:BiosyntheticModuleID"`
@@ -47,10 +43,18 @@ type ModificationModuleDomain struct {
 	BiosyntheticModuleDomain
 }
 
+type BiosyntheticClass struct {
+	ID             uint64         `json:"-"`
+	BiosynthesisID uint64         `json:"-"`
+	Class          string         `json:"class"`
+	Subclass       string         `json:"subclass"`
+	Cyclases       pq.StringArray `json:"cyclases" gorm:"type:text[]"`
+}
+
 type BiosyntheticModule struct {
-	ID                  uint64                     `json:"db_id"`
-	Index               uint64                     `json:"db_index"`
-	BiosynthesisID      uint64                     `json:"db_biosynth_id"`
+	ID                  uint64                     `json:"-"`
+	Index               uint64                     `json:"-"`
+	BiosynthesisID      uint64                     `json:"-"`
 	Type                string                     `json:"type"`
 	Name                string                     `json:"name"`
 	Genes               pq.StringArray             `json:"genes" gorm:"type:text[]"`
@@ -62,12 +66,9 @@ type BiosyntheticModule struct {
 	KSDomain            *KSModuleDomain            `json:"ks_domain,omitempty" gorm:"foreignKey:BiosyntheticModuleID"`
 }
 
-func init() {
-	models.Models = append(models.Models, BiosyntheticModule{})
-	models.Models = append(models.Models, CarrierModuleDomain{})
-	models.Models = append(models.Models, ModificationModuleDomain{})
-	models.Models = append(models.Models, AModuleDomain{})
-	models.Models = append(models.Models, ATModuleDomain{})
-	models.Models = append(models.Models, KSModuleDomain{})
-	models.Models = append(models.Models, BiosyntheticModuleDomainLocation{})
+type Biosynthesis struct {
+	ID      uint64               `json:"-"`
+	EntryID uint64               `json:"-"`
+	Classes []BiosyntheticClass  `json:"classes" gorm:"foreignKey:BiosynthesisID"`
+	Modules []BiosyntheticModule `json:"modules,omitempty" gorm:"foreignKey:BiosynthesisID"`
 }

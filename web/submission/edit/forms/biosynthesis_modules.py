@@ -10,6 +10,7 @@ from wtforms import (
     SubmitField,
     validators,
 )
+from wtforms.widgets import HiddenInput
 
 from submission.utils.custom_fields import TagListField
 from submission.utils.custom_widgets import (
@@ -27,7 +28,7 @@ from submission.edit.forms.biosynthesis_domains import (
 
 
 class CalForm(Form):
-    id = HiddenField()
+    db_id = IntegerField(widget=HiddenInput(), default=0)
     type = HiddenField(default="cal")
     name = StringField()
     genes = TagListField(
@@ -47,7 +48,7 @@ class CalForm(Form):
 
 
 class NRPS_I_Form(Form):
-    id = HiddenField()
+    db_id = IntegerField(widget=HiddenInput(), default=0)
     # required _type, name, genes, active
     type = HiddenField(default="nrps-type1")
     name = StringField()
@@ -73,7 +74,7 @@ class NRPS_I_Form(Form):
 
 
 class NRPS_VI_Form(Form):
-    id = HiddenField()
+    db_id = IntegerField(widget=HiddenInput(), default=0)
     type = HiddenField(default="nrps-type6")
     name = StringField()
     genes = TagListField(
@@ -97,7 +98,7 @@ class NRPS_VI_Form(Form):
 
 
 class OtherForm(Form):
-    id = HiddenField()
+    db_id = IntegerField(widget=HiddenInput(), default=0)
     type = HiddenField(default="other")
     name = StringField()
     subtype = StringField("Subtype *", validators=[validators.InputRequired()])
@@ -118,7 +119,7 @@ class OtherForm(Form):
 
 
 class PKSIterativeForm(Form):
-    id = HiddenField()
+    db_id = IntegerField(widget=HiddenInput(), default=0)
     type = HiddenField(default="pks-iterative")
     name = StringField()
     genes = TagListField(
@@ -149,7 +150,7 @@ class PKSIterativeForm(Form):
 
 
 class PKSModularForm(Form):
-    id = HiddenField()
+    db_id = IntegerField(widget=HiddenInput(), default=0)
     type = HiddenField(default="pks-modular")
     name = StringField()
     genes = TagListField(
@@ -174,7 +175,7 @@ class PKSModularForm(Form):
 
 
 class PKSTransForm(Form):
-    id = HiddenField()
+    db_id = IntegerField(widget=HiddenInput(), default=0)
     type = HiddenField(default="pks-trans")
     name = StringField()
     genes = TagListField(

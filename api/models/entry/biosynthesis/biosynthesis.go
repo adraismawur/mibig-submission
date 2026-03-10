@@ -9,8 +9,8 @@ import (
 )
 
 type Biosynthesis struct {
-	ID      uint64               `json:"-"`
-	EntryID uint64               `json:"-"`
+	ID      uint64               `json:"db_id"`
+	EntryID uint64               `json:"entry_id"`
 	Classes []BiosyntheticClass  `json:"classes" gorm:"foreignKey:BiosynthesisID"`
 	Modules []BiosyntheticModule `json:"modules,omitempty" gorm:"foreignKey:BiosynthesisID"`
 }

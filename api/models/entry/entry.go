@@ -5,6 +5,7 @@ import (
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/models/entry/biosynthesis"
 	"github.com/adraismawur/mibig-submission/models/entry/compound"
+	"github.com/adraismawur/mibig-submission/models/entry/consts"
 	"github.com/adraismawur/mibig-submission/models/entry/gene"
 	"github.com/adraismawur/mibig-submission/models/entry/locus"
 	"github.com/adraismawur/mibig-submission/models/entry/taxonomy"
@@ -18,50 +19,26 @@ import (
 	"path/filepath"
 )
 
-type Quality string
-
-const (
-	Questionable Quality = "questionable"
-	Medium       Quality = "medium"
-	High         Quality = "high"
-)
-
-type Status string
-
-const (
-	Pending Status = "pending"
-	Active  Status = "active"
-	Retired Status = "retired"
-)
-
-type Completeness string
-
-const (
-	Unknown    Completeness = "unknown"
-	Complete   Completeness = "complete"
-	Incomplete Completeness = "incomplete"
-)
-
 type MinimalEntry struct {
 	Locus     locus.Locus
 	Compounds []compound.Compound
 }
 
 type Entry struct {
-	ID               uint                      `json:"id"`
+	ID               uint64                    `json:"db_id"`
 	Accession        string                    `json:"accession"`
 	Version          int                       `json:"version,omitempty"`
 	Changelog        Changelog                 `json:"changelog" gorm:"foreignKey:EntryID"`
-	Quality          Quality                   `json:"quality,omitempty"`
-	Status           Status                    `json:"status,omitempty"`
-	Completeness     Completeness              `json:"completeness"`
+	Quality          consts.Quality            `json:"quality,omitempty"`
+	Status           consts.Status             `json:"status,omitempty"`
+	Completeness     consts.Completeness       `json:"completeness"`
 	Loci             []locus.Locus             `json:"loci" gorm:"foreignKey:EntryID"`
 	Biosynthesis     biosynthesis.Biosynthesis `json:"biosynthesis" gorm:"foreignKey:EntryID"`
 	Compounds        []compound.Compound       `json:"compounds" gorm:"ForeignKey:EntryID"`
 	Taxonomy         taxonomy.Taxonomy         `json:"taxonomy" gorm:"ForeignKey:EntryID"`
 	Genes            *gene.Gene                `json:"genes,omitempty" gorm:"ForeignKey:EntryID"`
 	LegacyReferences pq.StringArray            `json:"legacy_references,omitempty" gorm:"type:text[]"`
-	Embargo          bool                      `json:"-,omitempty"`
+	Embargo          bool                      `json:"embargo,omitempty"`
 }
 
 func init() {

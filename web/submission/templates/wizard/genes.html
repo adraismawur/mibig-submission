@@ -30,11 +30,11 @@
                     </td>
                     <td>
                         <a
-                            href="{{ url_for('edit.edit_gene_addition', bgc_id=bgc_id, addition_id=gene_to_add['id'].data) }}">
+                            href="{{ url_for('edit.edit_gene_addition', bgc_id=bgc_id, addition_id=gene_to_add['db_id'].data) }}">
                             <button type="button" class="btn btn-primary" type="button">Edit gene addition</button>
                         </a>
                         <a
-                            href="{{ url_for('edit.remove_gene_information', bgc_id=bgc_id, type='gene_addition', information_id=gene_to_add['id'].data) }}">
+                            href="{{ url_for('edit.remove_gene_information', bgc_id=bgc_id, type='gene_addition', information_id=gene_to_add['db_id'].data) }}">
                             <button type="button" class="btn btn-danger" type="button">Delete</button>
                         </a>
                     </td>
@@ -63,11 +63,11 @@
                     </td>
                     <td>
                         <a
-                            href="{{ url_for('edit.edit_gene_deletion', bgc_id=bgc_id, deletion_id=gene_to_delete['id'].data) }}">
+                            href="{{ url_for('edit.edit_gene_deletion', bgc_id=bgc_id, deletion_id=gene_to_delete['db_id'].data) }}">
                             <button type="button" class="btn btn-primary" type="button">Edit gene deletion</button>
                         </a>
                         <a
-                            href="{{ url_for('edit.remove_gene_information', bgc_id=bgc_id, type='gene_deletion', information_id=gene_to_delete['id'].data) }}">
+                            href="{{ url_for('edit.remove_gene_information', bgc_id=bgc_id, type='gene_deletion', information_id=gene_to_delete['db_id'].data) }}">
                             <button type="button" class="btn btn-danger" type="button">Delete</button>
                         </a>
                     </td>
@@ -96,11 +96,11 @@
                     </td>
                     <td>
                         <a
-                            href="{{ url_for('edit.edit_gene_annotation', bgc_id=bgc_id, annotation_id=gene_annotation['id'].data) }}">
+                            href="{{ url_for('edit.edit_gene_annotation', bgc_id=bgc_id, annotation_id=gene_annotation['db_id'].data) }}">
                             <button type="button" class="btn btn-primary" type="button">Edit gene annotation</button>
                         </a>
                         <a
-                            href="{{ url_for('edit.remove_gene_information', bgc_id=bgc_id, type='gene_annotation', information_id=gene_annotation['id'].data) }}">
+                            href="{{ url_for('edit.remove_gene_information', bgc_id=bgc_id, type='gene_annotation', information_id=gene_annotation['db_id'].data) }}">
                             <button type="button" class="btn btn-danger" type="button">Delete</button>
                         </a>
                     </td>
