@@ -71,8 +71,6 @@ class NewEntryForm(Form):
             ),
         )
 
-    name = StringField("Name", description="Fill in to give this submission a descriptive name. Leave empty to automatically generate a name for this submission")
-
     locus = FormField(LocusForm)
 
     compounds = FieldList(
