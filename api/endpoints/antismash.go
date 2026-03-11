@@ -418,7 +418,7 @@ func PrefillAntismash(newEntry *entry.Entry, antismashResult *AntismashResult) {
 				break
 			case "CDS":
 				if len(feature.Qualifiers.Gene) > 0 {
-					newEntry.Genes = append(newEntry.Genes, entry.Gene{
+					newEntry.GeneList = append(newEntry.GeneList, entry.Gene{
 						Name: feature.Qualifiers.Gene[0],
 					})
 				}

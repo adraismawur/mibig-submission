@@ -18,7 +18,11 @@
     <form method="post" class="container">
         {{ macros.simple_divform_inner(form, is_reviewer=False, reviewed=False) }}
         <div class="form-group row">
-            <input type="submit" class="btn btn-primary" value="Save module">
+            {% if new %}
+                <input type="submit" class="btn btn-primary" value="Create compound">
+            {% else %}
+                <input type="submit" class="btn btn-primary" value="Save compound changes">
+            {% endif %}
         </div>
     </form>
 
