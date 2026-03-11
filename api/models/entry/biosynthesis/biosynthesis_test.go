@@ -721,7 +721,7 @@ func TestUpdateNRPSClass(t *testing.T) {
 		},
 	}
 
-	err := UpdateEntryBiosynthesisClass(testDb, int(testClass.ID), &classUpdate)
+	err := UpdateEntryBiosynthesisClass(testDb, int(testClass.ID), classUpdate)
 
 	var actualBiosynthClass BiosyntheticClass
 	testDb.
@@ -763,7 +763,7 @@ func TestUpdatePKSClass(t *testing.T) {
 		Cyclases:       pq.StringArray{"c", "d"},
 		KetideLength:   &ketideLengthUpdate,
 	}
-	err := UpdateEntryBiosynthesisClass(testDb, int(testClass.ID), &classUpdate)
+	err := UpdateEntryBiosynthesisClass(testDb, int(testClass.ID), classUpdate)
 
 	var actualBiosynthClass BiosyntheticClass
 	testDb.Model(&BiosyntheticClass{}).First(&actualBiosynthClass)
@@ -860,7 +860,7 @@ func TestUpdateRibosomalClass(t *testing.T) {
 		},
 	}
 
-	err := UpdateEntryBiosynthesisClass(testDb, int(testClass.ID), &classUpdate)
+	err := UpdateEntryBiosynthesisClass(testDb, int(testClass.ID), classUpdate)
 
 	var actualBiosynthClass BiosyntheticClass
 	testDb.
@@ -893,11 +893,11 @@ func TestUpdateSaccharideClass(t *testing.T) {
 						ID:                    1,
 						GlycosylTransferaseID: 1,
 						Name:                  "a",
-						References:            pq.StringArray{"a", "b"},
+						References:            pq.StringArray{"b", "c"},
 					},
 				},
-				References:  pq.StringArray{"a", "b"},
-				Gene:        "a",
+				References:  pq.StringArray{"d", "e"},
+				Gene:        "f",
 				Specificity: "C1CCCCC1",
 			},
 		},
@@ -906,8 +906,8 @@ func TestUpdateSaccharideClass(t *testing.T) {
 				ID:                  1,
 				BiosyntheticClassID: 1,
 				Specificity:         "C1CCCCC1",
-				Genes:               pq.StringArray{"d", "d"},
-				References:          pq.StringArray{"e", "f"},
+				Genes:               pq.StringArray{"g", "h"},
+				References:          pq.StringArray{"i", "j"},
 			},
 		},
 	}
@@ -930,12 +930,12 @@ func TestUpdateSaccharideClass(t *testing.T) {
 					{
 						ID:                    1,
 						GlycosylTransferaseID: 1,
-						Name:                  "b",
-						References:            pq.StringArray{"c", "d"},
+						Name:                  "k",
+						References:            pq.StringArray{"l", "m"},
 					},
 				},
-				References:  pq.StringArray{"a", "b"},
-				Gene:        "e",
+				References:  pq.StringArray{"n", "o"},
+				Gene:        "p",
 				Specificity: "O=C(O)C[C@H](N)C(=O)N[C@H](C(=O)OC)Cc1ccccc1",
 			},
 		},
@@ -944,13 +944,13 @@ func TestUpdateSaccharideClass(t *testing.T) {
 				ID:                  1,
 				BiosyntheticClassID: 1,
 				Specificity:         "O=C(O)C[C@H](N)C(=O)N[C@H](C(=O)OC)Cc1ccccc1",
-				Genes:               pq.StringArray{"f", "g"},
-				References:          pq.StringArray{"h", "i"},
+				Genes:               pq.StringArray{"q", "r"},
+				References:          pq.StringArray{"s", "t"},
 			},
 		},
 	}
 
-	err := UpdateEntryBiosynthesisClass(testDb, int(testClass.ID), &classUpdate)
+	err := UpdateEntryBiosynthesisClass(testDb, int(testClass.ID), classUpdate)
 
 	var actualBiosynthClass BiosyntheticClass
 	testDb.
@@ -995,7 +995,7 @@ func TestUpdateTerpeneClass(t *testing.T) {
 		Precursor:          &newPrecursor,
 	}
 
-	err := UpdateEntryBiosynthesisClass(testDb, int(testClass.ID), &classUpdate)
+	err := UpdateEntryBiosynthesisClass(testDb, int(testClass.ID), classUpdate)
 
 	var actualBiosynthClass BiosyntheticClass
 	testDb.Model(&BiosyntheticClass{}).First(&actualBiosynthClass)
@@ -1032,7 +1032,7 @@ func TestUpdateOtherClass(t *testing.T) {
 		Details:        &newClassDetails,
 	}
 
-	err := UpdateEntryBiosynthesisClass(testDb, int(testClass.ID), &classUpdate)
+	err := UpdateEntryBiosynthesisClass(testDb, int(testClass.ID), classUpdate)
 
 	var actualBiosynthClass BiosyntheticClass
 	testDb.Model(&BiosyntheticClass{}).First(&actualBiosynthClass)

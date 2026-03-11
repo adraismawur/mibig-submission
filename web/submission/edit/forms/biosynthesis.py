@@ -28,8 +28,8 @@ from submission.utils.custom_validators import ValidateTagListRegexp, ValidateCi
 
 
 class NRPSForm(Form):
-    db_id = IntegerField(widget=HiddenInput(), default=0)
-    db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
+    db_id = IntegerField(default=0)
+    db_biosynth_id = IntegerField(default=0)
     class_ = HiddenField(default="NRPS")
 
     class ReleaseTypeForm(Form):
@@ -59,7 +59,7 @@ class NRPSForm(Form):
     class ThioesteraseForm(Form):
         db_id = IntegerField(widget=HiddenInput(), default=0)
         db_class_id = IntegerField(widget=HiddenInput(), default=0)
-        name = GeneIdField(label="Gene")
+        gene = GeneIdField()
         location = FormField(location_form_factory())
         subtype = SelectField(
             "Sub-type",
@@ -87,7 +87,6 @@ class NRPSForm(Form):
             label="Add additional thioesterase",
         ),
     )
-    submit = SubmitField("Submit", widget=SubmitIndicator())
 
 
 class PKSForm(Form):
@@ -117,7 +116,7 @@ class PKSForm(Form):
         "Ketide length", [validators.Optional(), validators.NumberRange(min=0)]
     )
     iterative = None  # TODO: add to schema
-    submit = SubmitField("Submit", widget=SubmitIndicator())
+    # submit = SubmitField("Submit", widget=SubmitIndicator())
 
 
 class RibosomalForm(Form):
@@ -239,7 +238,7 @@ class RibosomalForm(Form):
         description="Note: if the precursor gene is not detected in the genbank entry, please remember to add it in the 'gene annotation' section of the submission system.",
     )
     details = StringField("Details")
-    submit = SubmitField("Submit", widget=SubmitIndicator())
+    # submit = SubmitField("Submit", widget=SubmitIndicator())
 
 
 class SaccharideForm(Form):
@@ -307,7 +306,7 @@ class SaccharideForm(Form):
             label="Add additional subcluster",
         ),
     )
-    submit = SubmitField("Submit", widget=SubmitIndicator())
+    # submit = SubmitField("Submit", widget=SubmitIndicator())
 
 
 class TerpeneForm(Form):
@@ -342,7 +341,7 @@ class TerpeneForm(Form):
         widget=SelectDefault(),
         validate_choice=False,
     )
-    submit = SubmitField("Submit", widget=SubmitIndicator())
+    # submit = SubmitField("Submit", widget=SubmitIndicator())
 
 
 class OtherForm(Form):
@@ -357,7 +356,7 @@ class OtherForm(Form):
         validators=[validators.InputRequired()],
     )
     details = StringField("Details")
-    submit = SubmitField("Submit", widget=SubmitIndicator())
+    # submit = SubmitField("Submit", widget=SubmitIndicator())
 
 
 class BioClassesCollection:

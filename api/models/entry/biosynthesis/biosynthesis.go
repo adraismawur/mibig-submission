@@ -81,12 +81,25 @@ func CreateBiosynthesisClass(db *gorm.DB, biosynthId uint64, class BiosyntheticC
 	return nil
 }
 
-func UpdateEntryBiosynthesisClass(db *gorm.DB, id int, newClass *BiosyntheticClass) error {
+func UpdateEntryBiosynthesisClass(db *gorm.DB, classId int, newClass BiosyntheticClass) error {
+	var biosynth Biosynthesis
+
 	err := db.
+		Model(&biosynth).
+		Where("id = ?", newClass.BiosynthesisID).
+		Preload("Classes").
+		First(&biosynth).
+		Error
+
+	if err != nil {
+		return err
+	}
+
+	err = db.
 		Session(&gorm.Session{FullSaveAssociations: true}).
-		Model(&Biosynthesis{}).
+		Model(&biosynth).
 		Association("Classes").
-		Replace(newClass)
+		Replace(&newClass)
 
 	if err != nil {
 		return err

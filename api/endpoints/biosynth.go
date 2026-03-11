@@ -200,7 +200,7 @@ func updateEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	err = biosynthesis.UpdateEntryBiosynthesisClass(db, classId, &class)
+	err = biosynthesis.UpdateEntryBiosynthesisClass(db, classId, class)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})

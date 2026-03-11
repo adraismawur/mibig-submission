@@ -44,7 +44,6 @@ class CalForm(Form):
         FormField(ModificationDomainForm), widget=FieldListAddBtn(), min_entries=1
     )
     comments = StringField("Comments (Optional)")
-    submit = SubmitField("Save changes")
 
 
 class NRPS_I_Form(Form):
@@ -70,7 +69,6 @@ class NRPS_I_Form(Form):
         FormField(ModificationDomainForm), widget=FieldListAddBtn(), min_entries=1
     )
     comments = StringField("Comments (Optional)")
-    submit = SubmitField("Save changes")
 
 
 class NRPS_VI_Form(Form):
@@ -94,7 +92,6 @@ class NRPS_VI_Form(Form):
         FormField(ModificationDomainForm), widget=FieldListAddBtn(), min_entries=1
     )
     comments = StringField("Comments (Optional)")
-    submit = SubmitField("Save changes")
 
 
 class OtherForm(Form):
@@ -115,7 +112,6 @@ class OtherForm(Form):
         FormField(ModificationDomainForm), widget=FieldListAddBtn(), min_entries=1
     )
     comments = StringField("Comments (Optional)")
-    submit = SubmitField("Save changes")
 
 
 class PKSIterativeForm(Form):
@@ -146,7 +142,6 @@ class PKSIterativeForm(Form):
         FormField(ModificationDomainForm), widget=FieldListAddBtn(), min_entries=1
     )
     comments = StringField("Comments (Optional)")
-    submit = SubmitField("Save changes")
 
 
 class PKSModularForm(Form):
@@ -171,7 +166,6 @@ class PKSModularForm(Form):
         FormField(ModificationDomainForm), widget=FieldListAddBtn(), min_entries=1
     )
     comments = StringField("Comments (Optional)")
-    submit = SubmitField("Save changes")
 
 
 class PKSTransForm(Form):
@@ -195,7 +189,6 @@ class PKSTransForm(Form):
         FormField(ModificationDomainForm), widget=FieldListAddBtn(), min_entries=1
     )
     comments = StringField("Comments (Optional)")
-    submit = SubmitField("Save changes")
 
 
 class ModulesForm(Form):
