@@ -166,7 +166,7 @@ func updateEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	class_id, err := strconv.Atoi(id)
+	classId, err := strconv.Atoi(id)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "could not parse parameter: id"})
@@ -182,7 +182,7 @@ func updateEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	if uint64(class_id) != class.ID {
+	if uint64(classId) != class.ID {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Name mismatch between request URL and data"})
 		return
 	}
@@ -200,7 +200,7 @@ func updateEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	err = biosynthesis.UpdateEntryBiosynthesisClass(db, accession, &class)
+	err = biosynthesis.UpdateEntryBiosynthesisClass(db, classId, &class)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
