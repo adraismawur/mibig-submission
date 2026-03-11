@@ -143,6 +143,8 @@ func LoadEntryTransaction(tx *gorm.DB, path string, skip bool) (*Entry, error) {
 		return nil, nil
 	}
 
+	slog.Info("Preloading entry", "path", path)
+
 	if err := tx.Create(entry).Error; err != nil {
 		return nil, err
 	}
@@ -202,7 +204,7 @@ func LoadEntries(db *gorm.DB, path string) error {
 
 			fullPath := filepath.Join(path, file.Name())
 
-			_, err = LoadEntryTransaction(db, fullPath, true)
+			_, err = LoadEntryTransaction(tx, fullPath, true)
 
 			if err != nil {
 				slog.Error("[db] Failed to load entry", "path", fullPath)

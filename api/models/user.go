@@ -36,15 +36,15 @@ type LoginRequest struct {
 
 // UserRole model that represents a list of roles
 type UserRole struct {
-	ID     uint `json:"-" gorm:"primaryKey"`
-	UserID uint `json:"user_id"`
-	Role   Role `json:"role"`
+	ID     uint64 `json:"-" gorm:"primaryKey"`
+	UserID uint64 `json:"user_id"`
+	Role   Role   `json:"role"`
 }
 
 // UserInfo model that represents additional information about a user
 type UserInfo struct {
-	ID            uint   `json:"-" gorm:"primaryKey"`
-	UserID        uint   `json:"user_id"`
+	ID            uint64 `json:"-" gorm:"primaryKey"`
+	UserID        uint64 `json:"user_id"`
 	Alias         string `json:"alias" gorm:"default:"`
 	Name          string `json:"name" gorm:"default:"`
 	CallName      string `json:"call_name" gorm:"default:"`

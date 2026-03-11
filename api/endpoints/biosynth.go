@@ -121,7 +121,12 @@ func createEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
 	accession := c.Param("accession")
 
 	var class biosynthesis.BiosyntheticClass
-	c.ShouldBindJSON(&class)
+	err := c.ShouldBindJSON(&class)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
+		return
+	}
 
 	exists, err := entry.GetEntryExists(db, accession)
 
@@ -134,7 +139,15 @@ func createEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	err = biosynthesis.CreateEntryBiosynthesisClass(db, accession, class)
+	biosynth, err := biosynthesis.GetEntryBiosynthesis(db, accession)
+
+	if err != nil {
+		slog.Error("[endpoints] [biosynth] could not find entry", "accession", accession)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	err = biosynthesis.CreateBiosynthesisClass(db, biosynth.ID, class)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})

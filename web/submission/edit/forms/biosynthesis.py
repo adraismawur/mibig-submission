@@ -29,8 +29,12 @@ from submission.utils.custom_validators import ValidateTagListRegexp, ValidateCi
 
 class NRPSForm(Form):
     db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
     class_ = HiddenField(default="NRPS")
+
     class ReleaseTypeForm(Form):
+        db_id = IntegerField(widget=HiddenInput(), default=0)
+        db_class_id = IntegerField(widget=HiddenInput(), default=0)
         name = SelectField(
             "Release type",
             choices=[
@@ -42,7 +46,7 @@ class NRPSForm(Form):
                 "Other",
                 "Reductive release",
             ],
-            widget=SelectDefault(),
+            # widget=SelectDefault(),
             validate_choice=False,
         )
         details = StringField("Details (Optional)")
@@ -53,6 +57,8 @@ class NRPSForm(Form):
         )
 
     class ThioesteraseForm(Form):
+        db_id = IntegerField(widget=HiddenInput(), default=0)
+        db_class_id = IntegerField(widget=HiddenInput(), default=0)
         gene = GeneIdField()
         location = FormField(location_form_factory())
         subtype = SelectField(
@@ -71,14 +77,12 @@ class NRPSForm(Form):
     )
     release_types = FieldList(
         FormField(ReleaseTypeForm),
-        min_entries=1,
         widget=FieldListAddBtn(
             label="Add additional release type",
         ),
     )
     thioesterases = FieldList(
         FormField(ThioesteraseForm),
-        min_entries=1,
         widget=FieldListAddBtn(
             label="Add additional thioesterase",
         ),
@@ -88,6 +92,7 @@ class NRPSForm(Form):
 
 class PKSForm(Form):
     db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
     class_ = HiddenField(default="PKS")
     subclass = SelectField(
         "Sub-class *",
@@ -117,9 +122,16 @@ class PKSForm(Form):
 
 class RibosomalForm(Form):
     db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
     class_ = HiddenField(default="ribosomal")
+
     class PrecursorForm(Form):
+        db_id = IntegerField(widget=HiddenInput(), default=0)
+        db_class_id = IntegerField(widget=HiddenInput(), default=0)
+
         class CrosslinkForm(Form):
+            db_id = IntegerField(widget=HiddenInput(), default=0)
+            db_ripp_precursor_id = IntegerField(widget=HiddenInput(), default=0)
             from_loc = IntegerField(
                 "From",
                 validators=[validators.Optional(), validators.NumberRange(min=1)],
@@ -232,8 +244,12 @@ class RibosomalForm(Form):
 
 class SaccharideForm(Form):
     db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
     class_ = HiddenField(default="saccharide")
+
     class GlycosylTranferaseForm(Form):
+        db_id = IntegerField(widget=HiddenInput(), default=0)
+        class_id = IntegerField(widget=HiddenInput(), default=0)
         gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
         evidence = SelectField(
             "Evidence type *",
@@ -257,6 +273,8 @@ class SaccharideForm(Form):
         )
 
     class SubclusterForm(Form):
+        db_id = IntegerField(widget=HiddenInput(), default=0)
+        class_id = IntegerField(widget=HiddenInput(), default=0)
         genes = TagListField(
             "Gene(s)",
             [ValidateTagListRegexp(r"^[^, ]*$")],
@@ -294,6 +312,7 @@ class SaccharideForm(Form):
 
 class TerpeneForm(Form):
     db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
     class_ = HiddenField(default="terpene")
     subclass = SelectField(
         "Sub-class",
@@ -328,6 +347,7 @@ class TerpeneForm(Form):
 
 class OtherForm(Form):
     db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
     class_ = HiddenField(default="other")
     subclass = SelectField(
         "Sub-class *",
@@ -373,9 +393,9 @@ class_map = {
     "other": OtherForm,
 }
 
+
 def get_class_form(class_type: str):
     if class_type not in class_map:
         return None
 
     return class_map[class_type]
-

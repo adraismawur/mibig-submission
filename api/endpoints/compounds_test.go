@@ -5,6 +5,7 @@ import (
 	"github.com/adraismawur/mibig-submission/models/entry"
 	"github.com/adraismawur/mibig-submission/models/entry/biosynthesis"
 	"github.com/adraismawur/mibig-submission/models/entry/compound"
+	"github.com/adraismawur/mibig-submission/models/entry/consts"
 	"github.com/adraismawur/mibig-submission/models/entry/taxonomy"
 	"github.com/adraismawur/mibig-submission/util"
 	"github.com/gin-gonic/gin"
@@ -20,9 +21,9 @@ var testEntry = entry.Entry{
 	Accession:    "test",
 	Version:      0,
 	Changelog:    entry.Changelog{},
-	Quality:      entry.Questionable,
-	Status:       entry.Active,
-	Completeness: entry.Unknown,
+	Quality:      consts.Questionable,
+	Status:       consts.Active,
+	Completeness: consts.Unknown,
 	Loci:         nil,
 	Biosynthesis: biosynthesis.Biosynthesis{},
 	Compounds: []compound.Compound{
@@ -96,11 +97,12 @@ func TestGetEntryCompounds(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, c.Writer.Status())
 
-	var actualCompounds []compound.Compound
+	var response struct {
+		ActualCompounds []compound.Compound `json:"compounds"`
+	}
 
-	err := json.Unmarshal(r.Body.Bytes(), &actualCompounds)
+	err := json.Unmarshal(r.Body.Bytes(), &response)
 
 	assert.Nil(t, err)
-
-	assert.Equal(t, testEntry.Compounds, actualCompounds)
+	assert.Equal(t, testEntry.Compounds, response.ActualCompounds)
 }

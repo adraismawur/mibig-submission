@@ -7,7 +7,7 @@ import (
 
 type Acetyltransferase struct {
 	ID                  uint64                    `json:"db_id"`
-	BiosyntheticClassID uint64                    `json:"biosynthetic_class_id"`
+	BiosyntheticClassID uint64                    `json:"db_class_id"`
 	Type                string                    `json:"type"`
 	Subtype             string                    `json:"subtype"`
 	Gene                pq.StringArray            `json:"gene" gorm:"type:text[]"`
@@ -20,7 +20,7 @@ type Acetyltransferase struct {
 
 type Adenylation struct {
 	ID                    uint64                     `json:"db_id"`
-	BiosyntheticClassID   uint64                     `json:"biosynthetic_class_id"`
+	BiosyntheticClassID   uint64                     `json:"db_class_id"`
 	Type                  string                     `json:"type"`
 	Gene                  pq.StringArray             `json:"gene" gorm:"type:text[]"`
 	LocationID            uint64                     `json:"db_location_id"`
@@ -31,9 +31,33 @@ type Adenylation struct {
 	Substrates            *[]DomainSubstrate         `json:"substrates,omitempty" gorm:"many2many:adenylation_substrates;"`
 }
 
+type GlycosylTransferaseEvidence struct {
+	ID                    uint64         `json:"db_id"`
+	GlycosylTransferaseID uint64         `json:"db_glycosyl_transferase_id"`
+	Name                  string         `json:"name"`
+	References            pq.StringArray `json:"references" gorm:"type:text[]"`
+}
+
+type GlycosylTransferase struct {
+	ID                  uint64                         `json:"db_id"`
+	BiosyntheticClassID uint64                         `json:"db_class_id"`
+	Evidence            *[]GlycosylTransferaseEvidence `json:"evidence,omitempty" gorm:"foreignKey:GlycosylTransferaseID"`
+	References          pq.StringArray                 `json:"references" gorm:"type:text[]"`
+	Gene                string                         `json:"gene"`
+	Specificity         string                         `json:"specificity"`
+}
+
+type SaccharideSubcluster struct {
+	ID                  uint64         `json:"db_id"`
+	BiosyntheticClassID uint64         `json:"db_class_id"`
+	Specificity         string         `json:"specificity"`
+	Genes               pq.StringArray `json:"genes" gorm:"type:text[]"`
+	References          pq.StringArray `json:"references" gorm:"type:text[]"`
+}
+
 type Thioesterase struct {
 	ID                  uint64         `json:"db_id"`
-	BiosyntheticClassID uint64         `json:"biosynthetic_class_id"`
+	BiosyntheticClassID uint64         `json:"db_class_id"`
 	Type                string         `json:"type"`
 	LocationID          uint64         `json:"db_location_id"`
 	Location            DomainLocation `json:"location"`
@@ -54,7 +78,7 @@ type DomainSubstrate struct {
 }
 
 type DomainSubstrateEvidence struct {
-	ID         uint64         `json:"db_id""`
+	ID         uint64         `json:"db_id"`
 	Method     string         `json:"method"`
 	References pq.StringArray `json:"references" gorm:"type:text[]"`
 }
