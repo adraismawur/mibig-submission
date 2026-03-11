@@ -130,6 +130,32 @@ func GetEntryBiosynthesisClass(db *gorm.DB, id int) (*BiosyntheticClass, error) 
 		return nil, err
 	}
 
+	// oh god
+	switch class.Class {
+	case "NRPS":
+		db.Model(&class).
+			Preload("ReleaseTypes").
+			Preload("Thioesterases.Location").
+			Find(&class)
+	case "PKS":
+		break
+	case "ribosomal":
+		db.Model(&class).
+			Preload("Precursors.LeaderCleavageLocation").
+			Preload("Precursors.FollowerCleavageLocation").
+			Preload("Precursors.Crosslinks").
+			Find(&class)
+	case "saccharide":
+		db.Model(&class).
+			Preload("GlycosylTransferases.Evidence").
+			Preload("Subclusters").
+			Find(&class)
+	case "terpene":
+		break
+	case "other":
+		break
+	}
+
 	return &class, nil
 }
 

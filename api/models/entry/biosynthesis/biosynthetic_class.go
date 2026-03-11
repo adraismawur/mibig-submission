@@ -70,7 +70,7 @@ type BiosyntheticClass struct {
 	// terpene
 	Prenyltransferases pq.StringArray `json:"prenyltransferases,omitempty" gorm:"type:text[]"`
 	SynthasesCyclases  pq.StringArray `json:"synthases_cyclases,omitempty" gorm:"type:text[]"`
-	Precursor          string         `json:"precursor,omitempty"`
+	Precursor          *string        `json:"precursor,omitempty"`
 }
 
 func init() {

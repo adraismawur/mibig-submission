@@ -59,7 +59,7 @@ class NRPSForm(Form):
     class ThioesteraseForm(Form):
         db_id = IntegerField(widget=HiddenInput(), default=0)
         db_class_id = IntegerField(widget=HiddenInput(), default=0)
-        gene = GeneIdField()
+        name = GeneIdField(label="Gene")
         location = FormField(location_form_factory())
         subtype = SelectField(
             "Sub-type",

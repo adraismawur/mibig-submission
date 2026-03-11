@@ -17,7 +17,12 @@ from submission.edit.forms.biosynthesis import (
 from submission.edit.forms.biosynthesis_paths import PathMultipleForm
 from submission.edit.forms.biosynthesis_modules import ModulesForm
 from submission.edit.forms.tailoring import TailoringMultipleForm
-from submission.edit.forms.gene_information import AddGeneForm, AnnotationForm, DeleteGeneForm, GeneInformationForm
+from submission.edit.forms.gene_information import (
+    AddGeneForm,
+    AnnotationForm,
+    DeleteGeneForm,
+    GeneInformationForm,
+)
 from submission.edit.forms.compounds import CompoundsForm, CompoundsSubForm
 from submission.edit.forms.finalize import FinalizeForm
 
@@ -33,10 +38,10 @@ class FormCollection:
     # Biosynthesis classes
     NRPS = NRPSForm
     PKS = PKSForm
-    Ribosomal = RibosomalForm
-    Saccharide = SaccharideForm
-    Terpene = TerpeneForm
-    Other = OtherForm
+    ribosomal = RibosomalForm
+    saccharide = SaccharideForm
+    terpene = TerpeneForm
+    other = OtherForm
 
     operons = OperonMultipleForm
     paths = PathMultipleForm
@@ -46,7 +51,7 @@ class FormCollection:
     annotation = GeneInformationForm
 
     compounds = CompoundsForm
-    edit_compound = CompoundsSubForm 
+    edit_compound = CompoundsSubForm
     new_compound = CompoundsSubForm
 
     gene_information = GeneInformationForm
