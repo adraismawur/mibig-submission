@@ -122,7 +122,6 @@ class BiosynthModuleForm(Form):
 class BioSynthForm(Form):
     classes = FieldList(
         FormField(BiosynthClassForm),
-        min_entries=1,
         description="List of classes in this entry",
         widget=FieldListAddBtn(
             label="Add class",
