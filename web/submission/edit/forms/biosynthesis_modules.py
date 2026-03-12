@@ -29,6 +29,7 @@ from submission.edit.forms.biosynthesis_domains import (
 
 class CalForm(Form):
     db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
     type = HiddenField(default="cal")
     name = StringField()
     genes = TagListField(
@@ -48,6 +49,7 @@ class CalForm(Form):
 
 class NRPS_I_Form(Form):
     db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
     # required _type, name, genes, active
     type = HiddenField(default="nrps-type1")
     name = StringField()
@@ -73,6 +75,7 @@ class NRPS_I_Form(Form):
 
 class NRPS_VI_Form(Form):
     db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
     type = HiddenField(default="nrps-type6")
     name = StringField()
     genes = TagListField(
@@ -94,8 +97,9 @@ class NRPS_VI_Form(Form):
     comments = StringField("Comments (Optional)")
 
 
-class OtherForm(Form):
+class ModuleOtherForm(Form):
     db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
     type = HiddenField(default="other")
     name = StringField()
     subtype = StringField("Subtype *", validators=[validators.InputRequired()])
@@ -116,6 +120,7 @@ class OtherForm(Form):
 
 class PKSIterativeForm(Form):
     db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
     type = HiddenField(default="pks-iterative")
     name = StringField()
     genes = TagListField(
@@ -128,10 +133,7 @@ class PKSIterativeForm(Form):
     )
     active = BooleanField("Active? *")
     ks_domain = None  # TODO: add ketosynthase
-    at_domain = FieldList(
-        FormField(AcyltransferaseForm),
-        render_kw={"style": "display:none"},
-    )
+    at_domain = FormField(AcyltransferaseForm)
     carriers = FieldList(
         FormField(CarrierDomain), widget=FieldListAddBtn(label="Add additional carrier")
     )
@@ -146,6 +148,7 @@ class PKSIterativeForm(Form):
 
 class PKSModularForm(Form):
     db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
     type = HiddenField(default="pks-modular")
     name = StringField()
     genes = TagListField(
@@ -170,6 +173,7 @@ class PKSModularForm(Form):
 
 class PKSTransForm(Form):
     db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
     type = HiddenField(default="pks-trans")
     name = StringField()
     genes = TagListField(
@@ -223,19 +227,20 @@ class ModulesForm(Form):
         label="Trans-AT PKS",
     )
     other = FieldList(
-        FormField(OtherForm), widget=FieldListAddBtn(label="Add additional module")
+        FormField(ModuleOtherForm),
+        widget=FieldListAddBtn(label="Add additional module"),
     )
     submit = SubmitField("Submit", widget=SubmitIndicator())
 
 
 module_map = {
     "cal": CalForm,
-    "nrps-type1": NRPS_I_Form,
-    "nrps-type6": NRPS_VI_Form,
-    "pks-iterative": PKSIterativeForm,
-    "pks-modular": PKSModularForm,
-    "pks-trans-at": PKSTransForm,
-    "other": OtherForm,
+    "nrps_type1": NRPS_I_Form,
+    "nrps_type6": NRPS_VI_Form,
+    "pks_iterative": PKSIterativeForm,
+    "pks_modular": PKSModularForm,
+    "pks_trans-at": PKSTransForm,
+    "module_other": ModuleOtherForm,
 }
 
 

@@ -314,7 +314,7 @@ def create_biosynth_class(
         {"label": "Ribosomal", "value": "ribosomal"},
         {"label": "Saccharide", "value": "saccharide"},
         {"label": "Terpene", "value": "terpene"},
-        {"label": "Other", "value": "other"},
+        {"label": "Other", "value": "class_other"},
     ]
 
     entry = Entry.get(bgc_id)
@@ -431,12 +431,12 @@ def create_biosynth_module(bgc_id: str, module: str) -> Union[str, response.Resp
 
     choices = [
         {"label": "Co-enzyme A ligase (CAL)", "value": "cal"},
-        {"label": "NRPS Type I", "value": "nrps-type1"},
-        {"label": "NRPS Type VI", "value": "nrps-type6"},
-        {"label": "Iterative PKS", "value": "pks-iterative"},
-        {"label": "Modular PKS", "value": "pks-modular"},
-        {"label": "Trans-AT PKS", "value": "pks-trans-at"},
-        {"label": "Other", "value": "other"},
+        {"label": "NRPS Type I", "value": "nrps_type1"},
+        {"label": "NRPS Type VI", "value": "nrps_type6"},
+        {"label": "Iterative PKS", "value": "pks_iterative"},
+        {"label": "Modular PKS", "value": "pks_modular"},
+        {"label": "Trans-AT PKS", "value": "pks_trans_at"},
+        {"label": "Other", "value": "module_other"},
     ]
 
     entry = Entry.get(bgc_id)

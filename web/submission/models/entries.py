@@ -86,6 +86,10 @@ class Entry(db.Model):
 
             biosynthetic_class["class_"] = biosynthetic_class["class"]
 
+            # 'other' overlaps on 'other' module and 'other' class. fix that here
+            if biosynthetic_class["class"] == "other":
+                biosynthetic_class["class"] = "class_other"
+
             return biosynthetic_class
         return None
 
@@ -103,6 +107,9 @@ class Entry(db.Model):
 
         if "class_" in data:
             data["class"] = data["class_"]
+            # 'other' overlaps on 'other' module and 'other' class. fix that here
+            if data["class"] == "class_other":
+                data["class"] = "other"
 
         response = requests.post(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/class",
@@ -118,6 +125,9 @@ class Entry(db.Model):
 
         if "class_" in data:
             data["class"] = data["class_"]
+            # 'other' overlaps on 'other' module and 'other' class. fix that here
+            if data["class"] == "class_other":
+                data["class"] = "other"
 
         response = requests.post(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/class/{class_id}",
@@ -145,9 +155,14 @@ class Entry(db.Model):
             headers={"Authorization": f"Bearer {session['token']}"},
         )
         if response.status_code == 200:
-            entry = response.json()
+            data = response.json()
 
-            return entry
+            if data["type"] == "other":
+                data["type"] = "module_other"
+
+            data["type"] = data["type"].replace("-", "_")
+
+            return data
         return None
 
     def move_module(bgc_id, id_from, id_to):
@@ -172,6 +187,11 @@ class Entry(db.Model):
         return None
 
     def create_module(bgc_id: str, data: dict[str, any]):
+        if data["type"] == "module_other":
+            data["type"] = "other"
+
+        data["type"] = data["type"].replace("_", "-")
+
         response = requests.post(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/module",
             headers={"Authorization": f"Bearer {session['token']}"},
@@ -183,6 +203,11 @@ class Entry(db.Model):
         return False
 
     def update_module(bgc_id: str, name: str, data: dict[str, any]):
+        if data["type"] == "module_other":
+            data["type"] = "other"
+
+        data["type"] = data["type"].replace("_", "-")
+
         response = requests.post(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/module/{name}",
             headers={"Authorization": f"Bearer {session['token']}"},

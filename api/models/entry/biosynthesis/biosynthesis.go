@@ -9,10 +9,12 @@ import (
 )
 
 type Biosynthesis struct {
-	ID      uint64               `json:"db_id"`
-	EntryID uint64               `json:"entry_id"`
-	Classes []BiosyntheticClass  `json:"classes" gorm:"foreignKey:BiosynthesisID"`
-	Modules []BiosyntheticModule `json:"modules,omitempty" gorm:"foreignKey:BiosynthesisID"`
+	ID      uint64                `json:"db_id"`
+	EntryID uint64                `json:"entry_id"`
+	Classes []BiosyntheticClass   `json:"classes" gorm:"foreignKey:BiosynthesisID"`
+	Modules []BiosyntheticModule  `json:"modules,omitempty" gorm:"foreignKey:BiosynthesisID"`
+	Operons []BiosyntheticOperon  `json:"operons,omitempty" gorm:"foreignKey:BiosynthesisID"`
+	Paths   []BiosyntheticPathway `json:"paths,omitempty" gorm:"foreignKey:BiosynthesisID"`
 }
 
 func init() {

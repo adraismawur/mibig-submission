@@ -13,6 +13,16 @@ type ReleaseType struct {
 	References          pq.StringArray `json:"references,omitempty" gorm:"type:text[]"`
 }
 
+type Thioesterase struct {
+	ID                  uint64         `json:"db_id"`
+	BiosyntheticClassID uint64         `json:"db_biosynth_class_id"`
+	Type                string         `json:"type"`
+	Gene                string         `json:"gene"`
+	LocationID          uint64         `json:"db_location_id"`
+	Location            DomainLocation `json:"location"`
+	Subtype             string         `json:"subtype,omitempty"`
+}
+
 type CleavageLocation struct {
 	ID   uint64 `json:"db_id"`
 	From int    `json:"from"`
@@ -38,6 +48,23 @@ type RippPrecursor struct {
 	FollowerCleavageLocationID uint64                   `json:"db_follower_cleavage_location_id"`
 	FollowerCleavageLocation   *CleavageLocation        `json:"follower_cleavage_location,omitempty"`
 	Crosslinks                 []RippPrecursorCrosslink `json:"crosslinks,omitempty" gorm:"foreignKey:RippPrecursorID"`
+}
+
+type GlycosylTransferase struct {
+	ID                  uint64                     `json:"db_id"`
+	BiosyntheticClassID uint64                     `json:"db_biosynth_class_id"`
+	Evidence            *[]DomainSubstrateEvidence `json:"evidence,omitempty" gorm:"many2many:glycosyl_transferase_evidences;"`
+	References          pq.StringArray             `json:"references" gorm:"type:text[]"`
+	Gene                string                     `json:"gene"`
+	Specificity         string                     `json:"specificity"`
+}
+
+type SaccharideSubcluster struct {
+	ID                  uint64         `json:"db_id"`
+	BiosyntheticClassID uint64         `json:"db_class_id"`
+	Specificity         string         `json:"specificity"`
+	Genes               pq.StringArray `json:"genes" gorm:"type:text[]"`
+	References          pq.StringArray `json:"references" gorm:"type:text[]"`
 }
 
 type BiosyntheticClass struct {
@@ -75,8 +102,6 @@ type BiosyntheticClass struct {
 
 func init() {
 	models.Models = append(models.Models, BiosyntheticClass{})
-	models.Models = append(models.Models, DomainSubstrate{})
-	models.Models = append(models.Models, DomainSubstrateEvidence{})
 	// NRPS
 	models.Models = append(models.Models, Thioesterase{})
 	models.Models = append(models.Models, ReleaseType{})
@@ -86,6 +111,5 @@ func init() {
 	models.Models = append(models.Models, RippPrecursor{})
 	// saccharide
 	models.Models = append(models.Models, GlycosylTransferase{})
-	models.Models = append(models.Models, GlycosylTransferaseEvidence{})
 	models.Models = append(models.Models, SaccharideSubcluster{})
 }

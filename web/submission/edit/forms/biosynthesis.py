@@ -344,10 +344,10 @@ class TerpeneForm(Form):
     # submit = SubmitField("Submit", widget=SubmitIndicator())
 
 
-class OtherForm(Form):
+class ClassOtherForm(Form):
     db_id = IntegerField(widget=HiddenInput(), default=0)
     db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
-    class_ = HiddenField(default="other")
+    class_ = HiddenField(default="class_other")
     subclass = SelectField(
         "Sub-class *",
         choices=["aminocoumarin", "cyclitol", "other"],
@@ -365,7 +365,7 @@ class BioClassesCollection:
     Ribosomal = RibosomalForm
     Saccharide = SaccharideForm
     Terpene = TerpeneForm
-    Other = OtherForm
+    Other = ClassOtherForm
 
 
 class OperonForm(Form):
@@ -389,7 +389,7 @@ class_map = {
     "ribosomal": RibosomalForm,
     "saccharide": SaccharideForm,
     "terpene": TerpeneForm,
-    "other": OtherForm,
+    "class_other": ClassOtherForm,
 }
 
 

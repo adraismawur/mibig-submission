@@ -11,11 +11,19 @@ from submission.edit.forms.biosynthesis import (
     RibosomalForm,
     SaccharideForm,
     TerpeneForm,
-    OtherForm,
+    ClassOtherForm,
     OperonMultipleForm,
 )
 from submission.edit.forms.biosynthesis_paths import PathMultipleForm
-from submission.edit.forms.biosynthesis_modules import ModulesForm
+from submission.edit.forms.biosynthesis_modules import (
+    CalForm,
+    NRPS_I_Form,
+    NRPS_VI_Form,
+    PKSIterativeForm,
+    PKSModularForm,
+    PKSTransForm,
+    ModuleOtherForm,
+)
 from submission.edit.forms.tailoring import TailoringMultipleForm
 from submission.edit.forms.gene_information import (
     AddGeneForm,
@@ -41,11 +49,18 @@ class FormCollection:
     ribosomal = RibosomalForm
     saccharide = SaccharideForm
     terpene = TerpeneForm
-    other = OtherForm
+    other = ClassOtherForm
 
     operons = OperonMultipleForm
     paths = PathMultipleForm
-    modules = ModulesForm
+
+    # Biosynthesis modules
+    cal = CalForm
+    nrps_type1 = NRPS_I_Form
+    nrps_type6 = NRPS_VI_Form
+    pks_iterative = PKSIterativeForm
+    pks_modular = PKSModularForm
+    pks_trans_at = PKSTransForm
 
     tailoring = TailoringMultipleForm
     annotation = GeneInformationForm

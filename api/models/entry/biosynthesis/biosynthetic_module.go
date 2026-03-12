@@ -5,78 +5,36 @@ import (
 	"github.com/lib/pq"
 )
 
-// TODO: maybe unify with loci.location and gene location
-type BiosyntheticModuleDomainLocation struct {
-	ID                   uint64 `json:"db_id"`
-	BiosyntheticModuleID uint64 `json:"db_biosynth_module_id"`
-	From                 int    `json:"from"`
-	To                   int    `json:"to"`
-}
-
-type BiosyntheticModuleDomain struct {
-	ID                   uint64                           `json:"db_id"`
-	BiosyntheticModuleID uint64                           `json:"db_biosynth_module_id"`
-	DomainType           string                           `json:"type"`
-	Gene                 string                           `json:"gene"`
-	Location             BiosyntheticModuleDomainLocation `gorm:"foreignKey:BiosyntheticModuleID"`
-}
-
-type CarrierModuleDomain struct {
-	BiosyntheticModuleDomain
-	Subtype       string `json:"subtype,omitempty"`
-	BetaBranching bool   `json:"beta_branching"`
-}
-
-type AModuleDomainSubstrate struct {
-	ID              uint64 `json:"db_id"`
-	AModuleDomainID uint64 `json:"a_module_domain_id"`
-	Name            string `json:"name"`
-	Structure       string `json:"structure"`
-	Proteinogenic   bool   `json:"proteinogenic"`
-}
-
-type AModuleDomain struct {
-	BiosyntheticModuleDomain
-	References pq.StringArray           `json:"references" gorm:"type:text[]"`
-	Substrates []AModuleDomainSubstrate `json:"substrates" gorm:"foreignKey:AModuleDomainID"`
-}
-
-type ATModuleDomain struct {
-	BiosyntheticModuleDomain
-	Substrates pq.StringArray `json:"substrates" gorm:"type:text[]"`
-	Evidence   pq.StringArray `json:"evidence" gorm:"type:text[]"`
-}
-
-type KSModuleDomain struct {
-	BiosyntheticModuleDomain
-}
-
-type ModificationModuleDomain struct {
-	BiosyntheticModuleDomain
+type IntegratedMonomer struct {
+	ID                   uint64         `json:"db_id"`
+	BiosyntheticModuleID uint64         `json:"db_biosynth_module_id"`
+	Name                 string         `json:"name"`
+	Structure            string         `json:"structure"`
+	References           pq.StringArray `json:"references" gorm:"type:text[]"`
 }
 
 type BiosyntheticModule struct {
-	ID                  uint64                     `json:"db_id"`
-	Index               uint64                     `json:"db_index"`
-	BiosynthesisID      uint64                     `json:"db_biosynth_id"`
-	Type                string                     `json:"type"`
-	Name                string                     `json:"name"`
-	Genes               pq.StringArray             `json:"genes" gorm:"type:text[]"`
-	Active              bool                       `json:"active"`
-	Carriers            []CarrierModuleDomain      `json:"carriers" gorm:"foreignKey:BiosyntheticModuleID"`
-	ModificationDomains []ModificationModuleDomain `json:"modification_domains,omitempty" gorm:"foreignKey:BiosyntheticModuleID"`
-	ADomain             *AModuleDomain             `json:"a_domain,omitempty" gorm:"foreignKey:BiosyntheticModuleID"`
-	ATDomain            *ATModuleDomain            `json:"at_domain,omitempty" gorm:"foreignKey:BiosyntheticModuleID"`
-	KSDomain            *KSModuleDomain            `json:"ks_domain,omitempty" gorm:"foreignKey:BiosyntheticModuleID"`
+	ID                  uint64                   `json:"db_id"`
+	Index               uint64                   `json:"db_index"`
+	BiosynthesisID      uint64                   `json:"db_biosynth_id"`
+	Type                string                   `json:"type"`
+	Name                string                   `json:"name"`
+	Genes               pq.StringArray           `json:"genes" gorm:"type:text[]"`
+	Active              bool                     `json:"active"`
+	IntegratedMonomers  []IntegratedMonomer      `json:"integrated_monomers" gorm:"foreignKey:BiosyntheticModuleID"`
+	Carriers            []CarrierDomain          `json:"carriers" gorm:"many2many:biosynth_carrier_domains"`
+	ModificationDomains []ModificationDomain     `json:"modification_domains,omitempty" gorm:"many2many:biosynth_modification_domains"`
+	CDomainID           uint64                   `json:"db_c_domain_id"`
+	CDomain             *CondensationDomain      `json:"c_domain"`
+	ADomainID           uint64                   `json:"db_a_domain_id"`
+	ADomain             *AdenylationDomain       `json:"a_domain,omitempty"`
+	ATDomainID          uint64                   `json:"db_at_domain_id"`
+	ATDomain            *AcetyltransferaseDomain `json:"at_domain,omitempty"`
+	KSDomainID          uint64                   `json:"db_ks_domain_id"`
+	KSDomain            *KetoSynthaseDomain      `json:"ks_domain,omitempty"`
 }
 
 func init() {
 	models.Models = append(models.Models, BiosyntheticModule{})
-	models.Models = append(models.Models, CarrierModuleDomain{})
-	models.Models = append(models.Models, ModificationModuleDomain{})
-	models.Models = append(models.Models, AModuleDomain{})
-	models.Models = append(models.Models, AModuleDomainSubstrate{})
-	models.Models = append(models.Models, ATModuleDomain{})
-	models.Models = append(models.Models, KSModuleDomain{})
-	models.Models = append(models.Models, BiosyntheticModuleDomainLocation{})
+	models.Models = append(models.Models, IntegratedMonomer{})
 }
