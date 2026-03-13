@@ -3,7 +3,7 @@
 {% import 'macros.html' as macros %}
 
 {% block header %}
-<h2 class="edit-header">{{ "New entry" if bgc_id == "new" else "Editing" + bgc_id }}</h2>
+{{ "New entry" if bgc_id == "new" else "Editing" + bgc_id }}
 {% endblock %}
 
 {% block body %}

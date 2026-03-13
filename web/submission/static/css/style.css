@@ -1,7 +1,22 @@
 body {
   --mibig-light: hsl(200, 60%, 90%);
   --mibig-blue: hsl(200, 100%, 32%);
-  background-color: var(--bs-gray-400);
+  --mibig-dark: hsl(217, 19%, 27%);
+  /* background-color: var(--bs-gray-400); */
+}
+
+/* overwrite hidden select from materialize */
+select {
+  display: block !important;
+}
+
+.logo {
+  max-height: 60px;
+}
+
+.header-title {
+  font-size: 3rem;
+  font-weight: 400;
 }
 
 .container-fluid {
@@ -11,10 +26,12 @@ body {
 }
 
 .edit-header {
+  font-size: 2.5rem;
+  font-weight: 400;
   margin: 5px 50px;
   padding: 1px 15px 4px;
   border-radius: 20px;
-  background-color: var(--bs-gray-500);
+  /* background-color: var(--bs-gray-500); */
 }
 
 .user-menu {
@@ -53,19 +70,19 @@ body {
 }
 
 .form-wrapper {
-  width: 1024px;
+  width: 80%;
   padding: 20px 50px 20px 50px;
   margin: 20px auto;
   min-height: 500px;
   height: auto !important;
   background-color: var(--mibig-light);
-  border-radius: var(--bs-border-radius-2xl);
+  /* border-radius: var(--bs-border-radius-2xl);  ==2rem*/
   border: 15px inset var(--mibig-blue);
 }
 
 .form-group {
   background-color: white;
-  border-radius: 10px;
+  /* border-radius: 10px; */
   padding: 10px;
   border: 2px solid var(--mibig-blue);
   margin: 5px auto;
@@ -74,6 +91,26 @@ body {
 .form-field {
   margin: 3px;
   position: relative;
+}
+
+.form-label {
+  font-size: 110%;
+  font-weight: 600;
+  color: black;
+
+}
+
+/* change checkbox color */
+input[type="checkbox"].filled-in:checked+span:not(.lever)::after {
+  border: 2px solid var(--mibig-blue);
+  background-color: var(--mibig-blue);
+}
+
+fieldset {
+  padding: 0 !important;
+  border: 0;
+  margin: 0;
+  min-width: 0;
 }
 
 .btn-del {
@@ -120,6 +157,37 @@ input:focus+ul.suggestions li {
 
 .result-table th {
   width: 50%;
+}
+
+
+.invalid-feedback {
+  display: none;
+  width: 100%;
+  margin-top: .25rem;
+  font-size: .875em;
+  color: #dc3545;
+}
+
+.is-invalid~.invalid-feedback {
+  display: block;
+}
+
+.form-control.is-invalid {
+  border-color: #dc3545;
+  padding-right: calc(1.5em + .75rem);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right calc(1.5rem) center;
+  background-size: calc(.75em + .375rem) calc(.75em + .375rem);
+}
+
+
+.alert {
+  position: relative;
+  padding: 1rem 1rem;
+  /* margin-bottom: 1rem; */
+  /* border: var(--bs-alert-border); */
+  /* border-radius: var(--bs-alert-border-radius); */
 }
 
 /* start colour definitions for secondary metabolite types */
@@ -981,6 +1049,7 @@ input:focus+ul.suggestions li {
 }
 
 .navbar-mibig {
+  background-color: var(--mibig-dark);
   border-bottom: 4px solid #006ca2;
 }
 

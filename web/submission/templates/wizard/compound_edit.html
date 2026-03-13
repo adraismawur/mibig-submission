@@ -3,7 +3,7 @@
 {% import 'macros.html' as macros %}
 
 {% block header %}
-<h2 class="edit-header">Editing {{ bgc_id }}</h2>
+Editing {{ bgc_id }}
 {% endblock %}
 
 {% block body %}
@@ -15,7 +15,7 @@
         <h4>Editing compound</h4>
     {% endif %}
 
-    <form method="post" class="container">
+    <form method="post" class="">
         {{ macros.simple_divform_inner(form, is_reviewer=False, reviewed=False) }}
         <div class="form-group row">
             <input type="submit" class="btn btn-primary" value="Save module">
