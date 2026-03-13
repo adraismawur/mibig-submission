@@ -259,12 +259,11 @@ func TestCreateSaccharideClass(t *testing.T) {
 			{
 				ID:                  1,
 				BiosyntheticClassID: 1,
-				Evidence: &[]GlycosylTransferaseEvidence{
+				Evidence: &[]DomainSubstrateEvidence{
 					{
-						ID:                    1,
-						GlycosylTransferaseID: 1,
-						Name:                  "a",
-						References:            pq.StringArray{"a", "b"},
+						ID:         1,
+						Method:     "a",
+						References: pq.StringArray{"a", "b"},
 					},
 				},
 				References:  pq.StringArray{"a", "b"},
@@ -530,12 +529,11 @@ func TestGetSaccharideClass(t *testing.T) {
 			{
 				ID:                  1,
 				BiosyntheticClassID: 1,
-				Evidence: &[]GlycosylTransferaseEvidence{
+				Evidence: &[]DomainSubstrateEvidence{
 					{
-						ID:                    1,
-						GlycosylTransferaseID: 1,
-						Name:                  "a",
-						References:            pq.StringArray{"a", "b"},
+						ID:         1,
+						Method:     "a",
+						References: pq.StringArray{"a", "b"},
 					},
 				},
 				References:  pq.StringArray{"a", "b"},
@@ -888,12 +886,11 @@ func TestUpdateSaccharideClass(t *testing.T) {
 			{
 				ID:                  1,
 				BiosyntheticClassID: 1,
-				Evidence: &[]GlycosylTransferaseEvidence{
+				Evidence: &[]DomainSubstrateEvidence{
 					{
-						ID:                    1,
-						GlycosylTransferaseID: 1,
-						Name:                  "a",
-						References:            pq.StringArray{"b", "c"},
+						ID:         1,
+						Method:     "a",
+						References: pq.StringArray{"b", "c"},
 					},
 				},
 				References:  pq.StringArray{"d", "e"},
@@ -926,12 +923,11 @@ func TestUpdateSaccharideClass(t *testing.T) {
 			{
 				ID:                  1,
 				BiosyntheticClassID: 1,
-				Evidence: &[]GlycosylTransferaseEvidence{
+				Evidence: &[]DomainSubstrateEvidence{
 					{
-						ID:                    1,
-						GlycosylTransferaseID: 1,
-						Name:                  "k",
-						References:            pq.StringArray{"l", "m"},
+						ID:         1,
+						Method:     "k",
+						References: pq.StringArray{"l", "m"},
 					},
 				},
 				References:  pq.StringArray{"n", "o"},

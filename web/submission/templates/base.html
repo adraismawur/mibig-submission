@@ -18,18 +18,12 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 
-<!-- <script type="module" src="{{ url_for('static', filename='js/d3.v4.min.js')}}"> -->
-</script>
-
 <body>
     <div class="container-fluid navbar-mibig">
         <h1><a href="{{ url_for('main.index') }}">MIBiG Submission Prototype</a></h1>
         {% block header -%}{%- endblock %}
         {% if current_user and current_user.is_authenticated -%}
         <ul class="user-menu">
-            {% if current_user.is_admin() %}
-            <li><a href="/admin">Admin</a></li>
-            {% endif %}
             <li><a href="/profile">{{ m.icon('user') | safe}} {{ current_user.info.call_name }}</a></li>
             <li><a href="/auth/logout">Log out</a></li>
         </ul>

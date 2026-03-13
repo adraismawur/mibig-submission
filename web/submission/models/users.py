@@ -23,7 +23,7 @@ class UserRole:
         return str(self.role)
 
     def asdict(self):
-        return {"role": self.role.value}
+        return {"role": self.role}
 
     @classmethod
     def from_enum(cls, value: Role):
@@ -61,9 +61,9 @@ class UserInfo:
         alias = info_dict["alias"]
         call_name = info_dict["call_name"]
         orc_id = info_dict["orc_id"]
-        organisation = info_dict["organization1"]
-        organisation_2 = info_dict["organization2"]
-        organisation_3 = info_dict["organization3"]
+        organisation_1 = info_dict["organisation_1"]
+        organisation_2 = info_dict["organisation_2"]
+        organisation_3 = info_dict["organisation_3"]
         public = info_dict["public"]
 
         return UserInfo(
@@ -71,7 +71,7 @@ class UserInfo:
             name,
             call_name,
             orc_id,
-            organisation,
+            organisation_1,
             organisation_2,
             organisation_3,
             public,
@@ -112,7 +112,7 @@ class User(UserMixin):
         info = UserInfo.from_json(info_dict)
 
         user = User(
-            json_dict["id"],
+            json_dict["db_id"],
             json_dict["email"],
             json_dict["active"],
             roles,

@@ -14,10 +14,11 @@ func TestParseToken(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	assert.Equal(t, Token{
+	expectedToken := Token{
 		User: User{
-			ID:    1,
-			Email: "test@localhost",
+			ID:     0,
+			Email:  "test@localhost",
+			Active: false,
 			Roles: []UserRole{
 				{
 					Role: Admin,
@@ -29,6 +30,9 @@ func TestParseToken(t *testing.T) {
 					Role: Submitter,
 				},
 			},
+			Info: UserInfo{
+				Public: false,
+			},
 		},
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    "mibig-submission-be",
@@ -38,5 +42,7 @@ func TestParseToken(t *testing.T) {
 			IssuedAt:  jwt.NewNumericDate(time.Unix(1747235744, 0)),
 			NotBefore: jwt.NewNumericDate(time.Unix(1747235744, 0)),
 		},
-	}, parsedToken)
+	}
+
+	assert.Equal(t, expectedToken, parsedToken)
 }

@@ -9,7 +9,7 @@ from flask import (
     url_for,
     flash,
 )
-from flask_login import login_required, current_user, login_user
+from flask_login import login_required, current_user, login_user, logout_user
 import requests
 
 from submission.main import bp_main
@@ -85,6 +85,21 @@ def delete() -> str:
 @bp_main.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
+    if request.form:
+        form = UserDetailsEditForm(request.form)
+    else:
+        response = requests.get(
+            f"{current_app.config['API_BASE']}/user/{current_user.id}",
+            headers={"Authorization": "Bearer " + session["token"]},
+        )
+
+        if response.status_code != 200:
+            flash("Could not get user information. Try logging in again")
+            logout_user()
+            return redirect(url_for("auth.login"))
+
+        form = UserDetailsEditForm(data=response.json())
+        
     if request.method == "POST":
         # current_user.info["name"] = request.form["name"]
         # current_user.info["call_name"] = request.form["call_name"]
@@ -95,29 +110,23 @@ def profile():
 
         response = requests.patch(
             f"{current_app.config['API_BASE']}/user/{current_user.id}",
-            data=current_user.to_json(),
+            json=form.data,
             headers={"Authorization": "Bearer " + session["token"]},
         )
 
         if response.status_code != 200:
             flash("Error updating your user details: " + str(response.json()))
-            return render_template("main/profile.html.j2")
+            return render_template("main/profile.html")
 
         login_user(User.get_user(current_user.id))
 
         flash("Updated your user details")
 
-    form = UserDetailsEditForm()
+        return redirect(url_for("main.profile"))
+    
 
-    info: UserInfo = current_user.info
 
-    form.name.data = info.name
-    form.call_name.data = info.call_name
-    form.orcid.data = info.orc_id
-    form.organisation.data = info.organisation_1
-    form.organisation_2.data = info.organisation_2
-    form.organisation_3.data = info.organisation_3
-    return render_template("main/profile.html.j2", form=form)
+    return render_template("main/profile.html", form=form)
 
 
 @bp_main.route("/submitter")

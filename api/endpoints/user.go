@@ -245,9 +245,7 @@ func updateUser(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	newUser.ID = oldUser.ID
-
-	err = models.UpdateUser(db, id, oldUser, &newUser)
+	err = models.UpdateUser(db, id, newUser)
 
 	if err != nil {
 		slog.Error("[user] Error when updating user", "error", err)
@@ -288,7 +286,7 @@ func updateUserPassword(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	err = models.UpdateUserPassword(db, user, request.NewPassword)
+	err = models.UpdateUserPassword(db, int(user.ID), request.NewPassword)
 
 	if err != nil {
 		slog.Error("[endpoints] [user] Could not update user password")

@@ -21,7 +21,6 @@ func TestMain(m *testing.M) {
 
 	for i := 0; i < numTestUsers; i++ {
 		userRoles := []UserRole{{Role: Admin}}
-
 		user := User{
 			Email:    GenerateRandomEmail(),
 			Password: "test",
@@ -140,9 +139,9 @@ func TestUpdateUserFull(t *testing.T) {
 		Alias:         "testalias",
 		Name:          "testname",
 		CallName:      "testcallname",
-		Organization1: "testorg1",
-		Organization2: "testorg2",
-		Organization3: "testorg3",
+		Organisation1: "testorg1",
+		Organisation2: "testorg2",
+		Organisation3: "testorg3",
 		OrcID:         "testorcid",
 		Public:        true,
 	}
@@ -159,14 +158,22 @@ func TestUpdateUserFull(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	expectedRoles := []UserRole{{Role: Submitter, UserID: user.ID}}
+	expectedRoles := []UserRole{
+		{
+			ID:     user.Roles[0].ID,
+			UserID: user.ID,
+			Role:   Submitter,
+		},
+	}
 	expectedInfos := UserInfo{
+		ID:            user.Info.ID,
+		UserID:        user.ID,
 		Alias:         user.Info.Alias + "_update",
 		Name:          user.Info.Name + "_update",
 		CallName:      user.Info.CallName + "_update",
-		Organization1: user.Info.Organization1 + "_update",
-		Organization2: user.Info.Organization2 + "_update",
-		Organization3: user.Info.Organization3 + "_update",
+		Organisation1: user.Info.Organisation1 + "_update",
+		Organisation2: user.Info.Organisation2 + "_update",
+		Organisation3: user.Info.Organisation3 + "_update",
 		OrcID:         user.Info.OrcID + "_update",
 		Public:        false,
 	}
@@ -179,17 +186,19 @@ func TestUpdateUserFull(t *testing.T) {
 		Info:   expectedInfos,
 	}
 
-	err = UpdateUser(testDb, int(user.ID), &user, &expectedUser)
+	err = UpdateUser(testDb, int(user.ID), expectedUser)
 
 	assert.NoError(t, err)
 
 	// get user
-	var actualUser User
+	actualUser := User{
+		ID: user.ID,
+	}
 	testDb.
 		Preload("Roles").
 		Preload("Info").
 		Omit("Password").
-		Last(&actualUser)
+		Find(&actualUser)
 
 	// assert base changes
 	assert.Equal(t, expectedUser.Email, actualUser.Email)
@@ -203,9 +212,9 @@ func TestUpdateUserFull(t *testing.T) {
 	assert.Equal(t, expectedUser.Info.Alias, actualUser.Info.Alias)
 	assert.Equal(t, expectedUser.Info.Name, actualUser.Info.Name)
 	assert.Equal(t, expectedUser.Info.CallName, actualUser.Info.CallName)
-	assert.Equal(t, expectedUser.Info.Organization1, actualUser.Info.Organization1)
-	assert.Equal(t, expectedUser.Info.Organization2, actualUser.Info.Organization2)
-	assert.Equal(t, expectedUser.Info.Organization3, actualUser.Info.Organization3)
+	assert.Equal(t, expectedUser.Info.Organisation1, actualUser.Info.Organisation1)
+	assert.Equal(t, expectedUser.Info.Organisation2, actualUser.Info.Organisation2)
+	assert.Equal(t, expectedUser.Info.Organisation3, actualUser.Info.Organisation3)
 	assert.Equal(t, expectedUser.Info.OrcID, actualUser.Info.OrcID)
 	assert.Equal(t, expectedUser.Info.Public, actualUser.Info.Public)
 
