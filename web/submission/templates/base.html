@@ -25,6 +25,7 @@
             <a class="edit-header">{% block header -%}{%- endblock %}</a>
             {% if current_user and current_user.is_authenticated -%}
             <ul class="right hide-on-med-and-down">
+                <li><a href="/">Home</a></li>
                 <li><a href="/profile">{{ m.icon('user') | safe}} {{ current_user.info.call_name }}</a></li>
                 <li><a href="/auth/logout">Log out</a></li>
             </ul>
