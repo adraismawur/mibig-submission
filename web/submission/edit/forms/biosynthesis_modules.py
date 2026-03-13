@@ -41,9 +41,6 @@ class CalForm(Form):
     integrated_monomers = FieldList(
         FormField(MonomerForm), widget=FieldListAddBtn(label="Add addional monomer")
     )
-    modification_domains = FieldList(
-        FormField(ModificationDomainForm), widget=FieldListAddBtn(), min_entries=1
-    )
     comments = StringField("Comments (Optional)")
 
 
@@ -67,9 +64,6 @@ class NRPS_I_Form(Form):
     integrated_monomers = FieldList(
         FormField(MonomerForm), widget=FieldListAddBtn(label="Add addional monomer")
     )
-    modification_domains = FieldList(
-        FormField(ModificationDomainForm), widget=FieldListAddBtn(), min_entries=1
-    )
     comments = StringField("Comments (Optional)")
 
 
@@ -91,9 +85,6 @@ class NRPS_VI_Form(Form):
     integrated_monomers = FieldList(
         FormField(MonomerForm), widget=FieldListAddBtn(label="Add addional monomer")
     )
-    modification_domains = FieldList(
-        FormField(ModificationDomainForm), widget=FieldListAddBtn(), min_entries=1
-    )
     comments = StringField("Comments (Optional)")
 
 
@@ -111,9 +102,6 @@ class ModuleOtherForm(Form):
     active = BooleanField("Active? *")
     integrated_monomers = FieldList(
         FormField(MonomerForm), widget=FieldListAddBtn(label="Add addional monomer")
-    )
-    modification_domains = FieldList(
-        FormField(ModificationDomainForm), widget=FieldListAddBtn(), min_entries=1
     )
     comments = StringField("Comments (Optional)")
 

@@ -16,6 +16,8 @@ Editing {{ bgc_id }}
 
     <div class="form-group">
         <p class="form-label fw-bold">Classes</p>
+        {% if form.classes.data | length > 0 %}
+        {{ macros.descr(form.classes) }}
         <table class="table">
             <tbody id="class-table">
                 <tr>
@@ -44,6 +46,9 @@ Editing {{ bgc_id }}
                 {% endfor %}
             </tbody>
         </table>
+        {% else %}
+        <div>No biosynthetic classes yet. Add new biosynthetic classes using the button below</div>
+        {% endif %}
         <a href="{{url_for('edit.create_biosynth_class_new', bgc_id=bgc_id)}}">
             <button class="btn btn-primary" type="button">Add new class</button>
         </a>
@@ -51,6 +56,8 @@ Editing {{ bgc_id }}
 
     <div class="form-group">
         <p class="form-label fw-bold">Modules</p>
+        {% if form.modules | length > 0 %}
+        {{ macros.descr(form.modules) }}
         <table class="table">
             <tbody id="module-table">
                 <tr>
@@ -107,10 +114,15 @@ Editing {{ bgc_id }}
                 {% endfor %}
             </tbody>
         </table>
+        {% else %}
+        <div>No biosynthetic modules yet. Add new biosynthetic classes using the button below</div>
+        {% endif %}
         <a href="{{url_for('edit.create_biosynth_module_new', bgc_id=bgc_id)}}">
             <button class="btn btn-primary" type="button">Add new module</button>
         </a>
     </div>
+    {{ macros.simple_divsubform(form.operons) }}
+    {{ macros.simple_divsubform(form.paths) }}
     {% if prev_form %}
     <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=prev_form.id) }}"><button id="back-btn"
             class="btn btn-secondary" type="button">Previous: {{ prev_form.description }}</button></a>

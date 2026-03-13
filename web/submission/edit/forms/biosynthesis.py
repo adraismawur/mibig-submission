@@ -369,6 +369,8 @@ class BioClassesCollection:
 
 
 class OperonForm(Form):
+    db_id = IntegerField(widget=HiddenInput())
+    db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
     genes = TagListField(
         "Gene(s) *",
         description="Comma separated list of gene IDs forming an operon",

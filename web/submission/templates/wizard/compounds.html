@@ -16,6 +16,8 @@ Editing {{ bgc_id }}
 
     <div class="form-group">
         <p class="form-label fw-bold">Compounds</p>
+        {{ macros.descr(form.compounds) }}
+        {% if form.compounds | length > 0 %}
         <table class="table">
             <tbody id="module-table">
                 <tr>
@@ -53,6 +55,9 @@ Editing {{ bgc_id }}
                 {% endfor %}
             </tbody>
         </table>
+        {% else %}
+        <div>No compounds yet. Add new compounds using the button below</div>
+        {% endif %}
         <a href="{{url_for('edit.create_compound', bgc_id=bgc_id)}}">
             <button class="btn btn-primary" type="button">Add new compound</button>
         </a>

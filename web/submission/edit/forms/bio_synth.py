@@ -15,6 +15,8 @@ from wtforms import (
     SubmitField,
 )
 from wtforms.widgets import HiddenInput
+from submission.edit.forms.biosynthesis import OperonForm
+from submission.edit.forms.biosynthesis_paths import PathForm
 from submission.utils.custom_fields import TagListField
 from submission.utils.custom_forms import location_form_factory, EvidenceForm
 from submission.utils.custom_widgets import (
@@ -86,6 +88,7 @@ biosynthetic_sub_classes = [
 
 class BiosynthClassForm(Form):
     db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
     class_ = SelectField(id="class", name="class", choices=biosynthetic_classes)
     subclass = SelectField(choices=biosynthetic_sub_classes)
     cyclases = FieldList(
@@ -110,6 +113,7 @@ class ModuleLocationForm(Form):
 
 class BiosynthModuleForm(Form):
     db_id = IntegerField(widget=HiddenInput())
+    db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
     genes = FieldList(
         StringField(default="Gene ID"),
         widget=FieldListAddBtn(label="Add gene"),
@@ -131,6 +135,16 @@ class BioSynthForm(Form):
     modules = FieldList(
         FormField(BiosynthModuleForm),
         widget=FieldListAddBtn(label="Add module"),
+    )
+
+    operons = FieldList(
+        FormField(OperonForm),
+        widget=FieldListAddBtn(label="Add operon"),
+    )
+
+    paths = FieldList(
+        FormField(PathForm),
+        widget=FieldListAddBtn(label="Add biosynthetic pathway"),
     )
 
     submit = SubmitField("Save changes", widget=SubmitIndicator())

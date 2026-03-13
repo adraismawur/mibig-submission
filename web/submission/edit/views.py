@@ -653,6 +653,12 @@ def render_gene_information_edit(
     )
 
 
+@bp_edit.route("/<bgc_id>/save_operons", methods=["POST"])
+@login_required
+def save_operons(bgc_id: str):
+    
+    return(redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="biosynth")))
+
 @bp_edit.route("/<bgc_id>/gene_information/new_addition", methods=["GET", "POST"])
 @login_required
 def add_gene_addition(bgc_id: str):
