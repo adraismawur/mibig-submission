@@ -1,5 +1,5 @@
 {% macro simple_divform(form, is_reviewer=false, reviewed=false) %}
-<form method="post" class="container">
+<form method="post" class="">
     {{ simple_divform_inner(form, is_reviewer, reviewed) }}
 </form>
 {% endmacro %}
@@ -7,7 +7,7 @@
 {% macro simple_divform_inner(form, is_reviewer=false, reviewed=false ) %}
 <fieldset>
     {% for field in form %}
-    {% if field.type == "HiddenField" %}
+    {% if field.type == "HiddenField" or field.widget.input_type == "hidden"%}
     {{field}}
     {% else %}
     <div id="{{ field.id }}" class="form-group">
@@ -24,6 +24,10 @@
 
 {% set is_required = " fw-bold" %}
 {% set ns = namespace(delete=true) %}
+
+{% if field.widget.input_type == "hidden" %}
+{{field}}
+{% else %}
 
 {% if field.type == 'SubmitField' %}
 <div>
@@ -74,10 +78,16 @@
 </div>
 
 {% elif field.type == 'BooleanField' %}
+
 <div class="form-check">
-    {{field.label(class='form-label'~is_required)}}
-    {{ field(class='form-check-input' + (' is-invalid' if field.errors else '')) }}
     {{descr(field)}}
+    <label>
+        {{ field(class='form-check-input filled-in blue' + (' is-invalid' if field.errors else '')) }}
+        <span style="color:black">
+            {{field.label.text}}
+        </span>
+    </label>
+
 </div>
 
 {% elif field.type == "SelectField" or field.type == "SelectMultipleField" %}
@@ -97,6 +107,7 @@
 {% endfor %}
 {% endif %}
 
+{% endif %}
 {% endif %}
 {% endmacro %}
 
@@ -211,13 +222,13 @@
 {% macro list_existing_entries(existing_entries, start, limit, search, record_count) %}
 
 <div id="existing-entry" class="form-group subgroup">
-    <div class="container">
+    <div class="">
         <div class="row">
-            <div class="col-md-auto">
+            <div class="col">
                 <input type="text" class="form-control" id="bgcSearch" placeholder="Search for BGC ID"
                     value="{{search}}">
             </div>
-            <div class="col-md">
+            <div class="col">
                 <button id="searchBtn" class="btn btn-primary">Search</button>
                 <script type="application/javascript">
                     const searchBtn = document.getElementById('searchBtn');
@@ -249,17 +260,17 @@
         {% endfor %}
     </table>
     <div class="container">
-        <div class="row justify-content-md-center">
-            <div class="col-1">
+        <div class="row">
+            <div class="col s1 offset-s4">
                 {% if start | int > 0 %}
                 <a href="/?start={{[0, start | int - 10] | max}}#existing-entry"><button
                         class="btn btn-primary">&lt;</button></a>
                 {% endif %}
             </div>
-            <div class="col-2 text-center">
+            <div class="col s2 center-align">
                 {{start | int + 1}} - {{[record_count, start | int + 10 ] | min}}
             </div>
-            <div class="col-1">
+            <div class="col s1">
                 {% if start | int + 10 < record_count %} <a
                     href="/?start={{[record_count, start | int + 10 ] | min}}#existing-entry"><button
                         class="btn btn-primary">&gt;</button></a>
@@ -274,7 +285,7 @@
 {% macro descr(field) %}
 
 {% if field.description %}
-<p class="form-text text-muted" style="margin-bottom:0">{{field.description}}</p>
+<p class="form-text grey-text text-darken-1" style="margin-bottom:0">{{field.description}}</p>
 {% endif %}
 
 {% endmacro %}

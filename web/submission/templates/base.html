@@ -8,37 +8,39 @@
     <script src="https://unpkg.com/htmx.org@1.9.10"
         integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC"
         crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
-        integrity="sha256-YMa+wAM6QkVyz999odX7lPRxkoYAan8suedu4k2Zur8=" crossorigin="anonymous"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
-    <link href="{{ url_for('static', filename='css/bootstrap-theme.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
 </head>
 
 <body>
-    <div class="container-fluid navbar-mibig">
-        <h1><a href="{{ url_for('main.index') }}">MIBiG Submission Prototype</a></h1>
-        {% block header -%}{%- endblock %}
-        {% if current_user and current_user.is_authenticated -%}
-        <ul class="user-menu">
-            <li><a href="/profile">{{ m.icon('user') | safe}} {{ current_user.info.call_name }}</a></li>
-            <li><a href="/auth/logout">Log out</a></li>
-        </ul>
-        {%- endif %}
-    </div>
+    <nav class="navbar-mibig">
+        <div class="nav-wrapper row">
+            <a class="col left logo" href="{{ url_for('main.index') }}"><img class="logo"
+                    src="{{url_for('static', filename='img/mibig_logo.svg')}}"> </a>
+            <a class="header-title col s4 left">Submission Portal</a>
+            <a class="edit-header">{% block header -%}{%- endblock %}</a>
+            {% if current_user and current_user.is_authenticated -%}
+            <ul class="right hide-on-med-and-down">
+                <li><a href="/profile">{{ m.icon('user') | safe}} {{ current_user.info.call_name }}</a></li>
+                <li><a href="/auth/logout">Log out</a></li>
+            </ul>
+            {%- endif %}
+        </div>
+    </nav>
     {% with messages = get_flashed_messages(with_categories=true) -%}
     {% if messages -%}
-    <div class="container flashes">
+    <div class="row flashes">
         {% for cat, message in messages -%}
         {% if cat == "error" -%}
-        <div class="alert alert-danger" role="alert">{{m.icon('exclamation') | safe}} {{ message }}</div>
+        <div class="alert z-depth-3 red lighten-4" role="alert">{{m.icon('exclamation') | safe}} {{ message }}</div>
         {% elif cat == "warning" -%}
-        <div class="alert alert-warning" role="alert">{{m.icon('question') | safe}} {{ message }}</div>
+        <div class="alert z-depth-3 orange lighten-4" role="alert">{{m.icon('question') | safe}} {{ message }}</div>
         {%- else %}
-        <div class="alert alert-success" role="alert">{{m.icon('check') | safe}} {{ message }}</div>
+        <div class="alert z-depth-3 green lighten-3" role="alert">{{m.icon('check') | safe}} {{ message }}</div>
         {%- endif %}
 
         {%- endfor %}
