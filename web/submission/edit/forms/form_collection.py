@@ -11,13 +11,26 @@ from submission.edit.forms.biosynthesis import (
     RibosomalForm,
     SaccharideForm,
     TerpeneForm,
-    OtherForm,
+    ClassOtherForm,
     OperonMultipleForm,
 )
 from submission.edit.forms.biosynthesis_paths import PathMultipleForm
-from submission.edit.forms.biosynthesis_modules import ModulesForm
+from submission.edit.forms.biosynthesis_modules import (
+    CalForm,
+    NRPS_I_Form,
+    NRPS_VI_Form,
+    PKSIterativeForm,
+    PKSModularForm,
+    PKSTransForm,
+    ModuleOtherForm,
+)
 from submission.edit.forms.tailoring import TailoringMultipleForm
-from submission.edit.forms.gene_information import AddGeneForm, AnnotationForm, DeleteGeneForm, GeneInformationForm
+from submission.edit.forms.gene_information import (
+    AddGeneForm,
+    AnnotationForm,
+    DeleteGeneForm,
+    GeneInformationForm,
+)
 from submission.edit.forms.compounds import CompoundsForm, CompoundsSubForm
 from submission.edit.forms.finalize import FinalizeForm
 
@@ -33,20 +46,27 @@ class FormCollection:
     # Biosynthesis classes
     NRPS = NRPSForm
     PKS = PKSForm
-    Ribosomal = RibosomalForm
-    Saccharide = SaccharideForm
-    Terpene = TerpeneForm
-    Other = OtherForm
+    ribosomal = RibosomalForm
+    saccharide = SaccharideForm
+    terpene = TerpeneForm
+    other = ClassOtherForm
 
     operons = OperonMultipleForm
     paths = PathMultipleForm
-    modules = ModulesForm
+
+    # Biosynthesis modules
+    cal = CalForm
+    nrps_type1 = NRPS_I_Form
+    nrps_type6 = NRPS_VI_Form
+    pks_iterative = PKSIterativeForm
+    pks_modular = PKSModularForm
+    pks_trans_at = PKSTransForm
 
     tailoring = TailoringMultipleForm
     annotation = GeneInformationForm
 
     compounds = CompoundsForm
-    edit_compound = CompoundsSubForm 
+    edit_compound = CompoundsSubForm
     new_compound = CompoundsSubForm
 
     gene_information = GeneInformationForm

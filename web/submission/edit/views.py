@@ -154,6 +154,7 @@ def redraft_bgc(bgc_id: str):
 
     return render_template("edit/redraft.html", bgc_id=bgc_id, entry_json=entry_json)
 
+
 @bp_edit.route("/discard/<bgc_id>", methods=["GET", "POST"])
 @login_required
 def discard_bgc(bgc_id: str):
@@ -215,7 +216,6 @@ def class_buttons(bgc_id: str) -> str:
     for cls in classes:
         class_btns += f"<a class='btn btn-light' style='margin: 5px' role='button' href='/edit/{bgc_id}/biosynth/{cls}'>{cls}</a>"
     return class_btns
-
 
 
 @bp_edit.route("/<bgc_id>/biosynth/operons", methods=["GET", "POST"])
@@ -303,7 +303,9 @@ def create_biosynth_class_new(bgc_id):
 
 @bp_edit.route("/<bgc_id>/biosynth/new_class/<class_type>", methods=["GET", "POST"])
 @login_required
-def create_biosynth_class(bgc_id: str, class_type: str) -> Union[str, response.Response]:
+def create_biosynth_class(
+    bgc_id: str, class_type: str
+) -> Union[str, response.Response]:
     """Create a new biosynthetic module for a certain BGC"""
 
     choices = [
@@ -312,7 +314,7 @@ def create_biosynth_class(bgc_id: str, class_type: str) -> Union[str, response.R
         {"label": "Ribosomal", "value": "ribosomal"},
         {"label": "Saccharide", "value": "saccharide"},
         {"label": "Terpene", "value": "terpene"},
-        {"label": "Other", "value": "other"},
+        {"label": "Other", "value": "class_other"},
     ]
 
     entry = Entry.get(bgc_id)
@@ -330,7 +332,9 @@ def create_biosynth_class(bgc_id: str, class_type: str) -> Union[str, response.R
         else:
             flash("Error creating new biosynthetic module", "error")
             return redirect(
-                url_for("edit.create_biosynth_class", bgc_id=bgc_id, class_type=class_type)
+                url_for(
+                    "edit.create_biosynth_class", bgc_id=bgc_id, class_type=class_type
+                )
             )
 
     return render_template(
@@ -342,7 +346,9 @@ def create_biosynth_class(bgc_id: str, class_type: str) -> Union[str, response.R
     )
 
 
-@bp_edit.route("/<bgc_id>/biosynth/edit_class/<class_id>/<class_type>", methods=["GET", "POST"])
+@bp_edit.route(
+    "/<bgc_id>/biosynth/edit_class/<class_id>/<class_type>", methods=["GET", "POST"]
+)
 @login_required
 def edit_biosynth_class(
     bgc_id: str, class_id: str, class_type: str
@@ -365,6 +371,9 @@ def edit_biosynth_class(
         reviewed = False
 
     if request.method == "POST" and form.validate():
+
+        form.data["class"] = form.data["class_"]
+
         error = Entry.update_class(bgc_id, class_id, form.data)
         if error:
             flash(f"Failed to update biosynthetic class: {error}", "error")
@@ -373,7 +382,10 @@ def edit_biosynth_class(
 
         return redirect(
             url_for(
-                "edit.edit_biosynth_class", bgc_id=bgc_id, class_id=class_id, class_type=class_type
+                "edit.edit_biosynth_class",
+                bgc_id=bgc_id,
+                class_id=class_id,
+                class_type=class_type,
             )
         )
 
@@ -385,6 +397,7 @@ def edit_biosynth_class(
         is_reviewer=current_user.has_role(Role.REVIEWER),
         reviewed=reviewed,
     )
+
 
 @bp_edit.route("/<bgc_id>/biosynth/delete_class/<class_id>", methods=["GET", "POST"])
 @login_required
@@ -404,7 +417,6 @@ def remove_biosynth_class(bgc_id: str, class_id: int):
     )
 
 
-
 @bp_edit.route("/<bgc_id>/biosynth/new_module", methods=["GET"])
 @login_required
 def create_biosynth_module_new(bgc_id):
@@ -419,12 +431,12 @@ def create_biosynth_module(bgc_id: str, module: str) -> Union[str, response.Resp
 
     choices = [
         {"label": "Co-enzyme A ligase (CAL)", "value": "cal"},
-        {"label": "NRPS Type I", "value": "nrps-type1"},
-        {"label": "NRPS Type VI", "value": "nrps-type6"},
-        {"label": "Iterative PKS", "value": "pks-iterative"},
-        {"label": "Modular PKS", "value": "pks-modular"},
-        {"label": "Trans-AT PKS", "value": "pks-trans-at"},
-        {"label": "Other", "value": "other"},
+        {"label": "NRPS Type I", "value": "nrps_type1"},
+        {"label": "NRPS Type VI", "value": "nrps_type6"},
+        {"label": "Iterative PKS", "value": "pks_iterative"},
+        {"label": "Modular PKS", "value": "pks_modular"},
+        {"label": "Trans-AT PKS", "value": "pks_trans_at"},
+        {"label": "Other", "value": "module_other"},
     ]
 
     entry = Entry.get(bgc_id)
@@ -454,7 +466,9 @@ def create_biosynth_module(bgc_id: str, module: str) -> Union[str, response.Resp
     )
 
 
-@bp_edit.route("/<bgc_id>/biosynth/edit_module/<name>/<module>", methods=["GET", "POST"])
+@bp_edit.route(
+    "/<bgc_id>/biosynth/edit_module/<name>/<module>", methods=["GET", "POST"]
+)
 @login_required
 def edit_biosynth_module(
     bgc_id: str, name: str, module: str
@@ -497,6 +511,7 @@ def edit_biosynth_module(
         reviewed=reviewed,
     )
 
+
 @bp_edit.route("/<bgc_id>/biosynth/move_module/<id_from>/<id_to>")
 @login_required
 def move_biosynth_module(bgc_id: str, id_from: int, id_to: int):
@@ -506,9 +521,8 @@ def move_biosynth_module(bgc_id: str, id_from: int, id_to: int):
     if error:
         flash("Could not reorder modules: " + str(error), "error")
         return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="biosynth"))
-    
+
     return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="biosynth"))
-        
 
 
 @bp_edit.route("/<bgc_id>/biosynth/delete_module/<name>", methods=["GET", "POST"])
@@ -547,7 +561,9 @@ def create_compound(bgc_id: str):
     )
 
 
-@bp_edit.route("/<bgc_id>/compounds/<compound_id>/edit_compound", methods=["GET", "POST"])
+@bp_edit.route(
+    "/<bgc_id>/compounds/<compound_id>/edit_compound", methods=["GET", "POST"]
+)
 @login_required
 def edit_compound(bgc_id: str, compound_id: int):
 
@@ -563,7 +579,7 @@ def edit_compound(bgc_id: str, compound_id: int):
         if response.status_code == 200:
             flash("Compound updated successfully")
         else:
-            flash("Failed to update compound: " + response.json()['error'], "error")
+            flash("Failed to update compound: " + response.json()["error"], "error")
 
     return render_template(
         "wizard/compound_edit.html", bgc_id=bgc_id, form=form, new=False
@@ -586,14 +602,17 @@ def remove_compound(bgc_id: str, compound_id: int):
         compound_text=compound_text,
     )
 
-def render_gene_information_edit(bgc_id: str, type: str, form_type: str, id: int, new: bool):
+
+def render_gene_information_edit(
+    bgc_id: str, type: str, form_type: str, id: int, new: bool
+):
     data_get_function = {
         "new_addition": Entry.get_gene_addition,
         "new_deletion": Entry.get_gene_deletion,
         "new_annotation": Entry.get_gene_annotation,
         "edit_addition": Entry.get_gene_addition,
         "edit_deletion": Entry.get_gene_deletion,
-        "edit_annotation":Entry.get_gene_annotation ,
+        "edit_annotation": Entry.get_gene_annotation,
     }
 
     data_set_function = {
@@ -602,7 +621,7 @@ def render_gene_information_edit(bgc_id: str, type: str, form_type: str, id: int
         "new_annotation": Entry.update_or_create_gene_annotation,
         "edit_addition": Entry.update_or_create_gene_addition,
         "edit_deletion": Entry.update_or_create_gene_deletion,
-        "edit_annotation":Entry.update_or_create_gene_annotation,
+        "edit_annotation": Entry.update_or_create_gene_annotation,
     }
 
     if new and request.method == "GET":
@@ -610,7 +629,7 @@ def render_gene_information_edit(bgc_id: str, type: str, form_type: str, id: int
     else:
         if request.method == "POST":
             form = getattr(FormCollection, form_type)(request.form)
-            data, error  = data_set_function[form_type](bgc_id, form.data)
+            data, error = data_set_function[form_type](bgc_id, form.data)
 
             if error:
                 flash(error, "error")
@@ -630,40 +649,68 @@ def render_gene_information_edit(bgc_id: str, type: str, form_type: str, id: int
         form=form,
         new=new,
         bgc_id=bgc_id,
-        type=type
+        type=type,
     )
+
 
 @bp_edit.route("/<bgc_id>/gene_information/new_addition", methods=["GET", "POST"])
 @login_required
 def add_gene_addition(bgc_id: str):
-    return render_gene_information_edit(bgc_id, "gene addition", "new_addition", None, True)
+    return render_gene_information_edit(
+        bgc_id, "gene addition", "new_addition", None, True
+    )
+
 
 @bp_edit.route("/<bgc_id>/gene_information/new_deletion", methods=["GET", "POST"])
 @login_required
-def  add_gene_deletion(bgc_id: str):
-    return render_gene_information_edit(bgc_id, "gene deletion", "new_deletion", None, True)
+def add_gene_deletion(bgc_id: str):
+    return render_gene_information_edit(
+        bgc_id, "gene deletion", "new_deletion", None, True
+    )
+
 
 @bp_edit.route("/<bgc_id>/gene_information/new_annotation", methods=["GET", "POST"])
 @login_required
 def add_gene_annotation(bgc_id: str):
-    return render_gene_information_edit(bgc_id, "gene annotation", "new_annotation", None, True)
+    return render_gene_information_edit(
+        bgc_id, "gene annotation", "new_annotation", None, True
+    )
 
-@bp_edit.route("/<bgc_id>/gene_information/<addition_id>/edit_addition", methods=["GET", "POST"])
+
+@bp_edit.route(
+    "/<bgc_id>/gene_information/<addition_id>/edit_addition", methods=["GET", "POST"]
+)
 @login_required
 def edit_gene_addition(bgc_id: str, addition_id: int):
-    return render_gene_information_edit(bgc_id, "gene addition", "edit_addition", addition_id, False)
+    return render_gene_information_edit(
+        bgc_id, "gene addition", "edit_addition", addition_id, False
+    )
 
-@bp_edit.route("/<bgc_id>/gene_information/<deletion_id>/edit_deletion", methods=["GET", "POST"])
+
+@bp_edit.route(
+    "/<bgc_id>/gene_information/<deletion_id>/edit_deletion", methods=["GET", "POST"]
+)
 @login_required
 def edit_gene_deletion(bgc_id: str, deletion_id: int):
-    return render_gene_information_edit(bgc_id, "gene addition", "edit_deletion", deletion_id, False)
+    return render_gene_information_edit(
+        bgc_id, "gene addition", "edit_deletion", deletion_id, False
+    )
 
-@bp_edit.route("/<bgc_id>/gene_information/<annotation_id>/edit_annotation", methods=["GET", "POST"])
+
+@bp_edit.route(
+    "/<bgc_id>/gene_information/<annotation_id>/edit_annotation",
+    methods=["GET", "POST"],
+)
 @login_required
 def edit_gene_annotation(bgc_id: str, annotation_id: int):
-    return render_gene_information_edit(bgc_id, "gene addition", "edit_annotation", annotation_id, False)
+    return render_gene_information_edit(
+        bgc_id, "gene addition", "edit_annotation", annotation_id, False
+    )
 
-@bp_edit.route("/<bgc_id>/gene_information/delete/<type>/<information_id>", methods=["GET", "POST"])
+
+@bp_edit.route(
+    "/<bgc_id>/gene_information/delete/<type>/<information_id>", methods=["GET", "POST"]
+)
 @login_required
 def remove_gene_information(bgc_id: str, type: str, information_id: int):
 
@@ -693,21 +740,27 @@ def remove_gene_information(bgc_id: str, type: str, information_id: int):
         if error is not None:
             flash(error, "error")
 
-        return redirect(url_for('edit.edit_bgc', bgc_id=bgc_id, form_id="gene_information"))
+        return redirect(
+            url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="gene_information")
+        )
 
-    data_text, error = type_dict['get_method'](bgc_id, information_id, pretty=True)
+    data_text, error = type_dict["get_method"](bgc_id, information_id, pretty=True)
 
     if error is not None:
-        flash(f"Could not retrieve data for {type_dict['human_readable']} to delete: {error}", "error")
-        return(redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="gene_information")))
+        flash(
+            f"Could not retrieve data for {type_dict['human_readable']} to delete: {error}",
+            "error",
+        )
+        return redirect(
+            url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="gene_information")
+        )
 
     return render_template(
         "wizard/gene_information_remove.html",
         bgc_id=bgc_id,
-        description=type_dict['human_readable'],
+        description=type_dict["human_readable"],
         data_text=data_text,
     )
-
 
 
 @bp_edit.route("/render_smarts", methods=["POST"])

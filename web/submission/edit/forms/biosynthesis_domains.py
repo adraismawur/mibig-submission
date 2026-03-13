@@ -1,5 +1,6 @@
 from wtforms import (
     Form,
+    IntegerField,
     StringField,
     HiddenField,
     BooleanField,
@@ -8,6 +9,7 @@ from wtforms import (
     FieldList,
     validators,
 )
+from wtforms.widgets import HiddenInput
 from submission.utils.custom_fields import (
     ReferenceField,
     TagListField,
@@ -25,6 +27,8 @@ from submission.utils.custom_validators import ValidateCitations
 
 class CondensationDomain(Form):
     # "required": ["type", "gene", "location"]
+    db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_biosynth_module_id = IntegerField(widget=HiddenInput(), default=0)
     _type = HiddenField("condensation")
     gene = GeneIdField("Gene")
     location = FormField(location_form_factory())
@@ -49,6 +53,9 @@ class CondensationDomain(Form):
 
 
 class AdenylationDomain(Form):
+    db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_biosynth_module_id = IntegerField(widget=HiddenInput(), default=0)
+
     # "required": ["type", "gene", "location"],
     class SubstateForm(Form):
         # "required": ["name", "proteinogenic", "structure"]
@@ -79,6 +86,8 @@ class AdenylationDomain(Form):
 
 class CarrierDomain(Form):
     # "required": ["type", "gene", "location"]
+    db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_biosynth_module_id = IntegerField(widget=HiddenInput(), default=0)
     _type = HiddenField("carrier")
     subtype = SelectField(
         "Subtype", choices=["ACP", "PCP"], widget=SelectDefault(), validate_choice=False
@@ -94,6 +103,8 @@ class CarrierDomain(Form):
 
 
 class AminotransferaseDomain(Form):
+    db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_biosynth_module_id = IntegerField(widget=HiddenInput(), default=0)
     _type = HiddenField("aminotransferase")
     gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
     location = FormField(location_form_factory(required=True), label="Location *")
@@ -178,8 +189,9 @@ class OxidaseDomain(Form):
     gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
     location = FormField(location_form_factory(required=True), label="Location *")
 
+
 modification_domain_types = [
-    "other", 
+    "other",
     "epimerase",
     "ketoreductase",
     "enoylreductase",
@@ -195,7 +207,10 @@ modification_domain_types = [
     "thioesterase",
 ]
 
+
 class ModificationDomainForm(Form):
+    db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_biosynth_module_id = IntegerField(widget=HiddenInput(), default=0)
     type = SelectField(choices=modification_domain_types)
     gene = StringField()
     location = FormField(location_form_factory())
@@ -243,6 +258,8 @@ class ModificationDomainForm(Form):
 
 class MonomerForm(Form):
     # "required": ["evidence", "name", "structure"]
+    db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_biosynth_module_id = IntegerField(widget=HiddenInput(), default=0)
     name = StringField("Name *", validators=[validators.InputRequired()])
     structure = smiles_field_factory(label="Structure (SMILES)", required=True)
     evidence = FieldList(
@@ -253,6 +270,9 @@ class MonomerForm(Form):
 
 
 class AcyltransferaseForm(Form):
+    db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_biosynth_module_id = IntegerField(widget=HiddenInput(), default=0)
+
     class SubstrateForm(Form):
         name = SelectField(
             "Name",

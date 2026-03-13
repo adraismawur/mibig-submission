@@ -94,7 +94,7 @@ Editing {{ bgc_id }}
                     </td>
                     <td>
                         <a
-                            href="{{ url_for('edit.edit_biosynth_module', bgc_id=bgc_id, name=module['name'].data, module=module['type'].data) }}">
+                            href="{{ url_for('edit.edit_biosynth_module', bgc_id=bgc_id, name=module['name'].data, module=module['type'].data.replace('-', '_')) }}">
                             <button type="button" class="btn btn-primary" type="button">Edit</button>
                         </a>
                     </td>

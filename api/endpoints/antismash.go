@@ -418,7 +418,7 @@ func PrefillAntismash(newEntry *entry.Entry, antismashResult *AntismashResult) {
 				break
 			case "CDS":
 				if len(feature.Qualifiers.Gene) > 0 {
-					newEntry.Genes = append(newEntry.Genes, entry.Gene{
+					newEntry.GeneList = append(newEntry.GeneList, entry.Gene{
 						Name: feature.Qualifiers.Gene[0],
 					})
 				}
@@ -551,8 +551,8 @@ func GenerateAntismashBiosynthesisModule(feature *AntismashResultFeature, module
 	return &module, nil
 }
 
-func GeneratePKSATDomain(feature *AntismashResultFeature) (*biosynthesis.ATModuleDomain, error) {
-	atDomain := biosynthesis.ATModuleDomain{}
+func GeneratePKSATDomain(feature *AntismashResultFeature) (*biosynthesis.AcetyltransferaseDomain, error) {
+	atDomain := biosynthesis.AcetyltransferaseDomain{}
 
 	atDomain.Gene = feature.Qualifiers.LocusTags[0]
 	atDomain.Location.From = -1
@@ -561,8 +561,8 @@ func GeneratePKSATDomain(feature *AntismashResultFeature) (*biosynthesis.ATModul
 	return &atDomain, nil
 }
 
-func GenerateCarrier(gene string, subType string) (*biosynthesis.CarrierModuleDomain, error) {
-	domain := biosynthesis.CarrierModuleDomain{}
+func GenerateCarrier(gene string, subType string) (*biosynthesis.CarrierDomain, error) {
+	domain := biosynthesis.CarrierDomain{}
 
 	domain.Gene = gene
 	domain.Subtype = subType
@@ -577,13 +577,13 @@ var modificationDomainTypeMap = map[string]string{
 	"KR": "ketoreductase",
 }
 
-func GenerateModificationDomain(gene string, domainType string) (*biosynthesis.ModificationModuleDomain, error) {
-	domain := biosynthesis.ModificationModuleDomain{}
+func GenerateModificationDomain(gene string, domainType string) (*biosynthesis.ModificationDomain, error) {
+	domain := biosynthesis.ModificationDomain{}
 
 	if mibigDomainType, ok := modificationDomainTypeMap[domainType]; !ok {
 		return nil, errors.New("modification domain type not supported")
 	} else {
-		domain.DomainType = mibigDomainType
+		domain.Type = mibigDomainType
 	}
 
 	domain.Gene = gene

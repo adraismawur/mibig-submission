@@ -12,11 +12,13 @@ import (
 	"github.com/adraismawur/mibig-submission/util"
 	"github.com/goccy/go-json"
 	"github.com/lib/pq"
+	"github.com/mitchellh/mapstructure"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"log/slog"
 	"os"
 	"path/filepath"
+	"reflect"
 )
 
 type MinimalEntry struct {
@@ -47,8 +49,8 @@ type Entry struct {
 
 	// internal data starts here
 
-	Genes   []Gene `json:"-" gorm:"ForeignKey:EntryID"`
-	Embargo bool   `json:"embargo,omitempty"`
+	GeneList []Gene `json:"-" gorm:"ForeignKey:EntryID"`
+	Embargo  bool   `json:"embargo,omitempty"`
 }
 
 func init() {
@@ -56,20 +58,66 @@ func init() {
 	models.Models = append(models.Models, &Gene{})
 }
 
-// ParseEntry attempts to parse an entry json given as a byte array into an entry struct
-func ParseEntry(jsonString []byte) (*Entry, error) {
-	var entry *Entry
+func ParseEntryFallback(entryJson []byte, entry *Entry) error {
+	// first read the json into a map
+	entryMap := make(map[string]any)
 
-	if err := json.Unmarshal(jsonString, &entry); err != nil {
-		slog.Error("[entry] Failed to unmarshal annotation JSON", "error", err.Error())
-		return nil, err
+	err := json.Unmarshal(entryJson, &entryMap)
+
+	if err != nil {
+		return err
 	}
 
-	EnsureEntryDefaults(entry)
+	// first problem encountered: sometimes the bioactivity name does not correspond to the schema:
+	compounds := entryMap["compounds"].([]interface{})
 
-	PopulateBiosynthIndexes(entry)
+	for _, compound := range compounds {
+		c := compound.(map[string]interface{})
 
-	return entry, nil
+		bioactivities, ok := c["bioactivities"].([]interface{})
+		if !ok {
+			continue
+		}
+		for _, bioactivity := range bioactivities {
+			b := bioactivity.(map[string]interface{})
+			nameType := reflect.TypeOf(b["name"])
+			if nameType.Kind() != reflect.String {
+				slog.Warn("[entry] Found fix: bad bioactivity name")
+				actualName := b["name"].(map[string]interface{})["activity"]
+				b["name"] = actualName
+			}
+		}
+	}
+
+	err = mapstructure.Decode(&entryMap, &entry)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ParseEntry attempts to parse an entry json given as a byte array into an entry struct
+func ParseEntry(jsonString []byte) (*Entry, error) {
+	entry := Entry{}
+
+	if err := json.Unmarshal(jsonString, &entry); err != nil {
+		slog.Warn("[entry] Failed to unmarshal annotation JSON. Attempting to recover...", "error", err.Error())
+
+		err = ParseEntryFallback(jsonString, &entry)
+
+		if err != nil {
+			slog.Error("[entry] Failed to unmarshal annotation JSON using fallback.", "error", err.Error())
+			return nil, err
+		}
+	}
+
+	EnsureEntryDefaults(&entry)
+
+	PopulateBiosynthIndexes(&entry)
+
+	return &entry, nil
 }
 
 // EnsureEntryDefaults ensures that an entry has sane default values, e.g. no NULL values or fields that should not
@@ -138,14 +186,17 @@ func LoadEntryTransaction(tx *gorm.DB, path string, skip bool) (*Entry, error) {
 		if !skip {
 			slog.Error("[entry] Failed to parse entry file ", "path", path)
 			return nil, err
+		} else {
+			slog.Warn("[entry] Failed to parse entry file. Skipping this entry", "path", path)
 		}
-		slog.Warn("[entry] Failed to parse entry file. Skipping this entry", "path", path)
 		return nil, nil
 	}
 
 	if err := tx.Create(entry).Error; err != nil {
 		return nil, err
 	}
+
+	slog.Info("[entry] Successfully preloaded entry", "path", path)
 
 	return entry, nil
 }
@@ -202,7 +253,7 @@ func LoadEntries(db *gorm.DB, path string) error {
 
 			fullPath := filepath.Join(path, file.Name())
 
-			_, err = LoadEntryTransaction(db, fullPath, true)
+			_, err = LoadEntryTransaction(tx, fullPath, true)
 
 			if err != nil {
 				slog.Error("[db] Failed to load entry", "path", fullPath)

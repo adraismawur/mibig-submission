@@ -121,7 +121,12 @@ func createEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
 	accession := c.Param("accession")
 
 	var class biosynthesis.BiosyntheticClass
-	c.ShouldBindJSON(&class)
+	err := c.ShouldBindJSON(&class)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
+		return
+	}
 
 	exists, err := entry.GetEntryExists(db, accession)
 
@@ -134,7 +139,15 @@ func createEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	err = biosynthesis.CreateEntryBiosynthesisClass(db, accession, class)
+	biosynth, err := biosynthesis.GetEntryBiosynthesis(db, accession)
+
+	if err != nil {
+		slog.Error("[endpoints] [biosynth] could not find entry", "accession", accession)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	err = biosynthesis.CreateBiosynthesisClass(db, biosynth.ID, class)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
@@ -153,7 +166,7 @@ func updateEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	class_id, err := strconv.Atoi(id)
+	classId, err := strconv.Atoi(id)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "could not parse parameter: id"})
@@ -169,7 +182,7 @@ func updateEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	if uint64(class_id) != class.ID {
+	if uint64(classId) != class.ID {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Name mismatch between request URL and data"})
 		return
 	}
@@ -187,7 +200,7 @@ func updateEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	err = biosynthesis.UpdateEntryBiosynthesisClass(db, accession, &class)
+	err = biosynthesis.UpdateEntryBiosynthesisClass(db, classId, class)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})

@@ -63,7 +63,6 @@ class Entry(db.Model):
         if response.status_code == 200:
             entry = response.json()
 
-
             return entry
         return None
 
@@ -85,11 +84,14 @@ class Entry(db.Model):
         if response.status_code == 200:
             biosynthetic_class = response.json()
 
-            biosynthetic_class['class_'] = biosynthetic_class['class']
+            biosynthetic_class["class_"] = biosynthetic_class["class"]
+
+            # 'other' overlaps on 'other' module and 'other' class. fix that here
+            if biosynthetic_class["class"] == "other":
+                biosynthetic_class["class"] = "class_other"
 
             return biosynthetic_class
         return None
-    
 
     def get_class_text(bgc_id: str, class_id: int):
         response = requests.get(
@@ -103,8 +105,11 @@ class Entry(db.Model):
 
     def create_class(bgc_id: str, data: dict[str, any]):
 
-        if 'class_' in data:
-            data['class'] = data['class_']
+        if "class_" in data:
+            data["class"] = data["class_"]
+            # 'other' overlaps on 'other' module and 'other' class. fix that here
+            if data["class"] == "class_other":
+                data["class"] = "other"
 
         response = requests.post(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/class",
@@ -118,9 +123,12 @@ class Entry(db.Model):
 
     def update_class(bgc_id: str, class_id: int, data: dict[str, any]):
 
-        if 'class_' in data:
-            data['class'] = data['class_']
-            
+        if "class_" in data:
+            data["class"] = data["class_"]
+            # 'other' overlaps on 'other' module and 'other' class. fix that here
+            if data["class"] == "class_other":
+                data["class"] = "other"
+
         response = requests.post(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/class/{class_id}",
             headers={"Authorization": f"Bearer {session['token']}"},
@@ -129,7 +137,7 @@ class Entry(db.Model):
         if response.status_code == 200:
             return None
 
-        return response.json()['error']
+        return response.json()["error"]
 
     def delete_class(bgc_id: str, class_id: int):
         response = requests.delete(
@@ -147,24 +155,26 @@ class Entry(db.Model):
             headers={"Authorization": f"Bearer {session['token']}"},
         )
         if response.status_code == 200:
-            entry = response.json()
+            data = response.json()
 
-            return entry
+            if data["type"] == "other":
+                data["type"] = "module_other"
+
+            data["type"] = data["type"].replace("-", "_")
+
+            return data
         return None
-    
+
     def move_module(bgc_id, id_from, id_to):
         response = requests.post(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/module_reorder",
             headers={"Authorization": f"Bearer {session['token']}"},
-            json={
-                "id_from": int(id_from),
-                "id_to": int(id_to)
-            }
+            json={"id_from": int(id_from), "id_to": int(id_to)},
         )
         if response.status_code == 200:
             return None
-    
-        return response.json()['error']
+
+        return response.json()["error"]
 
     def get_module_text(bgc_id: str, name: str):
         response = requests.get(
@@ -177,6 +187,11 @@ class Entry(db.Model):
         return None
 
     def create_module(bgc_id: str, data: dict[str, any]):
+        if data["type"] == "module_other":
+            data["type"] = "other"
+
+        data["type"] = data["type"].replace("_", "-")
+
         response = requests.post(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/module",
             headers={"Authorization": f"Bearer {session['token']}"},
@@ -188,6 +203,11 @@ class Entry(db.Model):
         return False
 
     def update_module(bgc_id: str, name: str, data: dict[str, any]):
+        if data["type"] == "module_other":
+            data["type"] = "other"
+
+        data["type"] = data["type"].replace("_", "-")
+
         response = requests.post(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/module/{name}",
             headers={"Authorization": f"Bearer {session['token']}"},
@@ -225,35 +245,32 @@ class Entry(db.Model):
         return None
 
     def update_compound(bgc_id: str, compound_data: dict[any]):
-        compound_data['id'] = int(compound_data['id'])
-        compound_data['mass'] = float(compound_data['mass'])
+        compound_data["id"] = int(compound_data["id"])
+        compound_data["mass"] = float(compound_data["mass"])
 
         request_url = f"{current_app.config['API_BASE']}/entry/{bgc_id}/compounds/{compound_data['id']}"
-
 
         response = requests.post(
             request_url,
             headers={"Authorization": f"Bearer {session['token']}"},
-            json=compound_data
+            json=compound_data,
         )
 
         return response
-    
+
     def create_compound(bgc_id: str, compound_data: dict[any]):
-        compound_data['id'] = 0
-        compound_data['mass'] = float(compound_data['mass'])
+        compound_data["id"] = 0
+        compound_data["mass"] = float(compound_data["mass"])
 
         request_url = f"{current_app.config['API_BASE']}/entry/{bgc_id}/compounds"
 
         response = requests.post(
             request_url,
             headers={"Authorization": f"Bearer {session['token']}"},
-            json=compound_data
+            json=compound_data,
         )
 
         return response.json()
-
-
 
     def get_compound_text(bgc_id: str, compound_id: int):
         response = requests.get(
@@ -265,7 +282,7 @@ class Entry(db.Model):
             return response.text
 
         return None
-    
+
     def delete_compound(bgc_id: str, compound_id: int):
         response = requests.delete(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/compounds/{compound_id}",
@@ -275,7 +292,6 @@ class Entry(db.Model):
             return True
 
         return False
-    
 
     def get_gene_addition(bgc_id: str, addition_id: int, pretty=False):
         pretty = str(pretty).lower()
@@ -286,9 +302,8 @@ class Entry(db.Model):
 
         if response.status_code == 200:
             return response.json(), None
-        
-        return None, response.json()['error']
-    
+
+        return None, response.json()["error"]
 
     def get_gene_deletion(bgc_id: str, deletion_id: int, pretty=False):
         pretty = str(pretty).lower()
@@ -299,9 +314,8 @@ class Entry(db.Model):
 
         if response.status_code == 200:
             return response.json(), None
-        
-        return None, response.json()['error']
-    
+
+        return None, response.json()["error"]
 
     def get_gene_annotation(bgc_id: str, annotation_id: int, pretty=False):
         pretty = str(pretty).lower()
@@ -312,49 +326,48 @@ class Entry(db.Model):
 
         if response.status_code == 200:
             return response.json(), None
-        
-        return None, response.json()['error']
-    
+
+        return None, response.json()["error"]
+
     def update_or_create_gene_addition(bgc_id: str, data_json):
         # have to fix the strand here
-        data_json['location']['strand'] = int(data_json['location']['strand'])
-
+        data_json["location"]["strand"] = int(data_json["location"]["strand"])
 
         response = requests.post(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/gene_information/to_add",
             headers={"Authorization": f"Bearer {session['token']}"},
-            json=data_json
+            json=data_json,
         )
 
         if response.status_code == 200:
             return response.json(), None
-        
-        return None, response.json()['error']
+
+        return None, response.json()["error"]
 
     def update_or_create_gene_deletion(bgc_id: str, data_json):
         response = requests.post(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/gene_information/to_delete",
             headers={"Authorization": f"Bearer {session['token']}"},
-            json=data_json
+            json=data_json,
         )
 
         if response.status_code == 200:
             return response.json(), None
-        
-        return None, response.json()['error']
+
+        return None, response.json()["error"]
 
     def update_or_create_gene_annotation(bgc_id: str, data_json):
         response = requests.post(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/gene_information/annotation",
             headers={"Authorization": f"Bearer {session['token']}"},
-            json=data_json
+            json=data_json,
         )
 
         if response.status_code == 200:
             return response.json(), None
-        
-        return None, response.json()['error']
-    
+
+        return None, response.json()["error"]
+
     def remove_gene_addition(bgc_id, addition_id: int):
         response = requests.delete(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/gene_information/to_add/{addition_id}",
@@ -363,9 +376,9 @@ class Entry(db.Model):
 
         if response.status_code == 200:
             return None
-        
-        return response.json()['error']
-    
+
+        return response.json()["error"]
+
     def remove_gene_deletion(bgc_id, deletion_id: int):
         response = requests.delete(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/gene_information/to_delete/{deletion_id}",
@@ -374,9 +387,9 @@ class Entry(db.Model):
 
         if response.status_code == 200:
             return None
-        
-        return response.json()['error']
-    
+
+        return response.json()["error"]
+
     def remove_gene_annotation(bgc_id, annotation_id: int):
         response = requests.delete(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/gene_information/annotation/{annotation_id}",
@@ -385,8 +398,8 @@ class Entry(db.Model):
 
         if response.status_code == 200:
             return None
-        
-        return response.json()['error']
+
+        return response.json()["error"]
 
     @staticmethod
     def get_or_create(bgc_id: str) -> "Entry":
@@ -413,8 +426,8 @@ class Entry(db.Model):
             data (dict): Minimal information to save
         """
 
-        for compound in data['compounds']:
-            compound['mass'] = float(compound['mass'])
+        for compound in data["compounds"]:
+            compound["mass"] = float(compound["mass"])
 
         response = requests.post(
             f"{current_app.config['API_BASE']}/submission",

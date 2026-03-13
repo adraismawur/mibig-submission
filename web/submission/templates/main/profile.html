@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block body %}
+
+<div class="content">
+    <div class="form-wrapper">
+        <h5>Hello {{ current_user.info.name }}.</h5>
+
+        <p>This is your profile page. Here you can change your user details</p>
+
+        <p>Your unique ID used in MIBiG changelogs is {{ current_user.anom_id }}</p>
+        {{ macros.simple_divform(form, is_reviewer=False) }}
+    </div>
+
+</div>
+{% endblock %}

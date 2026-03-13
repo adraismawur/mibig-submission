@@ -12,7 +12,7 @@ var TestPassword = "$2a$10$wOLM7A7gHgQXKKnyZX2J.uWi41KZKd.vfzKqa.w.9hUVFGVk.4LB.
 // CreateTestDB creates a mock database connection for testing purposes
 func CreateTestDB() *gorm.DB {
 	// Create a new SQLite database in memory
-	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("file::memory:"), &gorm.Config{})
 
 	if err != nil {
 		panic(err)

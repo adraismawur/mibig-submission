@@ -20,12 +20,13 @@ const (
 
 // User model that represents a singular user
 type User struct {
-	ID       uint64     `json:"id,omitempty"`
-	Email    string     `json:"email"`
-	Password string     `json:"password,omitempty"`
-	Active   bool       `json:"active,omitempty"`
-	Roles    []UserRole `json:"roles" gorm:"foreignKey:UserID"`
-	Info     UserInfo   `json:"info,omitempty"  gorm:"foreignKey:UserID"`
+	ID        uint64     `json:"db_id"`
+	anonymous bool       `json:"anonymous"`
+	Email     string     `json:"email"`
+	Password  string     `json:"password,omitempty"`
+	Active    bool       `json:"active"`
+	Roles     []UserRole `json:"roles" gorm:"foreignKey:UserID"`
+	Info      UserInfo   `json:"info,omitempty"  gorm:"foreignKey:UserID"`
 }
 
 // LoginRequest type that represents a user request given by a client through a POST request
@@ -36,23 +37,23 @@ type LoginRequest struct {
 
 // UserRole model that represents a list of roles
 type UserRole struct {
-	ID     uint `json:"-" gorm:"primaryKey"`
-	UserID uint `json:"user_id"`
-	Role   Role `json:"role"`
+	ID     uint64 `json:"-" gorm:"primaryKey"`
+	UserID uint64 `json:"user_id"`
+	Role   Role   `json:"role"`
 }
 
 // UserInfo model that represents additional information about a user
 type UserInfo struct {
-	ID            uint   `json:"-" gorm:"primaryKey"`
-	UserID        uint   `json:"user_id"`
-	Alias         string `json:"alias" gorm:"default:"`
-	Name          string `json:"name" gorm:"default:"`
-	CallName      string `json:"call_name" gorm:"default:"`
-	Organization1 string `json:"organization1"`
-	Organization2 string `json:"organization2"`
-	Organization3 string `json:"organization3"`
+	ID            uint64 `json:"db_id" gorm:"primaryKey"`
+	UserID        uint64 `json:"db_user_id"`
+	Alias         string `json:"alias"`
+	Name          string `json:"name"`
+	CallName      string `json:"call_name"`
+	Organisation1 string `json:"organisation_1"`
+	Organisation2 string `json:"organisation_2"`
+	Organisation3 string `json:"organisation_3"`
 	OrcID         string `json:"orc_id"`
-	Public        bool   `json:"public" gorm:"default:false"`
+	Public        bool   `json:"public"`
 }
 
 func init() {
@@ -89,11 +90,10 @@ func init() {
 				Alias:         "Admin",
 				Name:          "Admin",
 				CallName:      "Admin",
-				Organization1: "",
-				Organization2: "",
-				Organization3: "",
+				Organisation1: "",
+				Organisation2: "",
+				Organisation3: "",
 				OrcID:         "",
-				Public:        false,
 			},
 		},
 	})
@@ -113,11 +113,10 @@ func init() {
 				Alias:         "Reviewer",
 				Name:          "Reviewer",
 				CallName:      "Reviewer",
-				Organization1: "",
-				Organization2: "",
-				Organization3: "",
+				Organisation1: "",
+				Organisation2: "",
+				Organisation3: "",
 				OrcID:         "",
-				Public:        false,
 			},
 		},
 	})
@@ -137,11 +136,10 @@ func init() {
 				Alias:         "Submitter",
 				Name:          "Submitter",
 				CallName:      "Submitter",
-				Organization1: "",
-				Organization2: "",
-				Organization3: "",
+				Organisation1: "",
+				Organisation2: "",
+				Organisation3: "",
 				OrcID:         "",
-				Public:        false,
 			},
 		},
 	})
@@ -264,37 +262,39 @@ func GetUserExistsByID(db *gorm.DB, id int) (bool, error) {
 // this will overwrite everything in the given user struct
 // so if anything is set to default values, it will be overwritten.
 // this function will **not** update the password
-func UpdateUser(db *gorm.DB, id int, oldUser *User, newUser *User) error {
-	err := db.
-		Model(oldUser).
-		Where("id = ?", id).
-		Omit("Password").
-		Save(newUser).Error
+func UpdateUser(db *gorm.DB, id int, newUser User) error {
+	err := db.Session(&gorm.Session{FullSaveAssociations: true}).Transaction(func(tx *gorm.DB) error {
+		if newUser.Roles == nil {
+			tx.Omit("Roles")
+		}
 
-	if err != nil {
-		slog.Error("[user] Error saving user info")
-		return err
-	}
+		err := tx.
+			Omit("Password"). // password done separately
+			//Where("id = ?", id).
+			Select("*").
+			Save(&newUser).Error
 
-	err = db.Model(&oldUser).
-		Association("Info").
-		Replace(&newUser.Info)
+		if err != nil {
+			slog.Error("[user] Error saving user info")
+			return err
+		}
 
-	if err != nil {
-		slog.Error("[user] Error replacing user info", "error", err)
-		return err
-	}
+		if newUser.Password == "" {
+			return nil
+		}
 
-	// remove old roles
-	err = db.Model(&oldUser).
-		Association("Roles").
-		Replace(&newUser.Roles)
+		err = UpdateUserPassword(tx, id, newUser.Password)
 
-	if err != nil {
-		slog.Error("[user] Error deleting user roles", "error", err)
-		return err
-	}
-	return nil
+		if err != nil {
+			slog.Error("[user] Error changing user password")
+			return err
+		}
+
+		return nil
+
+	})
+
+	return err
 }
 
 // DeleteUser deletes a user from the database with the given Role
@@ -313,17 +313,24 @@ func DeleteUser(db *gorm.DB, id int) error {
 // UpdateUserPassword updates the password of a user in the database with the given Role
 // this function will hash the password before updating it as happens in the CreateUser function
 // this function will **not** update any other field
-func UpdateUserPassword(db *gorm.DB, user *User, password string) error {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+func UpdateUserPassword(db *gorm.DB, userId int, plainPassword string) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(plainPassword), bcrypt.DefaultCost)
 
 	if err != nil {
 		slog.Error("[user] Could not hash updated password")
 		return err
 	}
 
-	user.Password = string(hashedPassword)
+	hashedPasswordString := string(hashedPassword)
 
-	if err := db.Save(user).Error; err != nil {
+	err = db.
+		Model(&User{}).
+		Select("password").
+		Where("id = ?", userId).
+		Update("password", &hashedPasswordString).
+		Error
+
+	if err != nil {
 		return err
 	}
 	return nil
