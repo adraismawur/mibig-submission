@@ -3,6 +3,7 @@ package endpoints
 import (
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/models/entry"
+	"github.com/adraismawur/mibig-submission/models/lock"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"log/slog"
@@ -38,7 +39,7 @@ func SubmissionEndpoint(db *gorm.DB) Endpoint {
 				Method: "POST",
 				Path:   "/submission",
 				Handler: func(c *gin.Context) {
-					createSubmission(db, c)
+					createNewSubmission(db, c)
 				},
 			},
 			{
@@ -69,7 +70,9 @@ func SubmissionEndpoint(db *gorm.DB) Endpoint {
 func getUserSubmissions(db *gorm.DB, c *gin.Context) {
 	var submissions []struct {
 		Accession string                `json:"accession"`
+		Type      entry.SubmissionType  `json:"type"`
 		State     entry.SubmissionState `json:"state"`
+		Category  lock.LockingCategory  `json:"category"`
 	}
 
 	userID := c.Param("userId")
@@ -84,7 +87,7 @@ func getUserSubmissions(db *gorm.DB, c *gin.Context) {
 
 	q.Where("state != ?", entry.DiscardedSubmission)
 
-	err := q.Select("entries.accession, user_submissions.state").
+	err := q.Select("entries.accession, user_submissions.type, user_submissions.state, user_submissions.category").
 		Find(&submissions).Error
 
 	if err != nil {
@@ -129,8 +132,8 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 	c.JSON(http.StatusOK, submissions)
 }
 
-// createSubmission creates a minimal draft submission from a request
-func createSubmission(db *gorm.DB, c *gin.Context) {
+// createNewSubmission creates a minimal draft submission from a request
+func createNewSubmission(db *gorm.DB, c *gin.Context) {
 	var minimalEntry entry.MinimalEntry
 
 	if err := c.BindJSON(&minimalEntry); err != nil {

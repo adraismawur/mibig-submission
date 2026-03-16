@@ -17,6 +17,8 @@ Editing {{ bgc_id }}
     <form method="post">
         {{ macros.simple_divform_inner(form, is_reviewer=is_reviewer, reviewed=reviewed) }}
 
+        {% if show_nav %}
+
         {% if prev_form %}
         <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=prev_form.id) }}"><button id="back-btn"
                 class="btn btn-secondary" type="button">Previous: {{ prev_form.description }}</button></a>
@@ -25,6 +27,11 @@ Editing {{ bgc_id }}
         <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=next_form.id) }}"><button id="back-btn"
                 class="btn btn-secondary" type="button">Next: {{ next_form.description }}</button></a>
         {%- endif %}
+        {% else %}
+        <a href="{{ url_for('edit.edit_bgc_redirect', bgc_id=bgc_id) }}"><button id="back-btn" class="btn btn-secondary"
+                type="button">Back to edit overview</button></a>
+        {% endif %}
+
     </form>
 </div>
 

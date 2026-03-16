@@ -3,13 +3,63 @@
 {% import 'macros.html' as macros %}
 
 {% block header %}
-{{ "New entry" if bgc_id == "new" else "Editing" + bgc_id }}
+Editing {{ bgc_id }}
 {% endblock %}
 
 {% block body %}
 <div class="form-wrapper">
-    <h4>What would you like to edit?</h4>
-    {{ macros.simple_divform(form) }}
+    <div class="form-group center-align">
+        <h4>What would you like to edit?</h4>
+        <table>
+            <thead>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Owner</th>
+                <th>Unlocks at</th>
+                <th></th>
+            </thead>
+            <tbody>
+                {% for lock_key in readable_category_map %}
+                {% set locked = lock_key in lock_info %}
+                {% set lock = lock_info[lock_key] %}
+                <tr>
+                    <td>
+                        {{ readable_category_map[lock_key] }}
+                    </td>
+                    <td>
+                        {{ "Locked" if locked else "Editable" }}
+                    </td>
+                    <td>
+                        {{ "Locked by you" if locked and lock['is_owner'] else "Locked by someone else" if locked else
+                        "" }}
+                    </td>
+                    <td>
+                        {{ lock['unlocks_at'] if locked else ""}}
+                    </td>
+                    <td>
+                        {% if not locked %}
+                        <a href="{{url_for('edit.request_lock', bgc_id=bgc_id, category=lock_key)}}">
+                            <button class="btn btn-primary">Request lock</button>
+                        </a>
+                        {% endif %}
+                        {% if locked and lock['is_owner'] %}
+                        <a href="{{url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=lock_key)}}">
+                            <button class="btn btn-primary">Edit</button>
+                        </a>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if locked and lock['is_owner'] %}
+                        <a href="{{url_for('edit.release_lock', bgc_id=bgc_id, category=lock_key)}}">
+                            <button class="btn btn-primary">Release lock</button>
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 <div class="container">
     <a href="{{ url_for('main.index') }}"><button class="btn btn-outline-secondary">Back to entry selection</button></a>

@@ -29,6 +29,7 @@ const (
 	EnvJwtLifetime         = "JWT_LIFETIME"
 	EnvDataPath            = "DATA_PATH"
 	EnvEntrezApiKey        = "ENTREZ_API_KEY"
+	EnvLockDuration        = "LOCKING_DURATION"
 )
 
 // Envs is a map of environment variables and their values
@@ -46,6 +47,7 @@ var envs = map[EnvKey]string{
 	EnvJwtLifetime:  "86400",
 	EnvDataPath:     "data",
 	EnvEntrezApiKey: "",
+	EnvLockDuration: "6h", // 6 hours
 }
 
 func GetConfig(key EnvKey) (val string, err error) {

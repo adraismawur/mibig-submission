@@ -3,6 +3,7 @@ package entry
 import (
 	"fmt"
 	"github.com/adraismawur/mibig-submission/models"
+	"github.com/adraismawur/mibig-submission/models/lock"
 	"github.com/adraismawur/mibig-submission/util/constants"
 	"github.com/beevik/guid"
 	"gorm.io/gorm"
@@ -23,16 +24,17 @@ const (
 type SubmissionType string
 
 const (
-	NewSubmission  SubmissionType = "new"
-	SubmissionEdit SubmissionType = "edit"
+	NewSubmission  SubmissionType = "new submission"
+	SubmissionEdit SubmissionType = "entry mutation"
 )
 
 type UserSubmission struct {
-	ID      uint64          `json:"db_id"`
-	EntryID uint64          `json:"submission_id"`
-	UserID  uint64          `json:"user_id"`
-	Type    SubmissionType  `json:"type"`
-	State   SubmissionState `json:"state"`
+	ID       uint64               `json:"db_id"`
+	EntryID  uint64               `json:"submission_id"`
+	UserID   uint64               `json:"user_id"`
+	Type     SubmissionType       `json:"type"`
+	State    SubmissionState      `json:"state"`
+	Category lock.LockingCategory `json:"category"`
 }
 
 func init() {
@@ -86,11 +88,16 @@ func CreateNewUserSubmission(db *gorm.DB, minimalEntry MinimalEntry, user models
 
 	userSubmission.UserID = user.ID
 	userSubmission.EntryID = newEntry.ID
+	userSubmission.Type = NewSubmission
 	userSubmission.State = DraftSubmission
 
 	err = db.Create(&userSubmission).Error
 
 	return &newEntry, err
+}
+
+func CreateNewUserMutation(db *gorm.DB, accession string, category lock.LockingCategory, user models.User) (*Entry, error) {
+	return nil, nil
 }
 
 func CreateAntismashWorkerTask(db *gorm.DB, newEntry Entry) (*models.AntismashRun, error) {

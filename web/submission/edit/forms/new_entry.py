@@ -71,10 +71,13 @@ class NewEntryForm(Form):
             ),
         )
 
+    class MinCompoundsSubForm(Form):
+        name = StringField(validators=[validators.InputRequired()])
+
     locus = FormField(LocusForm)
 
     compounds = FieldList(
-        FormField(CompoundsSubForm),
+        FormField(MinCompoundsSubForm),
         min_entries=1,
         widget=FieldListAddBtn(
             label="Add additional compound",

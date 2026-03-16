@@ -1,3 +1,4 @@
+from datetime import datetime
 import re
 import csv
 from pathlib import Path
@@ -46,10 +47,31 @@ from submission.models import Entry, NPAtlas, Substrate
 @login_required
 def edit_bgc_redirect(bgc_id: str):
     # first check if this is a draft submission
-
-    return redirect(
-        url_for("edit.edit_bgc", bgc_id=bgc_id, form_id=get_default_wizard_page())
+    lock_endpoint = "/lock/list/" + bgc_id
+    response = requests.get(
+        f"{current_app.config['API_BASE']}" + lock_endpoint,
+        headers={"Authorization": f"Bearer {session['token']}"},
     )
+
+    entry_locks = response.json()
+
+    lock_info = {
+    }
+
+    for lock in entry_locks:
+        lock_info[lock['category']] = lock
+        
+
+    readable_category_map = {
+        "locitax": "Loci and taxonomy information",
+        "biosynth": "Biosynthetic information",
+        "compounds": "Compound information",
+        "gene_information": "Gene information",
+    }
+    
+
+
+    return render_template("edit/edit.html", bgc_id=bgc_id, lock_info=lock_info, readable_category_map=readable_category_map)
 
 
 @bp_edit.route("/<bgc_id>/<form_id>", methods=["GET", "POST"])
@@ -63,6 +85,15 @@ def edit_bgc(bgc_id: str, form_id: str) -> Union[str, response.Response]:
     Returns:
         str | Response: rendered form template or redirect to edit_bgc overview
     """
+    # lock checks
+    lock_response = Entry.check_lock(bgc_id, form_id)
+
+    if lock_response.status_code != 200:
+        flash(f"Locking error: {lock_response.json()['error']}", "error")
+        return redirect(url_for("edit.edit_bgc_redirect", bgc_id=bgc_id))
+    
+
+
     # instantiate associated form
     wizard_page = get_wizard_page(form_id)
 
@@ -109,12 +140,49 @@ def edit_bgc(bgc_id: str, form_id: str) -> Union[str, response.Response]:
         bgc_id=bgc_id,
         is_reviewer=current_user.has_role(Role.REVIEWER),
         reviewed=False,
+        show_nav=True,
         next_form=next_form,
         prev_form=prev_form,
         form_description=wizard_page.description,
         antismash_json_url=antismash_json_url,
         antismash_accessions=antismash_accessions,
     )
+
+
+@bp_edit.route("/<bgc_id>/lock/request/<category>", methods=["GET", "POST"])
+@login_required
+def request_lock(bgc_id: str, category: str):
+    # lock checks
+    if request.method == "POST":
+        lock_response = Entry.request_lock(bgc_id, category)
+
+        if lock_response.status_code != 200:
+            flash(f"Could not request lock for category: {lock_response.json()['error']}", "error")
+            return redirect(url_for("edit.edit_bgc_redirect", bgc_id=bgc_id))
+        else:
+            flash(f"Lock requested successfully. Your lock will be removed at {lock_response.json()['unlocks_at']}")
+            return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id=category))
+
+
+    return render_template("lock/lock_request.html", bgc_id=bgc_id, category=category)
+
+
+@bp_edit.route("/<bgc_id>/lock/release/<category>", methods=["GET", "POST"])
+@login_required
+def release_lock(bgc_id: str, category: str):
+    # lock checks
+    if request.method == "POST":
+        lock_response = Entry.release_lock(bgc_id, category)
+
+        if lock_response.status_code != 200:
+            flash(f"Could not release lock for category: {lock_response.json()['error']}", "error")
+        else:
+            flash("Lock released successfully")
+            
+        return redirect(url_for("edit.edit_bgc_redirect", bgc_id=bgc_id))
+    
+    return render_template("lock/lock_release.html", bgc_id=bgc_id, category=category)
+        
 
 
 @bp_edit.route("/<bgc_id>/json", methods=["GET"])

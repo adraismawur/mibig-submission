@@ -427,7 +427,8 @@ class Entry(db.Model):
         """
 
         for compound in data["compounds"]:
-            compound["mass"] = float(compound["mass"])
+            if "mass" in compound:
+                compound["mass"] = float(compound["mass"])
 
         response = requests.post(
             f"{current_app.config['API_BASE']}/submission",
@@ -439,6 +440,46 @@ class Entry(db.Model):
             return None
 
         return response.json()
+    
+    def check_lock(bgc_id: str, category: str):
+        lock_endpoint = "/lock/check/"
+        response = requests.post(
+            f"{current_app.config['API_BASE']}" + lock_endpoint,
+            headers={"Authorization": f"Bearer {session['token']}"},
+            json={
+                "accession": bgc_id,
+                "category": category,
+            }
+        )
+
+        return response
+    
+    def request_lock(bgc_id: str, category: str):
+        lock_endpoint = "/lock/request/"
+        response = requests.post(
+            f"{current_app.config['API_BASE']}" + lock_endpoint,
+            headers={"Authorization": f"Bearer {session['token']}"},
+            json={
+                "accession": bgc_id,
+                "category": category,
+            }
+        )
+
+        return response
+    
+    def release_lock(bgc_id: str, category: str):
+        lock_endpoint = "/lock/release/"
+        response = requests.post(
+            f"{current_app.config['API_BASE']}" + lock_endpoint,
+            headers={"Authorization": f"Bearer {session['token']}"},
+            json={
+                "accession": bgc_id,
+                "category": category,
+            }
+        )
+
+        return response
+
 
     @staticmethod
     def save_structure(bgc_id: str, data: dict[str, Any]):

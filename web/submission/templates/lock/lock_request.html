@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block header %}
+Editing {{ bgc_id }}
+{% endblock %}
+
+{% block body %}
+
+<div class="form-wrapper">
+    <h4>Confirm lock release</h4>
+
+    <form method="post" class="container">
+        <div class="form-group row">
+            <h3>Are you sure you want to request a lock for the following:</h3>
+
+            <hr>
+
+            Entry: {{ bgc_id }}
+            Category: {{ category }}
+
+            <hr>
+
+            <h6>This means that for a period of time, you will be the only person that can edit this entry and this
+                category</h6>
+            <h6>Please make sure to save your changes regularly. Your lock will be removed after 6 hours</h6>
+
+            <div class="row">
+                <div class="col">
+                    <input type="submit" class="btn btn-danger" value="Request lock" data-method="post" />
+                </div>
+                <div class="col col-auto">
+                    <a href="{{ url_for('edit.edit_bgc_redirect', bgc_id=bgc_id) }}"><button class="btn btn-primary"
+                            type="button">Cancel</button></a>
+                </div>
+            </div>
+        </div>
+    </form>
+
+</div>
+{% endblock %}

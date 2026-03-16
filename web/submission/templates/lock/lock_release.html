@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block header %}
+Editing {{ bgc_id }}
+{% endblock %}
+
+{% block body %}
+
+<div class="form-wrapper">
+    <h4>Confirm lock release</h4>
+
+    <form method="post" class="container">
+        <div class="form-group row">
+            <h3>Are you sure you want to release the lock from the following submission?</h3>
+
+            <hr>
+
+            Entry: {{ bgc_id }}
+            Category: {{ category }}
+
+            <hr>
+
+            <h6>This means that someone else can edit this category on this entry.</h6>
+
+            <div class="row">
+                <div class="col">
+                    <input type="submit" class="btn btn-danger" value="Release lock" data-method="post" />
+                </div>
+                <div class="col col-auto">
+                    <a href="{{ url_for('edit.edit_bgc_redirect', bgc_id=bgc_id) }}"><button class="btn btn-primary"
+                            type="button">Cancel</button></a>
+                </div>
+            </div>
+        </div>
+    </form>
+
+</div>
+{% endblock %}
