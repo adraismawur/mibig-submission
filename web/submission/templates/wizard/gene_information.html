@@ -119,15 +119,7 @@ Editing {{ bgc_id }}
         </a>
     </div>
     
-    {% if show_nav %}
-
-    {{ macros.render_wizard_nav(bgc_id, prev_form, next_form)}}
-    
-    {% else %}
-    <a href="{{ url_for('edit.edit_bgc_redirect', bgc_id=bgc_id) }}"><button id="back-btn" class="btn btn-secondary"
-            type="button">Back to edit overview</button></a>
-
-    {% endif %}
+    {{ macros.render_wizard_nav(show_nav, bgc_id, prev_form, next_form)}}
 </div>
 
 {% endblock %}

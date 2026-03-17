@@ -157,28 +157,9 @@ def edit_bgc(bgc_id: str, form_id: str) -> Union[str, response.Response]:
         flash(f"Locking error: {lock_response.json()['error']}", "error")
         return redirect(url_for("edit.edit_bgc_redirect", bgc_id=bgc_id))
 
-    return generate_wizard_page(bgc_id, form_id, False)
+    show_nav = lock_response.json()["full"]
 
-
-@bp_edit.route("/full/<bgc_id>/<form_id>", methods=["GET", "POST"])
-@login_required
-def edit_bgc_full(bgc_id: str, form_id: str):
-    """Form to enter minimal entry information
-
-    Args:
-        bgc_id (str): BGC identifier
-
-    Returns:
-        str | Response: rendered form template or redirect to edit_bgc overview
-    """
-    # lock checks
-    lock_response = Entry.check_lock(bgc_id, "full")
-
-    if lock_response.status_code != 200:
-        flash(f"Locking error: {lock_response.json()['error']}", "error")
-        return redirect(url_for("edit.edit_bgc_redirect", bgc_id=bgc_id))
-
-    return generate_wizard_page(bgc_id, form_id, True)
+    return generate_wizard_page(bgc_id, form_id, show_nav)
 
 
 @bp_edit.route("/<bgc_id>/lock/request/<category>", methods=["GET", "POST"])

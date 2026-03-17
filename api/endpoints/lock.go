@@ -153,10 +153,12 @@ func checkEntryLocks(db *gorm.DB, c *gin.Context) {
 	var response struct {
 		UnlocksAt time.Time            `json:"unlocks_at"`
 		Category  lock.LockingCategory `json:"category"`
+		Full      bool                 `json:"full"`
 	}
 
 	response.UnlocksAt = activeLock.UnlocksAt
 	response.Category = activeLock.Category
+	response.Full = activeLock.Category == lock.Full
 
 	c.JSON(http.StatusOK, response)
 }

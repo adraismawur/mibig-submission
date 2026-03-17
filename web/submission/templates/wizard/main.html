@@ -17,14 +17,7 @@ Editing {{ bgc_id }}
     <form method="post">
         {{ macros.simple_divform_inner(form, is_reviewer=is_reviewer, reviewed=reviewed) }}
 
-        {% if show_nav %}
-
-        {{ macros.render_wizard_nav(bgc_id, prev_form, next_form)}}
-        {% else %}
-        <a href="{{ url_for('edit.edit_bgc_redirect', bgc_id=bgc_id) }}"><button id="back-btn" class="btn btn-secondary"
-                type="button">Back to edit overview</button></a>
-
-        {% endif %}
+        {{ macros.render_wizard_nav(show_nav, bgc_id, prev_form, next_form)}}
 
     </form>
 </div>

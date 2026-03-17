@@ -36,7 +36,7 @@ func EntryCanCreateLock(db *gorm.DB, entryId int, category LockingCategory) (boo
 
 	err := db.
 		Model(&Lock{}).
-		Where("entry_id = ? AND (category = ? OR category = 'full')", entryId, category).
+		Where("entry_id = ? AND (category = ? OR category = ?)", entryId, category, Full).
 		Find(&lock).
 		Error
 
@@ -78,7 +78,7 @@ func GetEntryLock(db *gorm.DB, entryId int, category LockingCategory) (*Lock, er
 
 	err := db.
 		Model(&Lock{}).
-		Where("entry_id = ? AND category = ?", entryId, category).
+		Where("entry_id = ? AND (category = ? OR category = ?)", entryId, category, Full).
 		Find(&lock).
 		Error
 
