@@ -3,7 +3,6 @@ package endpoints
 import (
 	"fmt"
 	"github.com/adraismawur/mibig-submission/models"
-	"github.com/adraismawur/mibig-submission/models/entry"
 	"github.com/adraismawur/mibig-submission/models/lock"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -63,14 +62,7 @@ func getActiveEntryLocks(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	activeEntry, err := entry.GetEntryFromAccession(db, accession)
-
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
-		return
-	}
-
-	locks, err := lock.GetEntryLocks(db, int(activeEntry.ID))
+	locks, err := lock.GetEntryLocks(db, accession)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
@@ -112,13 +104,6 @@ func checkEntryLocks(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	activeEntry, err := entry.GetEntryFromAccession(db, request.Accession)
-
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
-		return
-	}
-
 	user, err := models.GetUserFromContext(c)
 
 	if err != nil {
@@ -126,7 +111,7 @@ func checkEntryLocks(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	activeLock, err := lock.GetEntryLock(db, int(activeEntry.ID), request.Category)
+	activeLock, err := lock.GetEntryLock(db, request.Accession, request.Category)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
@@ -173,13 +158,6 @@ func requestEntryLock(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	activeEntry, err := entry.GetEntryFromAccession(db, request.Accession)
-
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
-		return
-	}
-
 	user, err := models.GetUserFromContext(c)
 
 	if err != nil {
@@ -187,7 +165,7 @@ func requestEntryLock(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	activeLock, err := lock.CreateOrGetLock(db, int(activeEntry.ID), request.Category, *user)
+	activeLock, err := lock.CreateOrGetLock(db, request.Accession, request.Category, *user)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
@@ -208,13 +186,6 @@ func releaseEntryLock(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	activeEntry, err := entry.GetEntryFromAccession(db, request.Accession)
-
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
-		return
-	}
-
 	user, err := models.GetUserFromContext(c)
 
 	if err != nil {
@@ -222,7 +193,7 @@ func releaseEntryLock(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	err = lock.ReleaseLock(db, int(activeEntry.ID), request.Category, *user)
+	err = lock.ReleaseLock(db, request.Accession, request.Category, *user)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})

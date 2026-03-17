@@ -29,6 +29,7 @@ from submission.edit.forms.biosynthesis_domains import (
 
 class CalForm(Form):
     db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_index = IntegerField(widget=HiddenInput(), default=0)
     db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
     type = HiddenField(default="cal")
     name = StringField()

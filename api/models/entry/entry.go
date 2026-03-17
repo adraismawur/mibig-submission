@@ -27,29 +27,28 @@ type MinimalEntry struct {
 }
 
 type Gene struct {
-	ID      uint64
-	EntryID uint64
-	Name    string
+	ID             uint64
+	EntryAccession string
+	Name           string
 }
 
 type Entry struct {
-	ID               uint64                    `json:"db_id"`
-	Accession        string                    `json:"accession"`
+	Accession        string                    `json:"accession" gorm:"primaryKey"`
 	Version          int                       `json:"version,omitempty"`
-	Changelog        Changelog                 `json:"changelog" gorm:"foreignKey:EntryID"`
+	Changelog        Changelog                 `json:"changelog" gorm:"foreignKey:EntryAccession"`
 	Quality          consts.Quality            `json:"quality,omitempty"`
 	Status           consts.Status             `json:"status,omitempty"`
 	Completeness     consts.Completeness       `json:"completeness"`
-	Loci             []locus.Locus             `json:"loci" gorm:"foreignKey:EntryID"`
-	Biosynthesis     biosynthesis.Biosynthesis `json:"biosynthesis" gorm:"foreignKey:EntryID"`
-	Compounds        []compound.Compound       `json:"compounds" gorm:"ForeignKey:EntryID"`
-	Taxonomy         taxonomy.Taxonomy         `json:"taxonomy" gorm:"ForeignKey:EntryID"`
-	GeneInformation  *gene.GeneInformation     `json:"genes,omitempty" gorm:"ForeignKey:EntryID"`
+	Loci             []locus.Locus             `json:"loci" gorm:"foreignKey:EntryAccession"`
+	Biosynthesis     biosynthesis.Biosynthesis `json:"biosynthesis" gorm:"foreignKey:EntryAccession"`
+	Compounds        []compound.Compound       `json:"compounds" gorm:"ForeignKey:EntryAccession"`
+	Taxonomy         taxonomy.Taxonomy         `json:"taxonomy" gorm:"ForeignKey:EntryAccession"`
+	GeneInformation  *gene.GeneInformation     `json:"genes,omitempty" gorm:"ForeignKey:EntryAccession"`
 	LegacyReferences pq.StringArray            `json:"legacy_references,omitempty" gorm:"type:text[]"`
 
 	// internal data starts here
 
-	GeneList []Gene `json:"-" gorm:"ForeignKey:EntryID"`
+	GeneList []Gene `json:"-" gorm:"ForeignKey:EntryAccession"`
 	Embargo  bool   `json:"embargo,omitempty"`
 }
 
@@ -320,7 +319,7 @@ func GetEntryGenes(db *gorm.DB, accession string) (*[]string, error) {
 
 	db.Model(&Gene{}).
 		Select("name").
-		Where("genes.entry_id = (select id from entries where accession = ?)", accession).
+		Where("genes.entry_accession = ?", accession).
 		Find(&genes)
 
 	return &genes, nil

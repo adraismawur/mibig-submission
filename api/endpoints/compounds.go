@@ -61,7 +61,7 @@ func getEntryCompounds(db *gorm.DB, c *gin.Context) {
 	q := db.Table("compounds").
 		Preload("Evidence").
 		Preload("BioActivities").
-		Where("entry_id = (select id from entries where accession = ?)", accession)
+		Where("entry_accession = ?", accession)
 
 	if id != "" {
 		q = q.Where("id = ?", id)
@@ -105,21 +105,7 @@ func createEntryCompound(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	var entryId uint64
-
-	err = db.Table("entries").
-		Where("accession = ?", accession).
-		Select("id").
-		Find(&entryId).
-		Error
-
-	if err != nil {
-		slog.Error("[endpoints] [compound] Could not find entry", "error", err)
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	newCompound.EntryID = entryId
+	newCompound.EntryAccession = accession
 
 	err = db.Create(&newCompound).Error
 
@@ -145,21 +131,7 @@ func updateEntryCompound(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	var entryId uint64
-
-	err = db.Table("entries").
-		Where("accession = ?", accession).
-		Select("id").
-		Find(&entryId).
-		Error
-
-	if err != nil {
-		slog.Error("[Endpoints] [Compound] Could not find entry", "error", err)
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	newCompound.EntryID = entryId
+	newCompound.EntryAccession = accession
 
 	err = db.Session(&gorm.Session{FullSaveAssociations: true}).
 		Table("compounds").

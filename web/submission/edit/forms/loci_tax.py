@@ -78,5 +78,3 @@ class LociTaxonomyForm(Form):
     )
 
     taxonomy = FormField(TaxonomyForm)
-
-    submit = SubmitField("Save changes", widget=SubmitIndicator())

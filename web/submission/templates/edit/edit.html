@@ -54,7 +54,7 @@ Editing {{ bgc_id }}
                         <td>
                             {% if locked and lock['is_owner'] and not fully_locked %}
                             <a href="{{url_for('edit.release_lock', bgc_id=bgc_id, category=lock_key)}}">
-                                <button class="btn btn-primary">Release</button>
+                                <button class="btn btn-primary orange">Release</button>
                             </a>
                             {% endif %}
                         </td>
@@ -76,14 +76,16 @@ Editing {{ bgc_id }}
             {% endif %}
             
             {% if lock['is_owner'] %}
-                <div class="row">
-                    <a href="{{url_for('edit.edit_bgc', bgc_id=bgc_id, form_id='locitax')}}">
-                        <button class="btn btn-primary">Edit</button>
-                    </a>
-                </div>
+                {% for lock_key in lock_keys %}
+                    <div class="row">
+                        <a href="{{url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=lock_key)}}">
+                            <button class="btn btn-primary">Edit {{ readable_category_map[lock_key] }}</button>
+                        </a>
+                    </div>
+                {% endfor %}
                 <div class="row">
                     <a href="{{url_for('edit.release_lock', bgc_id=bgc_id, category=lock_key)}}">
-                        <button class="btn btn-primary">Release the edit lock</button>
+                        <button class="btn btn-primary orange">Release the edit lock</button>
                     </a>
                 </div>
             {% endif %}

@@ -21,9 +21,9 @@ type Release struct {
 }
 
 type Changelog struct {
-	ID       uint64    `json:"db_id"`
-	EntryID  uint64    `json:"entry_id"`
-	Releases []Release `json:"releases" gorm:"foreignKey:ChangelogID"`
+	ID             uint64    `json:"db_id"`
+	EntryAccession string    `json:"db_entry_accession"`
+	Releases       []Release `json:"releases" gorm:"foreignKey:ChangelogID"`
 }
 
 func init() {

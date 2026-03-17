@@ -56,14 +56,19 @@ Editing {{ bgc_id }}
             </tbody>
         </table>
         {% else %}
-        <div>No compounds yet. Add new compounds using the button below</div>
+        <div class="row">
+            No compounds yet. Add new compounds using the button below
+        </div>
         {% endif %}
-        <a href="{{url_for('edit.create_compound', bgc_id=bgc_id)}}">
-            <button class="btn btn-primary" type="button">Add new compound</button>
-        </a>
+        <div class="row">
+            <a href="{{url_for('edit.create_compound', bgc_id=bgc_id)}}">
+                <button class="btn btn-primary" type="button">Add new compound</button>
+            </a>
+        </div>
     </div>
-    
-    {{ macros.render_wizard_nav(show_nav, bgc_id, prev_form, next_form)}}
+    <div class="form-group">
+        {{ macros.render_wizard_nav(show_nav, bgc_id, prev_form, next_form, show_save=False)}}
+    </div>
 
 </div>
 

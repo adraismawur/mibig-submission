@@ -14,7 +14,6 @@ func TestEntryCanCreateLockTrueNoLocks(t *testing.T) {
 	models.Migrate(db)
 
 	testEntry := entry.Entry{
-		ID:        1,
 		Accession: "test",
 	}
 
@@ -22,7 +21,7 @@ func TestEntryCanCreateLockTrueNoLocks(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	canCreateLock, err := EntryCanCreateLock(db, int(testEntry.ID), Locitax)
+	canCreateLock, err := EntryCanCreateLock(db, testEntry.Accession, Locitax)
 
 	assert.Nil(t, err)
 	assert.True(t, canCreateLock)
@@ -33,7 +32,6 @@ func TestEntryCanCreateLockTrueOtherEntryLock(t *testing.T) {
 	models.Migrate(db)
 
 	testEntry := entry.Entry{
-		ID:        1,
 		Accession: "test",
 	}
 
@@ -42,15 +40,15 @@ func TestEntryCanCreateLockTrueOtherEntryLock(t *testing.T) {
 	assert.Nil(t, err)
 
 	testLock := Lock{
-		ID:        1,
-		EntryID:   2,
-		Category:  Locitax,
-		UnlocksAt: time.Now().Add(time.Minute * 5),
+		ID:             1,
+		EntryAccession: "test2",
+		Category:       Locitax,
+		UnlocksAt:      time.Now().Add(time.Minute * 5),
 	}
 
 	err = db.Create(&testLock).Error
 
-	canCreateLock, err := EntryCanCreateLock(db, int(testEntry.ID), Locitax)
+	canCreateLock, err := EntryCanCreateLock(db, testEntry.Accession, Locitax)
 
 	assert.Nil(t, err)
 	assert.True(t, canCreateLock)
@@ -61,7 +59,6 @@ func TestEntryCanCreateLockFalseLockExists(t *testing.T) {
 	models.Migrate(db)
 
 	testEntry := entry.Entry{
-		ID:        1,
 		Accession: "test",
 	}
 
@@ -70,17 +67,17 @@ func TestEntryCanCreateLockFalseLockExists(t *testing.T) {
 	assert.Nil(t, err)
 
 	testLock := Lock{
-		ID:        1,
-		EntryID:   1,
-		Category:  Locitax,
-		UnlocksAt: time.Now().Add(time.Minute * 5),
+		ID:             1,
+		EntryAccession: testEntry.Accession,
+		Category:       Locitax,
+		UnlocksAt:      time.Now().Add(time.Minute * 5),
 	}
 
 	err = db.Create(&testLock).Error
 
 	assert.Nil(t, err)
 
-	canCreateLock, err := EntryCanCreateLock(db, int(testEntry.ID), Locitax)
+	canCreateLock, err := EntryCanCreateLock(db, testEntry.Accession, Locitax)
 
 	assert.Nil(t, err)
 	assert.False(t, canCreateLock)
@@ -91,7 +88,6 @@ func TestEntryCanCreateLockTrueOtherCategory(t *testing.T) {
 	models.Migrate(db)
 
 	testEntry := entry.Entry{
-		ID:        1,
 		Accession: "test",
 	}
 
@@ -100,17 +96,17 @@ func TestEntryCanCreateLockTrueOtherCategory(t *testing.T) {
 	assert.Nil(t, err)
 
 	testLock := Lock{
-		ID:        1,
-		EntryID:   1,
-		Category:  Locitax,
-		UnlocksAt: time.Now().Add(time.Minute * 5),
+		ID:             1,
+		EntryAccession: testEntry.Accession,
+		Category:       Locitax,
+		UnlocksAt:      time.Now().Add(time.Minute * 5),
 	}
 
 	err = db.Create(&testLock).Error
 
 	assert.Nil(t, err)
 
-	canCreateLock, err := EntryCanCreateLock(db, int(testEntry.ID), Biosynth)
+	canCreateLock, err := EntryCanCreateLock(db, testEntry.Accession, Biosynth)
 
 	assert.Nil(t, err)
 	assert.True(t, canCreateLock)
@@ -121,7 +117,6 @@ func TestEntryCanCreateLockTrueExpired(t *testing.T) {
 	models.Migrate(db)
 
 	testEntry := entry.Entry{
-		ID:        1,
 		Accession: "test",
 	}
 
@@ -130,17 +125,17 @@ func TestEntryCanCreateLockTrueExpired(t *testing.T) {
 	assert.Nil(t, err)
 
 	testLock := Lock{
-		ID:        1,
-		EntryID:   1,
-		Category:  Locitax,
-		UnlocksAt: time.Now().Add(-time.Minute * 5),
+		ID:             1,
+		EntryAccession: testEntry.Accession,
+		Category:       Locitax,
+		UnlocksAt:      time.Now().Add(-time.Minute * 5),
 	}
 
 	err = db.Create(&testLock).Error
 
 	assert.Nil(t, err)
 
-	canCreateLock, err := EntryCanCreateLock(db, int(testEntry.ID), Locitax)
+	canCreateLock, err := EntryCanCreateLock(db, testEntry.Accession, Locitax)
 
 	assert.Nil(t, err)
 	assert.True(t, canCreateLock)
@@ -151,7 +146,6 @@ func TestCreateOrGetLock(t *testing.T) {
 	models.Migrate(db)
 
 	testEntry := entry.Entry{
-		ID:        1,
 		Accession: "test",
 	}
 
@@ -159,14 +153,22 @@ func TestCreateOrGetLock(t *testing.T) {
 
 	assert.Nil(t, err)
 
+	testUser := models.User{
+		ID: 1,
+	}
+
+	err = db.Create(&testUser).Error
+
+	assert.Nil(t, err)
+
 	expectedCategory := Locitax
 
-	lock, err := CreateOrGetLock(db, int(testEntry.ID), expectedCategory)
+	lock, err := CreateOrGetLock(db, testEntry.Accession, expectedCategory, testUser)
 
 	assert.Nil(t, err)
 
 	assert.NotNil(t, lock)
-	assert.Equal(t, testEntry.ID, lock.ID)
+	assert.Equal(t, testEntry.Accession, lock.EntryAccession)
 	assert.Equal(t, expectedCategory, lock.Category)
 }
 
@@ -175,7 +177,6 @@ func TestCreateAlreadyExists(t *testing.T) {
 	models.Migrate(db)
 
 	testEntry := entry.Entry{
-		ID:        1,
 		Accession: "test",
 	}
 
@@ -183,19 +184,27 @@ func TestCreateAlreadyExists(t *testing.T) {
 
 	assert.Nil(t, err)
 
+	testUser := models.User{
+		ID: 1,
+	}
+
+	err = db.Create(&testUser).Error
+
+	assert.Nil(t, err)
+
 	expectedCategory := Locitax
 	expectedLock := Lock{
-		ID:        0,
-		EntryID:   1,
-		Category:  expectedCategory,
-		UnlocksAt: time.Now().Add(time.Minute * 5),
+		ID:             0,
+		EntryAccession: testEntry.Accession,
+		Category:       expectedCategory,
+		UnlocksAt:      time.Now().Add(time.Minute * 5),
 	}
 
 	err = db.Create(&expectedLock).Error
 
 	assert.Nil(t, err)
 
-	lock, err := CreateOrGetLock(db, int(testEntry.ID), expectedCategory)
+	lock, err := CreateOrGetLock(db, testEntry.Accession, expectedCategory, testUser)
 
 	assert.Nil(t, err)
 	assert.Equal(t, expectedLock.ID, lock.ID)
@@ -207,7 +216,6 @@ func TestCreateAlreadyExistsExpired(t *testing.T) {
 	models.Migrate(db)
 
 	testEntry := entry.Entry{
-		ID:        1,
 		Accession: "test",
 	}
 
@@ -215,19 +223,27 @@ func TestCreateAlreadyExistsExpired(t *testing.T) {
 
 	assert.Nil(t, err)
 
+	testUser := models.User{
+		ID: 1,
+	}
+
+	err = db.Create(&testUser).Error
+
+	assert.Nil(t, err)
+
 	expectedCategory := Locitax
 	existingLock := Lock{
-		ID:        0,
-		EntryID:   1,
-		Category:  expectedCategory,
-		UnlocksAt: time.Now().Add(-time.Minute * 5),
+		ID:             0,
+		EntryAccession: testEntry.Accession,
+		Category:       expectedCategory,
+		UnlocksAt:      time.Now().Add(-time.Minute * 5),
 	}
 
 	err = db.Create(&existingLock).Error
 
 	assert.Nil(t, err)
 
-	lock, err := CreateOrGetLock(db, int(testEntry.ID), expectedCategory)
+	lock, err := CreateOrGetLock(db, testEntry.Accession, expectedCategory, testUser)
 
 	assert.NotNil(t, lock)
 	assert.Nil(t, err)
@@ -239,7 +255,6 @@ func TestDeleteLock(t *testing.T) {
 	models.Migrate(db)
 
 	testEntry := entry.Entry{
-		ID:        1,
 		Accession: "test",
 	}
 
@@ -247,19 +262,29 @@ func TestDeleteLock(t *testing.T) {
 
 	assert.Nil(t, err)
 
+	testUser := models.User{
+		ID: 1,
+	}
+
+	err = db.Create(&testUser).Error
+
+	assert.Nil(t, err)
+
 	expectedCategory := Locitax
 	existingLock := Lock{
-		ID:        0,
-		EntryID:   1,
-		Category:  expectedCategory,
-		UnlocksAt: time.Now().Add(time.Minute * 5),
+		ID:             0,
+		EntryAccession: testEntry.Accession,
+		Category:       expectedCategory,
+		UnlocksAt:      time.Now().Add(time.Minute * 5),
+		LockOwnerID:    testUser.ID,
+		LockOwner:      testUser,
 	}
 
 	err = db.Create(&existingLock).Error
 
 	assert.Nil(t, err)
 
-	err = ReleaseLock(db, int(existingLock.EntryID), existingLock.Category)
+	err = ReleaseLock(db, testEntry.Accession, existingLock.Category, testUser)
 
 	assert.Nil(t, err)
 

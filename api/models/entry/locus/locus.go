@@ -20,12 +20,12 @@ type LocusEvidence struct {
 }
 
 type Locus struct {
-	ID          int64           `json:"db_id"`
-	EntryID     int64           `json:"db_entry_id"`
-	Accession   string          `json:"accession"`
-	Location    Location        `json:"location" gorm:"foreignKey:LocusID"`
-	Evidence    []LocusEvidence `json:"evidence" gorm:"foreignKey:LocusID"`
-	DraftGenome bool            `json:"draft_genome,omitempty"`
+	ID             int64           `json:"db_id"`
+	EntryAccession string          `json:"db_entry_accession"`
+	Accession      string          `json:"accession"`
+	Location       Location        `json:"location" gorm:"foreignKey:LocusID"`
+	Evidence       []LocusEvidence `json:"evidence" gorm:"foreignKey:LocusID"`
+	DraftGenome    bool            `json:"draft_genome,omitempty"`
 }
 
 func init() {

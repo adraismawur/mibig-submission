@@ -45,11 +45,11 @@ type GeneAnnotation struct {
 }
 
 type GeneInformation struct {
-	ID          uint64           `json:"db_id"`
-	EntryID     uint64           `json:"entry_id"`
-	Additions   []GeneAddition   `json:"to_add,omitempty" gorm:"ForeignKey:GeneInformationID"`
-	Deletions   []GeneDeletion   `json:"to_delete,omitempty" gorm:"ForeignKey:GeneInformationID"`
-	Annotations []GeneAnnotation `json:"annotations,omitempty" gorm:"ForeignKey:GeneInformationID"`
+	ID             uint64           `json:"db_id"`
+	EntryAccession string           `json:"db_entry_accession"`
+	Additions      []GeneAddition   `json:"to_add,omitempty" gorm:"ForeignKey:GeneInformationID"`
+	Deletions      []GeneDeletion   `json:"to_delete,omitempty" gorm:"ForeignKey:GeneInformationID"`
+	Annotations    []GeneAnnotation `json:"annotations,omitempty" gorm:"ForeignKey:GeneInformationID"`
 }
 
 func init() {
@@ -66,7 +66,7 @@ func GetEntryGeneInformation(db *gorm.DB, accession string) (*GeneInformation, e
 
 	err := db.
 		Table("gene_informations").
-		Joins("JOIN entries ON gene_informations.entry_id = entries.id").
+		Joins("JOIN entries ON gene_informations.entry_accession = entries.accession").
 		Preload("Additions.Location.Exons").
 		Preload("Deletions").
 		Preload("Annotations").

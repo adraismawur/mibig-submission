@@ -13,11 +13,11 @@ const (
 )
 
 type AntismashRun struct {
-	GUID        string            `json:"id" gorm:"primaryKey"`
-	BGCID       string            `json:"bgc_id" gorm:"primaryKey"`
-	Accession   string            `json:"accession"`
-	State       AntismashRunState `json:"state"`
-	SubmittedAt time.Time         `json:"submitted_at"`
+	GUID           string            `json:"id" gorm:"primaryKey"`
+	EntryAccession string            `json:"entry_accession" gorm:"primaryKey"`
+	LocusAccession string            `json:"locus_accession"`
+	State          AntismashRunState `json:"state"`
+	SubmittedAt    time.Time         `json:"submitted_at"`
 }
 
 func init() {

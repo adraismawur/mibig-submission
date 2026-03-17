@@ -176,9 +176,9 @@ class Entry(db.Model):
 
         return response.json()["error"]
 
-    def get_module_text(bgc_id: str, name: str):
+    def get_module_text(bgc_id: str, module_id: str):
         response = requests.get(
-            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/module/{name}?pretty=true",
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/module/{module_id}?pretty=true",
             headers={"Authorization": f"Bearer {session['token']}"},
         )
         if response.status_code == 200:
@@ -202,14 +202,14 @@ class Entry(db.Model):
 
         return False
 
-    def update_module(bgc_id: str, name: str, data: dict[str, any]):
+    def update_module(bgc_id: str, module_id: str, data: dict[str, any]):
         if data["type"] == "module_other":
             data["type"] = "other"
 
         data["type"] = data["type"].replace("_", "-")
 
         response = requests.post(
-            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/module/{name}",
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/module/{module_id}",
             headers={"Authorization": f"Bearer {session['token']}"},
             json=data,
         )
@@ -218,9 +218,9 @@ class Entry(db.Model):
 
         return False
 
-    def delete_module(bgc_id: str, name: str):
+    def delete_module(bgc_id: str, module_id: str):
         response = requests.delete(
-            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/module/{name}",
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/module/{module_id}",
             headers={"Authorization": f"Bearer {session['token']}"},
         )
         if response.status_code == 200:
@@ -440,7 +440,7 @@ class Entry(db.Model):
             return None
 
         return response.json()
-    
+
     def check_lock(bgc_id: str, category: str):
         lock_endpoint = "/lock/check/"
         response = requests.post(
@@ -449,11 +449,11 @@ class Entry(db.Model):
             json={
                 "accession": bgc_id,
                 "category": category,
-            }
+            },
         )
 
         return response
-    
+
     def request_lock(bgc_id: str, category: str):
         lock_endpoint = "/lock/request/"
         response = requests.post(
@@ -462,11 +462,11 @@ class Entry(db.Model):
             json={
                 "accession": bgc_id,
                 "category": category,
-            }
+            },
         )
 
         return response
-    
+
     def release_lock(bgc_id: str, category: str):
         lock_endpoint = "/lock/release/"
         response = requests.post(
@@ -475,11 +475,10 @@ class Entry(db.Model):
             json={
                 "accession": bgc_id,
                 "category": category,
-            }
+            },
         )
 
         return response
-
 
     @staticmethod
     def save_structure(bgc_id: str, data: dict[str, Any]):

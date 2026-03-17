@@ -17,7 +17,6 @@ import (
 )
 
 var testEntry = entry.Entry{
-	ID:           0,
 	Accession:    "test",
 	Version:      0,
 	Changelog:    entry.Changelog{},
@@ -28,9 +27,9 @@ var testEntry = entry.Entry{
 	Biosynthesis: biosynthesis.Biosynthesis{},
 	Compounds: []compound.Compound{
 		{
-			ID:      1,
-			EntryID: 1,
-			Name:    "benzene",
+			ID:             1,
+			EntryAccession: "test",
+			Name:           "benzene",
 			Evidence: []compound.CompoundEvidence{
 				{
 					ID:         1,

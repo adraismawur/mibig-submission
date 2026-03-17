@@ -1,7 +1,6 @@
 package biosynthesis
 
 import (
-	"errors"
 	"github.com/adraismawur/mibig-submission/models"
 	"gorm.io/gorm"
 	"log/slog"
@@ -9,12 +8,12 @@ import (
 )
 
 type Biosynthesis struct {
-	ID      uint64                `json:"db_id"`
-	EntryID uint64                `json:"entry_id"`
-	Classes []BiosyntheticClass   `json:"classes" gorm:"foreignKey:BiosynthesisID"`
-	Modules []BiosyntheticModule  `json:"modules,omitempty" gorm:"foreignKey:BiosynthesisID"`
-	Operons []BiosyntheticOperon  `json:"operons,omitempty" gorm:"foreignKey:BiosynthesisID"`
-	Paths   []BiosyntheticPathway `json:"paths,omitempty" gorm:"foreignKey:BiosynthesisID"`
+	ID             uint64                `json:"db_id"`
+	EntryAccession string                `json:"db_entry_accession"`
+	Classes        []BiosyntheticClass   `json:"classes" gorm:"foreignKey:BiosynthesisID"`
+	Modules        []BiosyntheticModule  `json:"modules,omitempty" gorm:"foreignKey:BiosynthesisID"`
+	Operons        []BiosyntheticOperon  `json:"operons,omitempty" gorm:"foreignKey:BiosynthesisID"`
+	Paths          []BiosyntheticPathway `json:"paths,omitempty" gorm:"foreignKey:BiosynthesisID"`
 }
 
 func init() {
@@ -25,8 +24,8 @@ func GetEntryBiosynthesis(db *gorm.DB, accession string) (*Biosynthesis, error) 
 	var biosynth Biosynthesis
 
 	err := db.
-		Table("entries").
-		Where("accession = ?", accession).
+		Table("biosyntheses").
+		Where("entry_accession = ?", accession).
 		Preload("Classes").
 		First(&biosynth).
 		Error
@@ -161,12 +160,12 @@ func GetEntryBiosynthesisClass(db *gorm.DB, id int) (*BiosyntheticClass, error) 
 	return &class, nil
 }
 
-func CreateEntryBiosynthesisModule(db *gorm.DB, accession string, module BiosyntheticModule) error {
+func CreateEntryBiosynthesisModule(db *gorm.DB, entryAccession string, module BiosyntheticModule) error {
 	var biosynth *Biosynthesis
 
 	err := db.
-		Table("entries").
-		Where("accession = ?", accession).
+		Table("biosyntheses").
+		Where("entry_accession = ?", entryAccession).
 		Preload("Classes").
 		Preload("Modules.Carriers.Location").
 		Preload("Modules.ModificationDomains.Location").
@@ -251,68 +250,31 @@ func ReorderEntryBiosynthesisModules(db *gorm.DB, idFrom uint64, idTo uint64) er
 	return nil
 }
 
-func UpdateEntryBiosynthesisModule(db *gorm.DB, accession string, newModule *BiosyntheticModule) error {
-	var biosynth Biosynthesis
-
+func UpdateEntryBiosynthesisModule(db *gorm.DB, newModule *BiosyntheticModule) error {
 	err := db.
-		Table("entries").
-		Where("accession = ?", accession).
-		Preload("Classes").
-		Preload("Modules.Carriers.Location").
-		Preload("Modules.ModificationDomains.Location").
-		Preload("Modules.ADomain.Location").
-		Preload("Modules.ATDomain.Location").
-		Preload("Modules.KSDomain.Location").
-		First(&biosynth).
-		Error
-
-	if err != nil {
-		return err
-	}
-
-	// find correct newModule
-	found := false
-	for _, module := range biosynth.Modules {
-		if module.Name == module.Name {
-			newModule.ID = module.ID
-			newModule.BiosynthesisID = module.BiosynthesisID
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		return errors.New("could not find newModule")
-	}
-
-	err = db.
 		Session(&gorm.Session{FullSaveAssociations: true}).
-		Model(&biosynth).
-		Association("Modules").
-		Replace(newModule)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func DeleteEntryBiosynthesisModule(db *gorm.DB, accession string, name string) error {
-	var biosynth Biosynthesis
-
-	err := db.
-		Table("entries").
-		Where("accession = ?", accession).
-		Preload("Modules").
-		First(&biosynth).
+		Model(&BiosyntheticModule{}).
+		Preload("Carriers.Location").
+		Preload("ModificationDomains.Location").
+		Preload("ADomain.Location").
+		Preload("ATDomain.Location").
+		Preload("KSDomain.Location").
+		Where("id = ?", newModule.ID).
+		Updates(&newModule).
 		Error
 
 	if err != nil {
 		return err
 	}
 
-	err = db.Where("name = ?", name).Delete(biosynth.Modules).Error
+	return nil
+}
+
+func DeleteEntryBiosynthesisModule(db *gorm.DB, id int) error {
+	err := db.
+		Model(&BiosyntheticModule{}).
+		Delete("id = ?", id).
+		Error
 
 	if err != nil {
 		return err
@@ -321,33 +283,25 @@ func DeleteEntryBiosynthesisModule(db *gorm.DB, accession string, name string) e
 	return nil
 }
 
-func GetEntryBiosynthesisModule(db *gorm.DB, accession string, name string) (*BiosyntheticModule, error) {
-	var biosynth Biosynthesis
+func GetEntryBiosynthesisModule(db *gorm.DB, id int) (*BiosyntheticModule, error) {
+	var module BiosyntheticModule
 
 	err := db.
-		Table("entries").
-		Where("accession = ?", accession).
-		Preload("Classes").
-		Preload("Modules.Carriers.Location").
-		Preload("Modules.ModificationDomains.Location").
-		Preload("Modules.ADomain.Location").
-		Preload("Modules.ATDomain.Location").
-		Preload("Modules.KSDomain.Location").
-		First(&biosynth).
+		Table("biosynthetic_modules").
+		Where("id = ?", id).
+		Preload("Carriers.Location").
+		Preload("ModificationDomains.Location").
+		Preload("ADomain.Location").
+		Preload("ATDomain.Location").
+		Preload("KSDomain.Location").
+		First(&module).
 		Error
 
 	if err != nil {
 		return nil, err
 	}
 
-	for _, module := range biosynth.Modules {
-		if module.Name == name {
-			return &module, nil
-		}
-	}
-
-	// not found
-	return nil, nil
+	return &module, nil
 }
 
 func GetEntryBiosynthesisModulesById(db *gorm.DB, biosynthId uint64) (*[]BiosyntheticModule, error) {

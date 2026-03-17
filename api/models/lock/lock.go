@@ -19,24 +19,24 @@ const (
 )
 
 type Lock struct {
-	ID          uint64          `json:"db_id"`
-	EntryID     uint64          `json:"db_entry_id" gorm:"uniqueIndex:compositeLockIndex"`
-	Category    LockingCategory `json:"category" gorm:"uniqueIndex:compositeLockIndex"`
-	UnlocksAt   time.Time       `json:"unlocks_at"`
-	LockOwnerID uint64          `json:"db_lock_owner_id"`
-	LockOwner   models.User     `json:"lock_owner"`
+	ID             uint64          `json:"db_id"`
+	EntryAccession string          `json:"db_entry_accession" gorm:"uniqueIndex:compositeLockIndex"`
+	Category       LockingCategory `json:"category" gorm:"uniqueIndex:compositeLockIndex"`
+	UnlocksAt      time.Time       `json:"unlocks_at"`
+	LockOwnerID    uint64          `json:"db_lock_owner_id"`
+	LockOwner      models.User     `json:"lock_owner"`
 }
 
 func init() {
 	models.Models = append(models.Models, &Lock{})
 }
 
-func EntryCanCreateLock(db *gorm.DB, entryId int, category LockingCategory) (bool, error) {
+func EntryCanCreateLock(db *gorm.DB, entryAccession string, category LockingCategory) (bool, error) {
 	var lock Lock
 
 	err := db.
 		Model(&Lock{}).
-		Where("entry_id = ? AND (category = ? OR category = ?)", entryId, category, Full).
+		Where("entry_accession = ? AND (category = ? OR category = ?)", entryAccession, category, Full).
 		Find(&lock).
 		Error
 
@@ -55,14 +55,14 @@ func EntryCanCreateLock(db *gorm.DB, entryId int, category LockingCategory) (boo
 	return false, nil
 }
 
-func GetEntryLocks(db *gorm.DB, entryId int) (*[]Lock, error) {
+func GetEntryLocks(db *gorm.DB, entryAccession string) (*[]Lock, error) {
 	var locks []Lock
 
 	now := time.Now()
 
 	err := db.
 		Model(&Lock{}).
-		Where("entry_id = ? AND unlocks_at >= ?", entryId, now.UnixMilli()).
+		Where("entry_accession = ? AND unlocks_at >= ?", entryAccession, now.UnixMilli()).
 		Find(&locks).
 		Error
 
@@ -73,12 +73,12 @@ func GetEntryLocks(db *gorm.DB, entryId int) (*[]Lock, error) {
 	return &locks, nil
 }
 
-func GetEntryLock(db *gorm.DB, entryId int, category LockingCategory) (*Lock, error) {
+func GetEntryLock(db *gorm.DB, entryAccession string, category LockingCategory) (*Lock, error) {
 	var lock Lock
 
 	err := db.
 		Model(&Lock{}).
-		Where("entry_id = ? AND (category = ? OR category = ?)", entryId, category, Full).
+		Where("entry_accession = ? AND (category = ? OR category = ?)", entryAccession, category, Full).
 		Find(&lock).
 		Error
 
@@ -89,7 +89,7 @@ func GetEntryLock(db *gorm.DB, entryId int, category LockingCategory) (*Lock, er
 	return &lock, nil
 }
 
-func CreateOrGetLock(db *gorm.DB, entryId int, category LockingCategory, user models.User) (*Lock, error) {
+func CreateOrGetLock(db *gorm.DB, entryAccession string, category LockingCategory, user models.User) (*Lock, error) {
 	lockDuration, err := config.GetConfig(config.EnvLockDuration)
 
 	if err != nil {
@@ -97,7 +97,7 @@ func CreateOrGetLock(db *gorm.DB, entryId int, category LockingCategory, user mo
 	}
 
 	// check if current lock is still active
-	activeLock, err := GetEntryLock(db, entryId, category)
+	activeLock, err := GetEntryLock(db, entryAccession, category)
 
 	if err != nil {
 		return nil, err
@@ -108,7 +108,7 @@ func CreateOrGetLock(db *gorm.DB, entryId int, category LockingCategory, user mo
 	}
 
 	// otherwise create a new lock
-	canCreateLock, err := EntryCanCreateLock(db, entryId, category)
+	canCreateLock, err := EntryCanCreateLock(db, entryAccession, category)
 
 	if err != nil {
 		return nil, err
@@ -122,17 +122,17 @@ func CreateOrGetLock(db *gorm.DB, entryId int, category LockingCategory, user mo
 	newTime := time.Now().Add(parsedDuration)
 
 	lock := Lock{
-		ID:          0,
-		EntryID:     uint64(entryId),
-		Category:    category,
-		UnlocksAt:   newTime,
-		LockOwnerID: user.ID,
-		LockOwner:   user,
+		ID:             0,
+		EntryAccession: entryAccession,
+		Category:       category,
+		UnlocksAt:      newTime,
+		LockOwnerID:    user.ID,
+		LockOwner:      user,
 	}
 
 	err = db.
 		Model(&Lock{}).
-		Where("entry_id = ? AND category = ?", entryId, category).
+		Where("entry_accession = ? AND category = ?", entryAccession, category).
 		Assign(Lock{UnlocksAt: lock.UnlocksAt}).
 		FirstOrCreate(&lock).
 		Error
@@ -144,12 +144,12 @@ func CreateOrGetLock(db *gorm.DB, entryId int, category LockingCategory, user mo
 	return &lock, nil
 }
 
-func ReleaseLock(db *gorm.DB, entryId int, category LockingCategory, user models.User) error {
+func ReleaseLock(db *gorm.DB, entryAccession string, category LockingCategory, user models.User) error {
 	var existingLock Lock
 
 	err := db.
 		Model(&Lock{}).
-		Where("entry_id = ? AND category = ?", entryId, category).
+		Where("entry_accession = ? AND category = ?", entryAccession, category).
 		Find(&existingLock).
 		Error
 

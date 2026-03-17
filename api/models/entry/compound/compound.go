@@ -21,16 +21,16 @@ type CompoundEvidence struct {
 }
 
 type Compound struct {
-	ID            uint64             `json:"db_id"`
-	EntryID       uint64             `json:"db_entry_id"`
-	Name          string             `json:"name"`
-	Evidence      []CompoundEvidence `json:"evidence" gorm:"foreignKey:CompoundID"`
-	BioActivities []BioActivities    `json:"bioactivities,omitempty" gorm:"foreignKey:CompoundID"`
-	Structure     string             `json:"structure"`
-	DatabaseIDs   pq.StringArray     `json:"databaseIds" gorm:"type:text[]"`
-	Moieties      pq.StringArray     `json:"moieties,omitempty" gorm:"type:text[]"`
-	Mass          float64            `json:"mass"`
-	Formula       string             `json:"formula"`
+	ID             uint64             `json:"db_id"`
+	EntryAccession string             `json:"db_entry_accession"`
+	Name           string             `json:"name"`
+	Evidence       []CompoundEvidence `json:"evidence" gorm:"foreignKey:CompoundID"`
+	BioActivities  []BioActivities    `json:"bioactivities,omitempty" gorm:"foreignKey:CompoundID"`
+	Structure      string             `json:"structure"`
+	DatabaseIDs    pq.StringArray     `json:"databaseIds" gorm:"type:text[]"`
+	Moieties       pq.StringArray     `json:"moieties,omitempty" gorm:"type:text[]"`
+	Mass           float64            `json:"mass"`
+	Formula        string             `json:"formula"`
 }
 
 func init() {

@@ -11,9 +11,9 @@ import (
 
 func TestReorderEntryBiosynthesisModules(t *testing.T) {
 	testBiosynth := Biosynthesis{
-		ID:      0,
-		EntryID: 0,
-		Classes: nil,
+		ID:             0,
+		EntryAccession: "test",
+		Classes:        nil,
 		Modules: []BiosyntheticModule{
 			{
 				ID:                  1,

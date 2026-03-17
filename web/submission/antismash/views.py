@@ -58,10 +58,10 @@ def as_status(as_task_id: str) -> Union[str, response.Response]:
 
         if response_data.get("state") == 4:
             accession = response_data.get("accession")
-            bgc_id = response_data.get("bgc_id")
+            entry_accession = response_data.get("entry_accession")
             # redirect using 303 to change POST to GET
             return redirect(
-                url_for("edit.edit_bgc_full", bgc_id=bgc_id, form_id="locitax"),
+                url_for("edit.edit_bgc", bgc_id=entry_accession, form_id="locitax"),
                 code=303,
             )
 

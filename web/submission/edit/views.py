@@ -554,11 +554,11 @@ def create_biosynth_module(bgc_id: str, module: str) -> Union[str, response.Resp
 
 
 @bp_edit.route(
-    "/<bgc_id>/biosynth/edit_module/<name>/<module>", methods=["GET", "POST"]
+    "/<bgc_id>/biosynth/edit_module/<module_id>/<module>", methods=["GET", "POST"]
 )
 @login_required
 def edit_biosynth_module(
-    bgc_id: str, name: str, module: str
+    bgc_id: str, module_id: int, module: str
 ) -> Union[str, response.Response]:
     """Form to enter biosynthetic module information
 
@@ -570,7 +570,7 @@ def edit_biosynth_module(
     """
 
     if not request.form:
-        moduleData = Entry.get_module(bgc_id, name)
+        moduleData = Entry.get_module(bgc_id, module_id)
         form = get_module_form(module)(data=moduleData)
         reviewed = False
     else:
@@ -578,14 +578,17 @@ def edit_biosynth_module(
         reviewed = False
 
     if request.method == "POST" and form.validate():
-        if Entry.update_module(bgc_id, name, form.data):
+        if Entry.update_module(bgc_id, module_id, form.data):
             flash("Updated biosynthetic module!")
         else:
             flash("Failed to update biosynthetic module", "error")
 
         return redirect(
             url_for(
-                "edit.edit_biosynth_module", bgc_id=bgc_id, name=name, module=module
+                "edit.edit_biosynth_module",
+                bgc_id=bgc_id,
+                module_id=module_id,
+                module=module,
             )
         )
 
@@ -612,20 +615,20 @@ def move_biosynth_module(bgc_id: str, id_from: int, id_to: int):
     return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="biosynth"))
 
 
-@bp_edit.route("/<bgc_id>/biosynth/delete_module/<name>", methods=["GET", "POST"])
+@bp_edit.route("/<bgc_id>/biosynth/delete_module/<module_id>", methods=["GET", "POST"])
 @login_required
-def remove_biosynth_module(bgc_id: str, name: str):
+def remove_biosynth_module(bgc_id: str, module_id: int):
     # get pretty printed version of module data
-    module_text = Entry.get_module_text(bgc_id, name)
+    module_text = Entry.get_module_text(bgc_id, module_id)
 
     if request.method == "POST":
-        Entry.delete_module(bgc_id, name)
+        Entry.delete_module(bgc_id, module_id)
         return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="biosynth"))
 
     return render_template(
         "wizard/biosynth_module_remove.html",
         bgc_id=bgc_id,
-        name=name,
+        name=module_id,
         module_text=module_text,
     )
 

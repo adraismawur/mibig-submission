@@ -17,8 +17,9 @@ Editing {{ bgc_id }}
     <form method="post">
         {{ macros.simple_divform_inner(form, is_reviewer=is_reviewer, reviewed=reviewed) }}
 
-        {{ macros.render_wizard_nav(show_nav, bgc_id, prev_form, next_form)}}
-
+        <div class=" form-group">
+            {{ macros.render_wizard_nav(show_nav, bgc_id, prev_form, next_form)}}
+        </div>
     </form>
 </div>
 

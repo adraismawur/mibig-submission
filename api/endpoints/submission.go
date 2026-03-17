@@ -78,7 +78,7 @@ func getUserSubmissions(db *gorm.DB, c *gin.Context) {
 	userID := c.Param("userId")
 
 	q := db.Table("user_submissions").
-		Joins("JOIN entries ON entries.id = user_submissions.entry_id")
+		Joins("JOIN entries ON entries.accession = user_submissions.entry_accession")
 
 	// optional clause
 	if userID != "" {
@@ -87,7 +87,7 @@ func getUserSubmissions(db *gorm.DB, c *gin.Context) {
 
 	q.Where("state != ?", entry.DiscardedSubmission)
 
-	err := q.Select("entries.accession, user_submissions.type, user_submissions.state, user_submissions.category").
+	err := q.Select("entries.accession, user_submissions.type, user_submissions.state").
 		Find(&submissions).Error
 
 	if err != nil {
@@ -109,7 +109,7 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 	state := c.Query("state")
 
 	q := db.Table("user_submissions").
-		Joins("JOIN entries ON entries.id = user_submissions.entry_id")
+		Joins("JOIN entries ON entries.accession = user_submissions.entry_accession")
 
 	// optional clause
 	if userID != "" {
@@ -158,7 +158,7 @@ func createNewSubmission(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	_, err = lock.CreateOrGetLock(db, int(newEntry.ID), "full", *user)
+	_, err = lock.CreateOrGetLock(db, newEntry.Accession, "full", *user)
 
 	if err != nil {
 		slog.Error("[endpoints] [submission] Failed to create lock for user submission", "error", err.Error())
@@ -208,7 +208,7 @@ func GetUserSubmissions(db *gorm.DB, userId int) ([]string, error) {
 	err := db.
 		Table("user_submissions").
 		Select("accession").
-		Joins("JOIN entries ON entries.id = user_submissions.entry_id").
+		Joins("JOIN entries ON entries.accession = user_submissions.entry_accession").
 		Where("user_id = ?", userId).
 		Find(&accessions).
 		Error
@@ -255,7 +255,7 @@ func promoteSubmission(db *gorm.DB, c *gin.Context) {
 	var userSubmission entry.UserSubmission
 
 	err = db.
-		Joins("JOIN entries ON entries.id = user_submissions.entry_id").
+		Joins("JOIN entries ON entries.accession = user_submissions.entry_accession").
 		Where("entries.accession = ?", accession).
 		First(&userSubmission).Error
 
@@ -319,7 +319,7 @@ func redraftSubmission(db *gorm.DB, c *gin.Context) {
 	var userSubmission entry.UserSubmission
 
 	err = db.
-		Joins("JOIN entries ON entries.id = user_submissions.entry_id").
+		Joins("JOIN entries ON entries.accession = user_submissions.entry_accession").
 		Where("entries.accession = ?", accession).
 		First(&userSubmission).Error
 
@@ -366,7 +366,7 @@ func discardSubmission(db *gorm.DB, c *gin.Context) {
 	var userSubmission entry.UserSubmission
 
 	err = db.
-		Joins("JOIN entries ON entries.id = user_submissions.entry_id").
+		Joins("JOIN entries ON entries.accession = user_submissions.entry_accession").
 		Where("entries.accession = ?", accession).
 		First(&userSubmission).Error
 

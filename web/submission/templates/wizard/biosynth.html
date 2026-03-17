@@ -101,12 +101,12 @@ Editing {{ bgc_id }}
                     </td>
                     <td>
                         <a
-                            href="{{ url_for('edit.edit_biosynth_module', bgc_id=bgc_id, name=module['name'].data, module=module['type'].data.replace('-', '_')) }}">
+                            href="{{ url_for('edit.edit_biosynth_module', bgc_id=bgc_id, module_id=module['db_id'].data, module=module['type'].data.replace('-', '_')) }}">
                             <button type="button" class="btn btn-primary" type="button">Edit</button>
                         </a>
                     </td>
                     <td>
-                        <a href="{{ url_for('edit.remove_biosynth_module', bgc_id=bgc_id, name=module['name'].data) }}">
+                        <a href="{{ url_for('edit.remove_biosynth_module', bgc_id=bgc_id, module_id=module['db_id'].data) }}">
                             <button type="button" class="btn btn-danger" type="button">X</button>
                         </a>
                     </td>
@@ -121,9 +121,13 @@ Editing {{ bgc_id }}
             <button class="btn btn-primary" type="button">Add new module</button>
         </a>
     </div>
+
     {{ macros.simple_divsubform(form.operons) }}
     {{ macros.simple_divsubform(form.paths) }}
-    {{ macros.render_wizard_nav(show_nav, bgc_id, prev_form, next_form)}}
+
+    <div class="form-group">
+        {{ macros.render_wizard_nav(show_nav, bgc_id, prev_form, next_form)}}
+    </div>
     
 
 </div>

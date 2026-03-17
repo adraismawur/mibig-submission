@@ -7,9 +7,9 @@ import (
 )
 
 type LociTax struct {
-	ID       uint              `json:"db_id"`
-	Loci     []locus.Locus     `json:"loci" gorm:"foreignKey:EntryID"`
-	Taxonomy taxonomy.Taxonomy `json:"taxonomy" gorm:"ForeignKey:EntryID"`
+	Accession string            `json:"accession" gorm:"primaryKey"`
+	Loci      []locus.Locus     `json:"loci" gorm:"foreignKey:EntryAccession"`
+	Taxonomy  taxonomy.Taxonomy `json:"taxonomy" gorm:"ForeignKey:EntryAccession"`
 }
 
 func GetLociTax(db *gorm.DB, accession string) (*LociTax, error) {

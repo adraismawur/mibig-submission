@@ -55,7 +55,7 @@ func BiosynthEndpoint(db *gorm.DB) Endpoint {
 			},
 			{
 				Method: http.MethodGet,
-				Path:   "/entry/:accession/biosynth/module/:name",
+				Path:   "/entry/:accession/biosynth/module/:id",
 				Handler: func(c *gin.Context) {
 					getEntryBiosynthesisModule(db, c)
 				},
@@ -76,14 +76,14 @@ func BiosynthEndpoint(db *gorm.DB) Endpoint {
 			},
 			{
 				Method: http.MethodPost,
-				Path:   "/entry/:accession/biosynth/module/:name",
+				Path:   "/entry/:accession/biosynth/module/:id",
 				Handler: func(c *gin.Context) {
 					updateEntryBiosynthesisModule(db, c)
 				},
 			},
 			{
 				Method: http.MethodDelete,
-				Path:   "/entry/:accession/biosynth/module/:name",
+				Path:   "/entry/:accession/biosynth/module/:id",
 				Handler: func(c *gin.Context) {
 					deleteEntryBiosynthesisModule(db, c)
 				},
@@ -269,6 +269,7 @@ func createEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
 	}
 
 	if !exists {
@@ -315,10 +316,17 @@ func reorderBiosynthModules(db *gorm.DB, c *gin.Context) {
 
 func updateEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 	accession := c.Param("accession")
-	name := c.Param("name")
+	moduleId := c.Param("id")
+
+	iModuleId, err := strconv.Atoi(moduleId)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
 
 	var module biosynthesis.BiosyntheticModule
-	err := c.ShouldBindJSON(&module)
+	err = c.ShouldBindJSON(&module)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
@@ -326,7 +334,7 @@ func updateEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	if name != module.Name {
+	if uint64(iModuleId) != module.ID {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Name mismatch between request URL and data"})
 		return
 	}
@@ -344,7 +352,7 @@ func updateEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	err = biosynthesis.UpdateEntryBiosynthesisModule(db, accession, &module)
+	err = biosynthesis.UpdateEntryBiosynthesisModule(db, &module)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
@@ -357,7 +365,14 @@ func updateEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 
 func getEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 	accession := c.Param("accession")
-	name := c.Param("name")
+	moduleId := c.Param("id")
+
+	iModuleId, err := strconv.Atoi(moduleId)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
 
 	formatJson := false
 
@@ -377,7 +392,7 @@ func getEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	entryBioSynth, err := biosynthesis.GetEntryBiosynthesisModule(db, accession, name)
+	entryBioSynth, err := biosynthesis.GetEntryBiosynthesisModule(db, iModuleId)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
@@ -402,7 +417,14 @@ func getEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 
 func deleteEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 	accession := c.Param("accession")
-	name := c.Param("name")
+	moduleId := c.Param("id")
+
+	iModuleId, err := strconv.Atoi(moduleId)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
 
 	exists, err := entry.GetEntryExists(db, accession)
 
@@ -414,7 +436,7 @@ func deleteEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"message": "entry not found"})
 	}
 
-	err = biosynthesis.DeleteEntryBiosynthesisModule(db, accession, name)
+	err = biosynthesis.DeleteEntryBiosynthesisModule(db, iModuleId)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})

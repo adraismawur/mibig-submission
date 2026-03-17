@@ -88,7 +88,7 @@ func listEntries(db *gorm.DB, c *gin.Context) {
 
 	q := db.Table("entries")
 	if !listAll {
-		q = q.Where("entries.id NOT IN (select entry_id from user_submissions)")
+		q = q.Where("entries.accession NOT IN (select entry_accession from user_submissions)")
 	}
 
 	if search != "" {

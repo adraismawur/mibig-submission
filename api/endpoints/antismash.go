@@ -216,11 +216,21 @@ func getRecordAntismashAccessions(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	var accession []string
+	var locusAccessions []string
 
-	db.Table("antismash_runs").Where("bgc_id = ?", entryAccession).Select("accession").Find(&accession)
+	err := db.
+		Table("antismash_runs").
+		Where("entry_accession = ?", entryAccession).
+		Select("locus_accession").
+		Find(&locusAccessions).
+		Error
 
-	c.JSON(http.StatusOK, accession)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+
+	c.JSON(http.StatusOK, locusAccessions)
 }
 
 func startAntismashRun(db *gorm.DB, c *gin.Context) {
@@ -234,7 +244,7 @@ func startAntismashRun(db *gorm.DB, c *gin.Context) {
 
 	request.GUID = guid.NewString()
 
-	slog.Info("[Antismash] Starting Antismash Run", "accession", request.Accession)
+	slog.Info("[Antismash] Starting Antismash Run", "accession", request.LocusAccession)
 
 	db.Create(&request)
 }
@@ -266,10 +276,10 @@ func AntismashWorker(db *gorm.DB) {
 		request.State = models.Downloading
 		db.Save(&request)
 
-		gbkPath, err := util.GetGBK(request.Accession)
+		gbkPath, err := util.GetGBK(request.LocusAccession)
 
 		if err != nil {
-			slog.Error("[AntismashWorker] Could not get GBK", "Accession", request.Accession, "error", err)
+			slog.Error("[AntismashWorker] Could not get GBK", "LocusAccession", request.LocusAccession, "error", err)
 
 			request.State = models.Failed
 			db.Save(&request)
@@ -287,9 +297,9 @@ func AntismashWorker(db *gorm.DB) {
 			panic("The antismash worker panicked: could not get env variable for data path")
 		}
 
-		outputDir := path2.Join(dataPath, "antismash", request.Accession)
+		outputDir := path2.Join(dataPath, "antismash", request.LocusAccession)
 
-		_, err = RunAntismash(*gbkPath, request.Accession, outputDir)
+		_, err = RunAntismash(*gbkPath, request.LocusAccession, outputDir)
 
 		if err != nil {
 			slog.Error("[AntismashWorker] antismash worker error:", "err", err)
@@ -300,7 +310,7 @@ func AntismashWorker(db *gorm.DB) {
 			continue
 		}
 
-		jsonFile := path2.Join(outputDir, request.Accession+".json")
+		jsonFile := path2.Join(outputDir, request.LocusAccession+".json")
 
 		antismashOutput, err := ReadAntismashJson(jsonFile)
 
@@ -310,7 +320,7 @@ func AntismashWorker(db *gorm.DB) {
 			db.Save(&request)
 		}
 
-		activeEntry, err := entry.GetEntryFromAccession(db, request.BGCID)
+		activeEntry, err := entry.GetEntryFromAccession(db, request.EntryAccession)
 		if err != nil {
 			slog.Error("[AntismashWorker] Failed to get entry from accession", "err", err)
 			request.State = models.Failed
