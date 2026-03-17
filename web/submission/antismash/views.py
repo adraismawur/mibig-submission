@@ -17,11 +17,11 @@ from werkzeug.wrappers import response
 from submission.antismash import bp_as
 
 ANTISMASH_STATE = {
-	0: "Pending",
-	1: "Downloading",
-	2: "Running",
-	3: "Failed",
-	4: "Finished",
+    0: "Pending",
+    1: "Downloading",
+    2: "Running",
+    3: "Failed",
+    4: "Finished",
 }
 
 
@@ -47,11 +47,10 @@ def as_status(as_task_id: str) -> Union[str, response.Response]:
     readable_state = "Unknown"
 
     if "state" in response_data:
-        
+
         readable_state = ANTISMASH_STATE[response_data["state"]]
         submitted_at = datetime.datetime.fromisoformat(response_data["submitted_at"])
         readable_date = submitted_at.strftime("%Y-%m-%d %H:%M:%S")
-
 
         time_span = datetime.datetime.now(submitted_at.tzinfo) - submitted_at
         # omit ms
@@ -62,7 +61,8 @@ def as_status(as_task_id: str) -> Union[str, response.Response]:
             bgc_id = response_data.get("bgc_id")
             # redirect using 303 to change POST to GET
             return redirect(
-                url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="locitax"), code=303
+                url_for("edit.edit_bgc_full", bgc_id=bgc_id, form_id="locitax"),
+                code=303,
             )
 
     return render_template(

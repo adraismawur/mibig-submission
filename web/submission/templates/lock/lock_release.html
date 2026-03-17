@@ -22,7 +22,11 @@ Editing {{ bgc_id }}
 
             <hr>
 
+            {% if category == "full" %}
             <h6>This means that someone else can edit this category on this entry.</h6>
+            {% else %}
+            <h6>This means that someone else can edit this category on this entry.</h6>
+            {% endif %}
 
             <div class="row">
                 <div class="col">

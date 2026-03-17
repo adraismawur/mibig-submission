@@ -158,6 +158,14 @@ func createNewSubmission(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	_, err = lock.CreateOrGetLock(db, int(newEntry.ID), "full", *user)
+
+	if err != nil {
+		slog.Error("[endpoints] [submission] Failed to create lock for user submission", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to create user submission lock"})
+		return
+	}
+
 	antismashTask, err := entry.CreateAntismashWorkerTask(db, *newEntry)
 
 	if err != nil {

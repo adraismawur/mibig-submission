@@ -19,9 +19,12 @@ Editing {{ bgc_id }}
                 <th></th>
             </thead>
             <tbody>
-                {% for lock_key in readable_category_map %}
-                {% set locked = lock_key in lock_info %}
-                {% set lock = lock_info[lock_key] %}
+                {% set fully_locked = "full" in lock_info %}
+
+                {% if not fully_locked %}
+                {% for lock_key in lock_keys %}
+                {% set locked = (lock_key in lock_info) or fully_locked %}
+                {% set lock = lock_info[lock_key] if lock_key in lock_info else lock_info["full"] %}
                 <tr>
                     <td>
                         {{ readable_category_map[lock_key] }}
@@ -38,12 +41,51 @@ Editing {{ bgc_id }}
                     </td>
                     <td>
                         {% if not locked %}
+                        <a href="{{ url_for('edit.request_lock', bgc_id=bgc_id, category=lock_key) if not fully_locked }}">
+                            <button class="btn btn-primary" {{ "disabled" if fully_locked }}>Request lock</button>
+                        </a>
+                        {% endif %}
+                        {% if locked and lock['is_owner'] and not fully_locked %}
+                        <a href="{{url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=lock_key)}}">
+                            <button class="btn btn-primary">Edit</button>
+                        </a>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if locked and lock['is_owner'] and not fully_locked %}
+                        <a href="{{url_for('edit.release_lock', bgc_id=bgc_id, category=lock_key)}}">
+                            <button class="btn btn-primary">Release</button>
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                {% set lock_key = "full" %}
+                {% set lock = lock_info[lock_key] %}
+                {% set locked = True %}
+                <tr>
+                    <td>
+                        {{ readable_category_map["full"] }}
+                    </td>
+                    <td>
+                        {{ "Locked" }}
+                    </td>
+                    <td>
+                        {{ "Locked by you" if locked and lock['is_owner'] else "Locked by someone else" if locked else
+                        "" }}
+                    </td>
+                    <td>
+                        {{ lock['unlocks_at'] if locked else ""}}
+                    </td>
+                    <td>
+                        {% if not locked %}
                         <a href="{{url_for('edit.request_lock', bgc_id=bgc_id, category=lock_key)}}">
                             <button class="btn btn-primary">Request lock</button>
                         </a>
                         {% endif %}
                         {% if locked and lock['is_owner'] %}
-                        <a href="{{url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=lock_key)}}">
+                        <a href="{{url_for('edit.edit_bgc_full', bgc_id=bgc_id, form_id='locitax')}}">
                             <button class="btn btn-primary">Edit</button>
                         </a>
                         {% endif %}
@@ -51,12 +93,13 @@ Editing {{ bgc_id }}
                     <td>
                         {% if locked and lock['is_owner'] %}
                         <a href="{{url_for('edit.release_lock', bgc_id=bgc_id, category=lock_key)}}">
-                            <button class="btn btn-primary">Release lock</button>
+                            <button class="btn btn-primary">Release</button>
                         </a>
                         {% endif %}
                     </td>
                 </tr>
-                {% endfor %}
+
+                {% endif %}
             </tbody>
         </table>
     </div>

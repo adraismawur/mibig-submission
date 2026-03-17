@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"fmt"
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/models/entry"
 	"github.com/adraismawur/mibig-submission/models/lock"
@@ -132,8 +133,15 @@ func checkEntryLocks(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	if activeLock.ID == 0 {
+		errorString := fmt.Sprintf("user does not have lock for entry %s category %s", request.Accession, request.Category)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": errorString})
+		return
+	}
+
 	if activeLock.UnlocksAt.Before(time.Now()) {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "lock timed out"})
+		errorString := fmt.Sprintf("lock timed out on entry %s category %s", request.Accession, request.Category)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": errorString})
 		return
 	}
 
@@ -142,7 +150,15 @@ func checkEntryLocks(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"unlocks_at": activeLock.UnlocksAt})
+	var response struct {
+		UnlocksAt time.Time            `json:"unlocks_at"`
+		Category  lock.LockingCategory `json:"category"`
+	}
+
+	response.UnlocksAt = activeLock.UnlocksAt
+	response.Category = activeLock.Category
+
+	c.JSON(http.StatusOK, response)
 }
 
 func requestEntryLock(db *gorm.DB, c *gin.Context) {

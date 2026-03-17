@@ -118,17 +118,16 @@ Editing {{ bgc_id }}
             <button class="btn btn-primary" type="button">Add new gene annotation</button>
         </a>
     </div>
+    
+    {% if show_nav %}
 
+    {{ macros.render_wizard_nav(bgc_id, prev_form, next_form)}}
+    
+    {% else %}
+    <a href="{{ url_for('edit.edit_bgc_redirect', bgc_id=bgc_id) }}"><button id="back-btn" class="btn btn-secondary"
+            type="button">Back to edit overview</button></a>
 
-    {% if prev_form %}
-    <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=prev_form.id) }}"><button id="back-btn"
-            class="btn btn-secondary" type="button">Previous: {{ prev_form.description }}</button></a>
-    {%- endif %}
-    {% if next_form %}
-    <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=next_form.id) }}"><button id="back-btn"
-            class="btn btn-secondary" type="button">Next: {{ next_form.description }}</button></a>
-    {%- endif %}
-
+    {% endif %}
 </div>
 
 {% endblock %}

@@ -187,8 +187,8 @@
         <thead class="table-header">
             <th>Accession</th>
             <th>Type</th>
-            <th>State</th>
             <th>Category</th>
+            <th>State</th>
             <th></th>
             <th></th>
         </thead>
@@ -196,8 +196,8 @@
         <tr>
             <td>{{ submission.accession }}</td>
             <td>{{ submission.type }}</td>
+            <td>{{ submission.category or "N/A" }}</td>
             <td>{{ submission.state }}</td>
-            <td>{{ submission.category }}</td>
             <td></td>
             <td>
                 {% if submission.state == "draft" %}
@@ -283,6 +283,19 @@
         </div>
     </div>
 </div>
+
+{% endmacro %}
+
+{% macro render_wizard_nav(bgc_id, prev_form, next_form) %}
+
+{% if prev_form %}
+        <a href="{{ url_for('edit.edit_bgc_full', bgc_id=bgc_id, form_id=prev_form.id) }}"><button id="back-btn"
+                class="btn btn-secondary" type="button">Previous: {{ prev_form.description }}</button></a>
+{%- endif %}
+{% if next_form %}
+        <a href="{{ url_for('edit.edit_bgc_full', bgc_id=bgc_id, form_id=next_form.id) }}"><button id="back-btn"
+                class="btn btn-secondary" type="button">Next: {{ next_form.description }}</button></a>
+{%- endif %}
 
 {% endmacro %}
 

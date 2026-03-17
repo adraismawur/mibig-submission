@@ -36,7 +36,7 @@ func EntryCanCreateLock(db *gorm.DB, entryId int, category LockingCategory) (boo
 
 	err := db.
 		Model(&Lock{}).
-		Where("entry_id = ? AND category = ?", entryId, category).
+		Where("entry_id = ? AND (category = ? OR category = 'full')", entryId, category).
 		Find(&lock).
 		Error
 
@@ -115,7 +115,7 @@ func CreateOrGetLock(db *gorm.DB, entryId int, category LockingCategory, user mo
 	}
 
 	if !canCreateLock {
-		return nil, errors.New("lock for entry and category already exists")
+		return nil, errors.New("entry/category is already locked")
 	}
 
 	parsedDuration, err := time.ParseDuration(lockDuration)
