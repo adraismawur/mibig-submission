@@ -3,6 +3,9 @@ package biosynthesis
 import (
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/lib/pq"
+	"gorm.io/gorm"
+	"log/slog"
+	"strconv"
 )
 
 type IntegratedMonomer struct {
@@ -37,4 +40,173 @@ type BiosyntheticModule struct {
 func init() {
 	models.Models = append(models.Models, BiosyntheticModule{})
 	models.Models = append(models.Models, IntegratedMonomer{})
+}
+
+func CreateEntryBiosynthesisModule(db *gorm.DB, entryAccession string, module BiosyntheticModule) error {
+	var biosynth *Biosynthesis
+
+	err := db.
+		Table("biosyntheses").
+		Where("entry_accession = ?", entryAccession).
+		Preload("Classes").
+		Preload("Modules.Carriers.Location").
+		Preload("Modules.ModificationDomains.Location").
+		Preload("Modules.ADomain.Location").
+		Preload("Modules.ATDomain.Location").
+		Preload("Modules.KSDomain.Location").
+		First(&biosynth).
+		Error
+
+	if err != nil {
+		return err
+	}
+
+	// get new module number if it doesn't exist
+	if module.Name == "" {
+		module.Name = strconv.Itoa(len(biosynth.Modules) + 1)
+	}
+
+	err = db.Model(&biosynth).Association("Modules").Append(&module)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ReorderEntryBiosynthesisModules swaps the indexes of biosynthesis modules. This uses database IDs as input, not the
+// indexes
+func ReorderEntryBiosynthesisModules(db *gorm.DB, idFrom uint64, idTo uint64) error {
+
+	tx := db.Table("biosynthetic_modules").Begin()
+
+	var moduleFrom BiosyntheticModule
+	var moduleTo BiosyntheticModule
+
+	err := tx.
+		Where("id = ?", idFrom).
+		First(&moduleFrom).
+		Error
+
+	if err != nil {
+		slog.Error("Could not get first module in module reorder operation")
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.
+		Where("id = ?", idTo).
+		First(&moduleTo).
+		Error
+
+	if err != nil {
+		slog.Error("Could not get second module in module reorder operation")
+		tx.Rollback()
+		return err
+	}
+
+	swap := moduleTo.Index
+
+	moduleTo.Index = moduleFrom.Index
+	moduleFrom.Index = swap
+
+	err = tx.Save(&moduleFrom).Error
+
+	if err != nil {
+		slog.Error("Could not save first module in module reorder operation")
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Save(&moduleTo).Error
+
+	if err != nil {
+		slog.Error("Could not save second module in module reorder operation")
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+
+	return nil
+}
+
+func UpdateEntryBiosynthesisModule(db *gorm.DB, newModule *BiosyntheticModule) error {
+	err := db.
+		Session(&gorm.Session{FullSaveAssociations: true}).
+		Model(&BiosyntheticModule{}).
+		Preload("Carriers.Location").
+		Preload("ModificationDomains.Location").
+		Preload("ADomain.Location").
+		Preload("ATDomain.Location").
+		Preload("KSDomain.Location").
+		Where("id = ?", newModule.ID).
+		Save(&newModule).
+		Error
+
+	// TODO: replace associations. guh
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DeleteEntryBiosynthesisModule(db *gorm.DB, id int) error {
+	err := db.
+		Model(&BiosyntheticModule{}).
+		Delete("id = ?", id).
+		Error
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetEntryBiosynthesisModule(db *gorm.DB, id int) (*BiosyntheticModule, error) {
+	var module BiosyntheticModule
+
+	err := db.
+		Table("biosynthetic_modules").
+		Where("id = ?", id).
+		Preload("Carriers.Location").
+		Preload("ModificationDomains.Location").
+		Preload("ADomain.Location").
+		Preload("ATDomain.Location").
+		Preload("KSDomain.Location").
+		First(&module).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &module, nil
+}
+
+func GetEntryBiosynthesisModulesById(db *gorm.DB, biosynthId uint64) (*[]BiosyntheticModule, error) {
+	var modules []BiosyntheticModule
+
+	err := db.
+		Table("biosynthetic_modules").
+		Where("biosynthesis_id = ?", biosynthId).
+		Preload("Carriers.Location").
+		Preload("ModificationDomains.Location").
+		Preload("ADomain.Location").
+		Preload("ATDomain.Location").
+		Preload("KSDomain.Location").
+		Order("`index` ASC").
+		Find(&modules).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	// not found
+	return &modules, nil
 }

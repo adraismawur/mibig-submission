@@ -1,5 +1,6 @@
 from wtforms import (
     Form,
+    IntegerField,
     StringField,
     BooleanField,
     FormField,
@@ -7,6 +8,7 @@ from wtforms import (
     SubmitField,
     validators,
 )
+from wtforms.widgets import HiddenInput
 from submission.utils.custom_fields import (
     ReferenceField,
     smiles_field_factory,
@@ -22,6 +24,8 @@ from markupsafe import Markup
 
 
 class ProductForm(Form):
+    db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_path_id = IntegerField(widget=HiddenInput(), default=0)
     name = StringField(
         "Name *",
         description="Name of the product produced by this path",
@@ -32,6 +36,8 @@ class ProductForm(Form):
 
 
 class PathForm(Form):
+    db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
     steps = StringField(
         "Steps *",
         description=Markup(

@@ -115,7 +115,7 @@ Editing {{ bgc_id }}
             </tbody>
         </table>
         {% else %}
-        <div>No biosynthetic modules yet. Add new biosynthetic classes using the button below</div>
+        <div>No biosynthetic modules yet. Add new biosynthetic modules using the button below</div>
         {% endif %}
         <a href="{{url_for('edit.create_biosynth_module_new', bgc_id=bgc_id)}}">
             <button class="btn btn-primary" type="button">Add new module</button>
@@ -123,7 +123,46 @@ Editing {{ bgc_id }}
     </div>
 
     {{ macros.simple_divsubform(form.operons) }}
-    {{ macros.simple_divsubform(form.paths) }}
+
+    <div class="form-group">
+        <p class="form-label fw-bold">Pathways</p>
+        {% if form.paths | length > 0 %}
+        {{ macros.descr(form.modules) }}
+        <table class="table">
+            <tbody id="module-table">
+                <tr>
+                    <th>Path</th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                {% for path in form.paths %}
+                <tr>
+                    <td>
+                        {{path['steps'].data}}
+                    </td>
+                    <td>
+                        <a
+                            href="{{ url_for('edit.edit_biosynth_path', bgc_id=bgc_id, path_id=path['db_id'].data) }}">
+                            <button type="button" class="btn btn-primary" type="button">Edit</button>
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('edit.remove_biosynth_path', bgc_id=bgc_id, path_id=path['db_id'].data) }}">
+                            <button type="button" class="btn btn-danger" type="button">X</button>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div>No biosynthetic pathways yet. Add new biosynthetic pathways using the button below</div>
+        {% endif %}
+        <a href="{{url_for('edit.create_biosynth_path', bgc_id=bgc_id, biosynth_id=form['db_id'].data)}}">
+            <button class="btn btn-primary" type="button">Add new pathway</button>
+        </a>
+    </div>
 
     <div class="form-group">
         {{ macros.render_wizard_nav(show_nav, bgc_id, prev_form, next_form)}}

@@ -3,6 +3,7 @@ package biosynthesis
 import (
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/lib/pq"
+	"gorm.io/gorm"
 )
 
 type ReleaseType struct {
@@ -112,4 +113,102 @@ func init() {
 	// saccharide
 	models.Models = append(models.Models, GlycosylTransferase{})
 	models.Models = append(models.Models, SaccharideSubcluster{})
+}
+
+func CreateBiosynthesisClass(db *gorm.DB, biosynthId uint64, class BiosyntheticClass) error {
+	bioSynth, err := GetBiosynthesisById(db, biosynthId)
+
+	if err != nil {
+		return err
+	}
+
+	err = db.
+		Session(&gorm.Session{FullSaveAssociations: true}).
+		Model(&bioSynth).
+		Association("Classes").
+		Append(&class)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UpdateEntryBiosynthesisClass(db *gorm.DB, classId int, newClass BiosyntheticClass) error {
+	var biosynth Biosynthesis
+
+	err := db.
+		Model(&biosynth).
+		Where("id = ?", newClass.BiosynthesisID).
+		Preload("Classes").
+		First(&biosynth).
+		Error
+
+	if err != nil {
+		return err
+	}
+
+	err = db.
+		Session(&gorm.Session{FullSaveAssociations: true}).
+		Model(&biosynth).
+		Association("Classes").
+		Replace(&newClass)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DeleteEntryBiosynthesisClass(db *gorm.DB, id int) error {
+	err := db.
+		Model(&BiosyntheticClass{}).
+		Delete("id = ?", id).
+		Error
+
+	return err
+}
+
+func GetEntryBiosynthesisClass(db *gorm.DB, id int) (*BiosyntheticClass, error) {
+	var class BiosyntheticClass
+
+	err := db.
+		Table("biosynthetic_classes").
+		Where("id = ?", id).
+		First(&class).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	// oh god
+	switch class.Class {
+	case "NRPS":
+		db.Model(&class).
+			Preload("ReleaseTypes").
+			Preload("Thioesterases.Location").
+			Find(&class)
+	case "PKS":
+		break
+	case "ribosomal":
+		db.Model(&class).
+			Preload("Precursors.LeaderCleavageLocation").
+			Preload("Precursors.FollowerCleavageLocation").
+			Preload("Precursors.Crosslinks").
+			Find(&class)
+	case "saccharide":
+		db.Model(&class).
+			Preload("GlycosylTransferases.Evidence").
+			Preload("Subclusters").
+			Find(&class)
+	case "terpene":
+		break
+	case "other":
+		break
+	}
+
+	return &class, nil
 }

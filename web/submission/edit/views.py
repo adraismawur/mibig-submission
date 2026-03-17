@@ -25,6 +25,7 @@ from markupsafe import Markup
 
 from submission.edit.forms.biosynthesis import get_class_form
 from submission.edit.forms.biosynthesis_modules import get_module_form
+from submission.edit.forms.biosynthesis_paths import PathForm
 from submission.edit.forms.compounds import CompoundsSubForm
 from submission.extensions import db
 from submission.edit import bp_edit
@@ -342,46 +343,6 @@ def edit_biosynth_operons(bgc_id: str) -> Union[str, response.Response]:
     )
 
 
-@bp_edit.route("/<bgc_id>/biosynth/paths", methods=["GET", "POST"])
-@login_required
-def edit_biosynth_paths(bgc_id: str) -> Union[str, response.Response]:
-    """Form to enter biosynthetic path information
-
-    Args:
-        bgc_id (str): BGC identifier
-
-    Returns:
-        str | Response: rendered template or redirect to edit_biosynth overview
-    """
-    if not is_valid_bgc_id(bgc_id):
-        return abort(403, "Invalid existing entry!")
-
-    if not request.form:
-        data: MultiDict = MultiDict(Storage.read_data(bgc_id).get("Biosynth_paths"))
-        form = FormCollection.paths(data)
-        reviewed = data.get("reviewed")
-    else:
-        form = FormCollection.paths(request.form)
-        reviewed = False
-
-    if request.method == "POST" and form.validate():
-        try:
-            Entry.save_biosynth_paths(bgc_id=bgc_id, data=form.data)
-            Storage.save_data(bgc_id, "Biosynth_paths", request.form, current_user)
-            flash("Submitted biosynthetic path information!")
-            return redirect(url_for("edit.edit_biosynth", bgc_id=bgc_id))
-        except ReferenceNotFound as e:
-            flash(str(e), "error")
-
-    return render_template(
-        "edit/biosynth_paths.html",
-        bgc_id=bgc_id,
-        form=form,
-        is_reviewer=current_user.has_role(Role.REVIEWER),
-        reviewed=reviewed,
-    )
-
-
 @bp_edit.route("/<bgc_id>/biosynth/new_class", methods=["GET"])
 @login_required
 def create_biosynth_class_new(bgc_id):
@@ -403,8 +364,6 @@ def create_biosynth_class(
         {"label": "Terpene", "value": "terpene"},
         {"label": "Other", "value": "class_other"},
     ]
-
-    entry = Entry.get(bgc_id)
 
     if class_type:
         form = get_class_form(class_type)(request.form)
@@ -526,8 +485,6 @@ def create_biosynth_module(bgc_id: str, module: str) -> Union[str, response.Resp
         {"label": "Other", "value": "module_other"},
     ]
 
-    entry = Entry.get(bgc_id)
-
     if module:
         form = get_module_form(module)(request.form)
     else:
@@ -630,6 +587,99 @@ def remove_biosynth_module(bgc_id: str, module_id: int):
         bgc_id=bgc_id,
         name=module_id,
         module_text=module_text,
+    )
+
+
+@bp_edit.route("/<bgc_id>/biosynth/new_path/<biosynth_id>", methods=["GET", "POST"])
+@login_required
+def create_biosynth_path(
+    bgc_id: str, biosynth_id: int
+) -> Union[str, response.Response]:
+    """Create a new biosynthetic path for a certain BGC"""
+
+    if request.form:
+        form = PathForm(request.form)
+    else:
+        form = PathForm()
+
+    if request.method == "POST" and form.validate():
+
+        if Entry.create_path(bgc_id, int(biosynth_id), form.data):
+            flash("Created new biosynthetic path!")
+            return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="biosynth"))
+        else:
+            flash("Error creating new biosynthetic path", "error")
+            return redirect(
+                url_for(
+                    "edit.create_biosynth_path", bgc_id=bgc_id, biosynth_id=biosynth_id
+                )
+            )
+
+    return render_template(
+        "wizard/biosynth_path_new.html",
+        bgc_id=bgc_id,
+        form=form,
+    )
+
+
+@bp_edit.route("/<bgc_id>/biosynth/edit_path/<path_id>", methods=["GET", "POST"])
+@login_required
+def edit_biosynth_path(bgc_id: str, path_id: int) -> Union[str, response.Response]:
+    """Form to enter biosynthetic path information
+
+    Args:
+        bgc_id (str): BGC identifier
+
+    Returns:
+        str | Response: rendered template or redirect to edit_biosynth overview
+    """
+
+    if not request.form:
+        pathData = Entry.get_path(bgc_id, path_id)
+        form = PathForm(data=pathData)
+        reviewed = False
+    else:
+        form = PathForm(request.form)
+        reviewed = False
+
+    if request.method == "POST" and form.validate():
+        if Entry.update_path(bgc_id, path_id, form.data):
+            flash("Updated biosynthetic path!")
+        else:
+            flash("Failed to update biosynthetic path", "error")
+
+        return redirect(
+            url_for(
+                "edit.edit_biosynth_path",
+                bgc_id=bgc_id,
+                path_id=path_id,
+            )
+        )
+
+    return render_template(
+        "wizard/biosynth_path_edit.html",
+        bgc_id=bgc_id,
+        form=form,
+        is_reviewer=current_user.has_role(Role.REVIEWER),
+        reviewed=reviewed,
+    )
+
+
+@bp_edit.route("/<bgc_id>/biosynth/delete_path/<path_id>", methods=["GET", "POST"])
+@login_required
+def remove_biosynth_path(bgc_id: str, path_id: int):
+    # get pretty printed version of path data
+    path_text = Entry.get_path_text(bgc_id, path_id)
+
+    if request.method == "POST":
+        Entry.delete_path(bgc_id, path_id)
+        return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="biosynth"))
+
+    return render_template(
+        "wizard/biosynth_path_remove.html",
+        bgc_id=bgc_id,
+        path_id=path_id,
+        path_text=path_text,
     )
 
 

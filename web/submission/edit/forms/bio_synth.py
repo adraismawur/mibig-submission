@@ -124,6 +124,7 @@ class BiosynthModuleForm(Form):
 
 
 class BioSynthForm(Form):
+    db_id = IntegerField(widget=HiddenInput(), default=0)
     classes = FieldList(
         FormField(BiosynthClassForm),
         description="List of classes in this entry",

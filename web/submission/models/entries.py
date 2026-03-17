@@ -228,6 +228,62 @@ class Entry(db.Model):
 
         return False
 
+    def get_path(bgc_id: str, path_id: int):
+        response = requests.get(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/path/{path_id}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+        if response.status_code == 200:
+            data = response.json()
+
+            return data
+        return None
+
+    def get_path_text(bgc_id: str, path_id: id):
+        response = requests.get(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/path/{path_id}?pretty=true",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+        if response.status_code == 200:
+            return response.text
+
+        return None
+
+    def create_path(bgc_id: str, biosynth_id: int, data: dict[str, any]):
+
+        data["db_biosynth_id"] = biosynth_id
+
+        response = requests.post(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/path",
+            headers={"Authorization": f"Bearer {session['token']}"},
+            json=data,
+        )
+        if response.status_code == 200:
+            return True
+
+        return False
+
+    def update_path(bgc_id: str, path_id: str, data: dict[str, any]):
+        response = requests.post(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/path/{path_id}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+            json=data,
+        )
+        if response.status_code == 200:
+            return True
+
+        return False
+
+    def delete_path(bgc_id: str, path_id: str):
+        response = requests.delete(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/path/{path_id}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+        if response.status_code == 200:
+            return True
+
+        return False
+
     def get_compound(bgc_id: str, id: int = None):
         request_url = f"{current_app.config['API_BASE']}/entry/{bgc_id}/compounds"
 
