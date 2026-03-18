@@ -24,24 +24,31 @@
                     </th>
                 </thead>
                 {% for submission in submissions %}
-                    <tr>
-                        <td>
-                            {{ submission.accession }}
-                        </td>
-                        <td>
-                            TODO
-                        </td>
-                        <td>
-                            <a href="{{ url_for('edit.edit_bgc', bgc_id=submission.accession, form_id='locitax' )}}">
-                                <button class="btn btn-primary">Edit</button>
-                            </a>
-                        </td>
-                        <td>
-                            <a href="{{ url_for('edit.view_json', bgc_id=submission.accession )}}">
-                                <button class="btn btn-primary">View as JSON</button>
-                            </a>
-                        </td>
-                    </tr>
+                <tr>
+                    <td>
+                        {{ submission.accession }}
+                    </td>
+                    <td>
+                        {{ submission.type }}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('edit.edit_bgc', bgc_id=submission.accession, form_id='locitax' )}}">
+                            <button class="btn btn-primary">Edit</button>
+                        </a>
+                    </td>
+                    <td>
+                        {% if submission.type == "new submission" %}
+                        <a href="{{ url_for('edit.view_json', bgc_id=submission.accession )}}">
+                            <button class="btn btn-primary">View as JSON</button>
+                        </a>
+                        {% else %}
+                        <a
+                            href="{{ url_for('diff.view_diff', left=submission.source_accession, right=submission.accession )}}">
+                            <button class="btn btn-primary">View diff with original</button>
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
                 {% endfor %}
             </table>
         </div>

@@ -189,6 +189,7 @@
             <thead class="table-header">
                 <th>Accession</th>
                 <th>Type</th>
+                <th>Source</th>
                 <th>Category</th>
                 <th>State</th>
                 <th></th>
@@ -197,6 +198,7 @@
             <tr>
                 <td>{{ submission.accession }}</td>
                 <td>{{ submission.type }}</td>
+                <td>{{ submission.source_accession }}</td>
                 <td>{{ submission.category or "N/A" }}</td>
                 <td>{{ submission.state }}</td>
                 <td>
@@ -265,7 +267,8 @@
             <td>{{ entry.accession }}</td>
             <td>{{ entry.status }}</td>
             <td>{{ entry.completeness }}</td>
-            <td><a href="/edit/{{entry.accession}}"><button class="btn btn-primary">Edit</button></a></td>
+            <td><a href="{{url_for('new.create_bgc_mutation', bgc_id=entry.accession)}}"><button
+                        class="btn btn-primary">Edit</button></a></td>
         </tr>
         {% endfor %}
     </table>

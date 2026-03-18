@@ -3,18 +3,14 @@ package export
 import "github.com/lib/pq"
 
 type BiosyntheticModuleDomainLocation struct {
-	ID                   uint64 `json:"-"`
-	BiosyntheticModuleID uint64 `json:"-"`
-	From                 int    `json:"from"`
-	To                   int    `json:"to"`
+	From int `json:"from"`
+	To   int `json:"to"`
 }
 
 type BiosyntheticModuleDomain struct {
-	ID                   uint64                           `json:"-"`
-	BiosyntheticModuleID uint64                           `json:"-"`
-	DomainType           string                           `json:"type"`
-	Gene                 string                           `json:"gene"`
-	Location             BiosyntheticModuleDomainLocation `gorm:"foreignKey:BiosyntheticModuleID"`
+	DomainType string                           `json:"type"`
+	Gene       string                           `json:"gene"`
+	Location   BiosyntheticModuleDomainLocation `gorm:"foreignKey:BiosyntheticModuleID"`
 }
 
 type CarrierModuleDomain struct {
@@ -24,11 +20,9 @@ type CarrierModuleDomain struct {
 }
 
 type AModuleDomainSubstrate struct {
-	ID              uint64 `json:"-"`
-	AModuleDomainID uint64 `json:"-"`
-	Name            string `json:"name"`
-	Structure       string `json:"structure"`
-	Proteinogenic   bool   `json:"proteinogenic"`
+	Name          string `json:"name"`
+	Structure     string `json:"structure"`
+	Proteinogenic bool   `json:"proteinogenic"`
 }
 
 type AModuleDomain struct {
@@ -52,9 +46,6 @@ type ModificationModuleDomain struct {
 }
 
 type BiosyntheticModule struct {
-	ID                  uint64                     `json:"-"`
-	Index               uint64                     `json:"-"`
-	BiosynthesisID      uint64                     `json:"-"`
 	Type                string                     `json:"type"`
 	Name                string                     `json:"name"`
 	Genes               pq.StringArray             `json:"genes" gorm:"type:text[]"`

@@ -299,6 +299,8 @@ func GetEntryFromAccession(db *gorm.DB, accession string) (*Entry, error) {
 		Preload("Biosynthesis.Modules.ModificationDomains.Location").
 		Preload("Biosynthesis.Modules.ATDomain.Location").
 		Preload("Biosynthesis.Modules.KSDomain.Location").
+		Preload("Biosynthesis.Operons").
+		Preload("Biosynthesis.Paths.Products").
 		Preload("GeneInformation.Additions.Location.Exons").
 		Preload("GeneInformation.Annotations").
 		Preload("Compounds.Evidence").

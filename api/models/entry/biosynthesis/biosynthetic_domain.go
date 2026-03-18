@@ -3,7 +3,6 @@ package biosynthesis
 import (
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/lib/pq"
-	"gorm.io/gorm"
 )
 
 type AcetyltransferaseDomain struct {
@@ -21,7 +20,7 @@ type AcetyltransferaseDomain struct {
 type AdenylationDomain struct {
 	ID                    uint64                    `json:"db_id"`
 	Type                  string                    `json:"type"`
-	Gene                  string                    `json:"gene""`
+	Gene                  string                    `json:"gene"`
 	LocationID            uint64                    `json:"db_location_id"`
 	Location              DomainLocation            `json:"location"`
 	Inactive              bool                      `json:"inactive"`
@@ -81,7 +80,7 @@ type ModificationDomain struct {
 }
 
 type DomainSubstrate struct {
-	gorm.Model
+	ID        uint64 `json:"db_id"`
 	Name      string `json:"name"`
 	Details   string `json:"details,omitempty"`
 	Structure string `json:"structure,omitempty"`

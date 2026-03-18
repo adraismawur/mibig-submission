@@ -44,6 +44,7 @@ from submission.utils.custom_errors import ReferenceNotFound
 from submission.models import Entry, NPAtlas, Substrate
 
 
+
 @bp_edit.route("/<bgc_id>")
 @login_required
 def edit_bgc_redirect(bgc_id: str):

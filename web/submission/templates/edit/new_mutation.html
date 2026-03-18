@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block header %}
+Creating edit for {{ bgc_id }}
+{% endblock %}
+
+{% block body %}
+
+<div class="form-wrapper">
+    <h4>Confirm edit creation</h4>
+
+    <form method="post" class="container center-align">
+        <div class="form-group row">
+            <div class="row">
+                <h5>Are you sure you want to create a mutation for {{ bgc_id }}?</h5>
+
+                <h6>Pressing confirm will copy the existing entry and allow you to make edits for eventual review and
+                    submission</h6>
+
+
+
+            </div>
+            <div class="row center-align">
+                <input type="submit" class="btn btn-danger" value="Create mutation" data-method="post" />
+                <a href="{{ url_for('main.index') }}"><button class="btn btn-primary" type="button">Cancel</button></a>
+            </div>
+        </div>
+    </form>
+
+</div>
+{% endblock %}

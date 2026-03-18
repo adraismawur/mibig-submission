@@ -15,6 +15,14 @@ func init() {
 	RegisterEndpointGenerator(SubmissionEndpoint)
 }
 
+type SubmissionInfo struct {
+	Accession       string                `json:"accession"`
+	Type            entry.SubmissionType  `json:"type"`
+	SourceAccession string                `json:"source_accession"`
+	State           entry.SubmissionState `json:"state"`
+	Category        lock.LockingCategory  `json:"category"`
+}
+
 // SubmissionEndpoint returns the submission endpoint.
 // This endpoint will implement creating and updating submissions, as well as perform some
 // specific checks on submissions.
@@ -44,6 +52,13 @@ func SubmissionEndpoint(db *gorm.DB) Endpoint {
 			},
 			{
 				Method: "POST",
+				Path:   "/mutation",
+				Handler: func(c *gin.Context) {
+					createNewMutation(db, c)
+				},
+			},
+			{
+				Method: "POST",
 				Path:   "/submission/promote/:accession",
 				Handler: func(c *gin.Context) {
 					promoteSubmission(db, c)
@@ -68,12 +83,7 @@ func SubmissionEndpoint(db *gorm.DB) Endpoint {
 }
 
 func getUserSubmissions(db *gorm.DB, c *gin.Context) {
-	var submissions []struct {
-		Accession string                `json:"accession"`
-		Type      entry.SubmissionType  `json:"type"`
-		State     entry.SubmissionState `json:"state"`
-		Category  lock.LockingCategory  `json:"category"`
-	}
+	var submissions []SubmissionInfo
 
 	userID := c.Param("userId")
 
@@ -85,9 +95,9 @@ func getUserSubmissions(db *gorm.DB, c *gin.Context) {
 		q.Where("user_submissions.user_id = ?", userID)
 	}
 
-	q.Where("state != ?", entry.DiscardedSubmission)
+	q.Where("state != ?", entry.Discarded)
 
-	err := q.Select("entries.accession, user_submissions.type, user_submissions.state").
+	err := q.Select("entries.accession, user_submissions.type, user_submissions.source_accession, user_submissions.state").
 		Find(&submissions).Error
 
 	if err != nil {
@@ -100,10 +110,7 @@ func getUserSubmissions(db *gorm.DB, c *gin.Context) {
 }
 
 func getSubmissions(db *gorm.DB, c *gin.Context) {
-	var submissions []struct {
-		Accession string                `json:"accession"`
-		State     entry.SubmissionState `json:"state"`
-	}
+	var submissions []SubmissionInfo
 
 	userID := c.Query("id")
 	state := c.Query("state")
@@ -120,7 +127,7 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 		q.Where("user_submissions.state = ?", state)
 	}
 
-	err := q.Select("entries.accession, user_submissions.state").
+	err := q.Select("entries.accession, user_submissions.type, user_submissions.source_accession, user_submissions.state").
 		Find(&submissions).Error
 
 	if err != nil {
@@ -174,6 +181,46 @@ func createNewSubmission(db *gorm.DB, c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": antismashTask})
+}
+
+func createNewMutation(db *gorm.DB, c *gin.Context) {
+	type NewMutationRequest struct {
+		FromAccession string `json:"from_accession"`
+	}
+
+	var request NewMutationRequest
+
+	if err := c.BindJSON(&request); err != nil {
+		slog.Error("[endpoints] [submission] Failed to unmarshal mutation request JSON", "error", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		return
+	}
+
+	user, err := models.GetUserFromContext(c)
+
+	if err != nil {
+		slog.Error("[endpoints] [submission] Failed to retrieve user from context", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to retrieve user from context"})
+		return
+	}
+
+	newEntry, err := entry.CreateNewUserMutation(db, request.FromAccession, *user)
+
+	if err != nil {
+		slog.Error("[endpoints] [submission] Failed to create user submission record", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to create user submission record"})
+		return
+	}
+
+	_, err = lock.CreateOrGetLock(db, newEntry.Accession, "full", *user)
+
+	if err != nil {
+		slog.Error("[endpoints] [submission] Failed to create lock for user submission", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to create user submission lock"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"accession": newEntry.Accession})
 }
 
 func getUserEntries(db *gorm.DB, c *gin.Context) {
@@ -248,7 +295,7 @@ func promoteSubmission(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	if userSubmission.State != entry.DraftSubmission {
+	if userSubmission.State != entry.Draft {
 		slog.Error("[endpoints] [submission] User Submission is not a draft")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User Submission is not a draft"})
 		return
@@ -307,7 +354,7 @@ func redraftSubmission(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	userSubmission.State = entry.DraftSubmission
+	userSubmission.State = entry.Draft
 
 	err = db.Save(&userSubmission).Error
 
@@ -348,13 +395,13 @@ func discardSubmission(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	if userSubmission.State != entry.DraftSubmission {
+	if userSubmission.State != entry.Draft {
 		slog.Error("[endpoints] [submission] User Submission is not a draft")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User Submission is not a draft"})
 		return
 	}
 
-	userSubmission.State = entry.DiscardedSubmission
+	userSubmission.State = entry.Discarded
 
 	err = db.Save(&userSubmission).Error
 

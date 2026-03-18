@@ -3,23 +3,17 @@ package export
 import "github.com/lib/pq"
 
 type BioActivities struct {
-	ID         uint64         `json:"-"`
-	CompoundID uint64         `json:"-"`
 	Name       *string        `json:"name,omitempty"`
 	Observed   bool           `json:"observed"`
 	References pq.StringArray `json:"references" gorm:"type:text[]"`
 }
 
 type CompoundEvidence struct {
-	ID         uint64         `json:"-"`
-	CompoundID uint64         `json:"-"`
 	Method     string         `json:"method"`
 	References pq.StringArray `json:"references" gorm:"type:text[]"`
 }
 
 type Compound struct {
-	ID            uint64             `json:"-"`
-	EntryID       uint64             `json:"-"`
 	Name          string             `json:"name"`
 	Evidence      []CompoundEvidence `json:"evidence" gorm:"foreignKey:CompoundID"`
 	BioActivities []BioActivities    `json:"bioactivities,omitempty" gorm:"foreignKey:CompoundID"`

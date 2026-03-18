@@ -3,8 +3,10 @@ package entry
 import (
 	"fmt"
 	"github.com/adraismawur/mibig-submission/models"
+	"github.com/adraismawur/mibig-submission/models/entry/export"
 	"github.com/adraismawur/mibig-submission/util/constants"
 	"github.com/beevik/guid"
+	"github.com/mitchellh/mapstructure"
 	"gorm.io/gorm"
 	"log/slog"
 	"strconv"
@@ -14,25 +16,26 @@ import (
 type SubmissionState string
 
 const (
-	DraftSubmission     SubmissionState = "draft"
-	PendingReview                       = "pending_review"
-	AcceptedSubmission                  = "accepted"
-	DiscardedSubmission                 = "discarded"
+	Draft         SubmissionState = "draft"
+	PendingReview                 = "pending_review"
+	Accepted                      = "accepted"
+	Discarded                     = "discarded"
 )
 
 type SubmissionType string
 
 const (
-	NewSubmission  SubmissionType = "new submission"
-	SubmissionEdit SubmissionType = "entry mutation"
+	NewSubmission SubmissionType = "new submission"
+	Mutation      SubmissionType = "entry mutation"
 )
 
 type UserSubmission struct {
-	ID             uint64          `json:"db_id"`
-	EntryAccession string          `json:"db_submission_accession"`
-	UserID         uint64          `json:"user_id"`
-	Type           SubmissionType  `json:"type"`
-	State          SubmissionState `json:"state"`
+	ID              uint64          `json:"db_id"`
+	EntryAccession  string          `json:"db_submission_accession"`
+	SourceAccession string          `json:"source_accession"`
+	UserID          uint64          `json:"user_id"`
+	Type            SubmissionType  `json:"type"`
+	State           SubmissionState `json:"state"`
 }
 
 func init() {
@@ -71,7 +74,7 @@ func CreateNewUserSubmission(db *gorm.DB, minimalEntry MinimalEntry, user models
 		},
 	}
 
-	newAccession, err := GeneratePlaceholderAccession(db)
+	newAccession, err := GeneratePlaceholderAccession(db, "new")
 
 	newEntry.Accession = newAccession
 
@@ -86,8 +89,43 @@ func CreateNewUserSubmission(db *gorm.DB, minimalEntry MinimalEntry, user models
 
 	userSubmission.UserID = user.ID
 	userSubmission.EntryAccession = newEntry.Accession
+	userSubmission.SourceAccession = "new"
 	userSubmission.Type = NewSubmission
-	userSubmission.State = DraftSubmission
+	userSubmission.State = Draft
+
+	err = db.Create(&userSubmission).Error
+
+	return &newEntry, err
+}
+
+func CreateNewUserMutation(db *gorm.DB, accession string, user models.User) (*Entry, error) {
+
+	var entryExport export.Entry
+
+	existingEntry, err := GetEntryFromAccession(db, accession)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var newEntry Entry
+
+	mapstructure.Decode(existingEntry, &entryExport)
+	mapstructure.Decode(&entryExport, &newEntry)
+
+	mutAccession, err := GeneratePlaceholderAccession(db, "mut")
+
+	newEntry.Accession = mutAccession
+
+	err = db.Create(&newEntry).Error
+
+	var userSubmission UserSubmission
+
+	userSubmission.UserID = user.ID
+	userSubmission.EntryAccession = newEntry.Accession
+	userSubmission.SourceAccession = accession
+	userSubmission.Type = Mutation
+	userSubmission.State = Draft
 
 	err = db.Create(&userSubmission).Error
 
@@ -113,15 +151,16 @@ func CreateAntismashWorkerTask(db *gorm.DB, newEntry Entry) (*models.AntismashRu
 
 const PlaceholderNumLen = 7
 
-func GeneratePlaceholderAccession(db *gorm.DB) (string, error) {
-	newPart := "new"
-
+func GeneratePlaceholderAccession(db *gorm.DB, prefix string) (string, error) {
 	// get count for if there are no submission yet
 	var count int64
 
+	// I am not happy about this either
+	clause := fmt.Sprintf("accession like '%s%%'", prefix)
+
 	err := db.Table("entries").
 		Select("accession").
-		Where("accession LIKE 'new%'").
+		Where(clause).
 		Count(&count).
 		Error
 
@@ -133,7 +172,7 @@ func GeneratePlaceholderAccession(db *gorm.DB) (string, error) {
 	if count == 0 {
 		numPart := fmt.Sprintf("%0*d", PlaceholderNumLen, 1)
 
-		return newPart + numPart, nil
+		return prefix + numPart, nil
 	}
 
 	// otherwise get the latest placeholder number
@@ -141,7 +180,7 @@ func GeneratePlaceholderAccession(db *gorm.DB) (string, error) {
 
 	err = db.Model(&Entry{}).
 		Select("accession").
-		Where("accession LIKE 'new%'").
+		Where(clause).
 		Last(&accession).
 		Error
 
@@ -153,5 +192,5 @@ func GeneratePlaceholderAccession(db *gorm.DB) (string, error) {
 
 	numPart := fmt.Sprintf("%0*d", PlaceholderNumLen, lastNum+1)
 
-	return newPart + numPart, nil
+	return prefix + numPart, nil
 }

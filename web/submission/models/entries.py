@@ -34,6 +34,15 @@ class Entry(db.Model):
         db.session.add(entry)
         db.session.commit()
         return entry
+    
+    def mutate(from_accession: str):
+        return requests.post(
+            f"{current_app.config['API_BASE']}/mutation",
+            headers={"Authorization": f"Bearer {session['token']}"},
+            json={
+                "from_accession": from_accession
+            }
+        )
 
     def add_references(self, refs: list["Reference"]):
         """Add references to this entry if they are not already present

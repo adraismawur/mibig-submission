@@ -6,17 +6,16 @@ import (
 )
 
 type Entry struct {
-	ID               uint64              `json:"-"`
 	Accession        string              `json:"accession"`
 	Version          int                 `json:"version,omitempty"`
-	Changelog        Changelog           `json:"changelog" gorm:"foreignKey:EntryID"`
+	Changelog        Changelog           `json:"changelog" gorm:"foreignKey:EntryAccession"`
 	Quality          consts.Quality      `json:"quality,omitempty"`
 	Status           consts.Status       `json:"status,omitempty"`
 	Completeness     consts.Completeness `json:"completeness"`
-	Loci             []Locus             `json:"loci" gorm:"foreignKey:EntryID"`
-	Biosynthesis     Biosynthesis        `json:"biosynthesis" gorm:"foreignKey:EntryID"`
-	Compounds        []Compound          `json:"compounds" gorm:"ForeignKey:EntryID"`
-	Taxonomy         Taxonomy            `json:"taxonomy" gorm:"ForeignKey:EntryID"`
-	Genes            *Gene               `json:"genes,omitempty" gorm:"ForeignKey:EntryID"`
+	Loci             []Locus             `json:"loci" gorm:"foreignKey:EntryAccession"`
+	Biosynthesis     Biosynthesis        `json:"biosynthesis" gorm:"foreignKey:EntryAccession"`
+	Compounds        []Compound          `json:"compounds" gorm:"ForeignKey:EntryAccession"`
+	Taxonomy         Taxonomy            `json:"taxonomy" gorm:"ForeignKey:EntryAccession"`
+	Genes            *Gene               `json:"genes,omitempty" gorm:"ForeignKey:EntryAccession"`
 	LegacyReferences pq.StringArray      `json:"legacy_references,omitempty" gorm:"type:text[]"`
 }
