@@ -155,7 +155,7 @@ class PKSModularForm(Form):
         FormField(MonomerForm), widget=FieldListAddBtn(label="Add addional monomer")
     )
     modification_domains = FieldList(
-        FormField(ModificationDomainForm), widget=FieldListAddBtn(), min_entries=1
+        FormField(ModificationDomainForm), widget=FieldListAddBtn(label="Add modification domain"), min_entries=1
     )
     comments = StringField("Comments (Optional)")
 

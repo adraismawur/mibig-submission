@@ -67,11 +67,18 @@ def edit_bgc_redirect(bgc_id: str):
         "gene_information",
     ]
 
+    # show finalize details if this is a full lock
+    # or if this is a new entry, which is hacky and not great
+    # TODO: fix this being hacky and not great
+    if "full" in lock_info or bgc_id[0:3] == "new":
+        lock_keys.append("finalize")
+
     readable_category_map = {
         "locitax": "Loci and taxonomy information",
         "biosynth": "Biosynthetic information",
         "compounds": "Compound information",
         "gene_information": "Gene information",
+        "finalize": "Completeness and embargo",
         "full": "Full entry",
     }
 
@@ -113,6 +120,13 @@ def generate_wizard_page(bgc_id: str, form_id: str, show_nav: bool):
 
         if wizard_page.post_redirect:
             return redirect(url_for(**wizard_page.post_redirect))
+        
+
+        data = wizard_page.get_data(bgc_id)
+        if wizard_page.form:
+            form = wizard_page.create_form(request.form, data)
+        else:
+            form = wizard_page.create_form(None, data)
 
     # get list of antismash accessions associated with this entry
     antismash_list_endpoint = "/antismash/list/"
@@ -241,6 +255,27 @@ def redraft_bgc(bgc_id: str):
         return redirect(url_for("main.index"))
 
     return render_template("edit/redraft.html", bgc_id=bgc_id, entry_json=entry_json)
+
+
+@bp_edit.route("/promote/<bgc_id>", methods=["GET", "POST"])
+@login_required
+def promote_bgc(bgc_id: str):
+
+    entry_json = Entry.get_text(bgc_id)
+
+    if request.method == "POST":
+        submission_endpoint = "/submission/promote/" + bgc_id
+        response = requests.post(
+            f"{current_app.config['API_BASE']}" + submission_endpoint,
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+
+        if response.status_code != 200:
+            flash(response.json()["error"], "error")
+
+        return redirect(url_for("main.index"))
+
+    return render_template("edit/promote.html", bgc_id=bgc_id, entry_json=entry_json)
 
 
 @bp_edit.route("/discard/<bgc_id>", methods=["GET", "POST"])
@@ -590,7 +625,7 @@ def remove_biosynth_module(bgc_id: str, module_id: int):
     )
 
 
-@bp_edit.route("/<bgc_id>/biosynth/new_path/<biosynth_id>", methods=["GET", "POST"])
+@bp_edit.route("/<bgc_id>/biosynth/new_path/<biosynth_id>/path", methods=["GET", "POST"])
 @login_required
 def create_biosynth_path(
     bgc_id: str, biosynth_id: int
@@ -622,7 +657,7 @@ def create_biosynth_path(
     )
 
 
-@bp_edit.route("/<bgc_id>/biosynth/edit_path/<path_id>", methods=["GET", "POST"])
+@bp_edit.route("/<bgc_id>/biosynth/edit_path/<path_id>/path", methods=["GET", "POST"])
 @login_required
 def edit_biosynth_path(bgc_id: str, path_id: int) -> Union[str, response.Response]:
     """Form to enter biosynthetic path information
@@ -998,9 +1033,9 @@ def get_db_references() -> str:
         "<span class='text-muted form-text'>Known references for this entry:</span>"
     )
 
-    if (entry := Entry.get(bgc_id)) is not None:
-        for ref in entry.references:
-            options += li(ref.identifier, ref.summarize())
+    # if (entry := Entry.get(bgc_id)) is not None:
+    #     for ref in entry.references:
+    #         options += li(ref.identifier, ref.summarize())
     return Markup(options)
 
 

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block header %}
+Promoting {{ bgc_id }}
+{% endblock %}
+
+{% block body %}
+
+<div class="form-wrapper">
+    <h4>Confirm sending to reviewer</h4>
+
+    <form method="post" class="container">
+        <div class="form-group row">
+            <div class="row center-align">
+                <h4 class="text-center">Are you sure you want to promote the following submission?</h4>
+
+                <h2 class="text-center">{{ bgc_id }}</h2>
+                <!-- 
+                <span style="white-space: pre-line;">
+                    {{ entry_json }}
+                </span> -->
+
+                <h6 class="text-center">This will send it for review to a reviewer</h6>
+                <h6 class="text-center">This locks the submission so you can no longer edit it</h6>
+                <h6 class="text-center">You can re-draft it at any time to continue working on it</h6>
+
+                <br>
+
+
+            </div>
+            <div class="row">
+                <div class="col">
+                    <input type="submit" class="btn green" value="Confirm" data-method="post" />
+                </div>
+                <div class="col col-auto">
+                    <a href="{{ url_for('main.index') }}"><button class="btn btn-primary"
+                            type="button">Cancel</button></a>
+                </div>
+            </div>
+        </div>
+    </form>
+
+</div>
+{% endblock %}

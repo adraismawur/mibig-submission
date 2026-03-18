@@ -18,7 +18,7 @@ from wtforms import (
 )
 from wtforms.widgets import HiddenInput
 from submission.utils.custom_fields import ReferenceField, TagListField
-from submission.utils.custom_forms import location_form_factory, EvidenceForm
+from submission.utils.custom_forms import location_form_factory, LociEvidenceForm
 from submission.utils.custom_widgets import (
     FieldListAddBtn,
     TextInputIndicator,

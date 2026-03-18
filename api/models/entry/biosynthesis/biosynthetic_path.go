@@ -68,30 +68,33 @@ func CreateBiosynthesisPath(db *gorm.DB, path BiosyntheticPathway) error {
 }
 
 func UpdateBiosynthesisPath(db *gorm.DB, path BiosyntheticPathway) error {
-	err := db.
-		Session(&gorm.Session{FullSaveAssociations: true}).
-		Model(&BiosyntheticPathway{}).
-		Where("id = ?", path.ID).
-		Save(&path).
-		Error
+	err := db.Transaction(func(tx *gorm.DB) error {
+		var oldPath BiosyntheticPathway
+		err := tx.
+			Model(&oldPath).
+			Where("id = ?", path.ID).
+			Save(&path).
+			Error
 
-	if err != nil {
-		slog.Error("[biosynthetic_path] Failed to save pathway", "error", err)
-		return err
-	}
+		if err != nil {
+			slog.Error("[biosynthetic_path] Failed to save pathway", "error", err)
+			return err
+		}
 
-	err = db.
-		Model(&BiosyntheticPathway{}).
-		Where("id = ?", path.ID).
-		Association("Products").
-		Replace(&path.Products)
+		err = tx.
+			Model(&oldPath).
+			Association("Products").
+			Replace(&path.Products)
 
-	if err != nil {
-		slog.Error("[biosynthetic_path] Failed to replace products", "error", err)
-		return err
-	}
+		if err != nil {
+			slog.Error("[biosynthetic_path] Failed to replace products", "error", err)
+			return err
+		}
 
-	return nil
+		return nil
+	})
+
+	return err
 }
 
 func DeleteBiosynthesisPath(db *gorm.DB, pathId int) error {

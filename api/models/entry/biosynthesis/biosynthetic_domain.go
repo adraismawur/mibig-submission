@@ -19,27 +19,27 @@ type AcetyltransferaseDomain struct {
 }
 
 type AdenylationDomain struct {
-	ID                    uint64                     `json:"db_id"`
-	Type                  string                     `json:"type"`
-	Gene                  string                     `json:"gene""`
-	LocationID            uint64                     `json:"db_location_id"`
-	Location              DomainLocation             `json:"location"`
-	Inactive              bool                       `json:"inactive"`
-	Evidence              *[]DomainSubstrateEvidence `json:"evidence" gorm:"many2many:adenylation_evidences;"`
-	PrecursorBiosynthesis pq.StringArray             `json:"precursor_biosynthesis" gorm:"type:text[]"`
-	Substrates            *[]DomainSubstrate         `json:"substrates,omitempty" gorm:"many2many:adenylation_substrates;"`
+	ID                    uint64                    `json:"db_id"`
+	Type                  string                    `json:"type"`
+	Gene                  string                    `json:"gene""`
+	LocationID            uint64                    `json:"db_location_id"`
+	Location              DomainLocation            `json:"location"`
+	Inactive              bool                      `json:"inactive"`
+	Evidence              []DomainSubstrateEvidence `json:"evidence" gorm:"many2many:adenylation_evidences;"`
+	PrecursorBiosynthesis pq.StringArray            `json:"precursor_biosynthesis" gorm:"type:text[]"`
+	Substrates            []DomainSubstrate         `json:"substrates,omitempty" gorm:"many2many:adenylation_substrates;"`
 }
 
 type CarrierDomain struct {
-	ID            uint64                     `json:"db_id"`
-	Type          string                     `json:"type"`
-	Subtype       string                     `json:"subtype"`
-	Gene          string                     `json:"gene"`
-	LocationID    uint64                     `json:"db_location_id"`
-	Location      DomainLocation             `json:"location"`
-	Inactive      bool                       `json:"inactive"`
-	BetaBranching bool                       `json:"beta_branching"`
-	Evidence      *[]DomainSubstrateEvidence `json:"evidence" gorm:"many2many:carrier_evidences;"`
+	ID            uint64                    `json:"db_id"`
+	Type          string                    `json:"type"`
+	Subtype       string                    `json:"subtype"`
+	Gene          string                    `json:"gene"`
+	LocationID    uint64                    `json:"db_location_id"`
+	Location      DomainLocation            `json:"location"`
+	Inactive      bool                      `json:"inactive"`
+	BetaBranching bool                      `json:"beta_branching"`
+	Evidence      []DomainSubstrateEvidence `json:"evidence" gorm:"many2many:carrier_evidences;"`
 }
 
 type CondensationDomain struct {
@@ -66,18 +66,18 @@ type DomainLocation struct {
 }
 
 type ModificationDomain struct {
-	ID              uint64                     `json:"db_id"`
-	Type            string                     `json:"type"`
-	Subtype         string                     `json:"subtype"`
-	Gene            string                     `json:"gene"`
-	LocationID      uint64                     `json:"db_location_id"`
-	Location        DomainLocation             `json:"location"`
-	Inactive        *bool                      `json:"inactive,omitempty"`
-	Substrates      *[]DomainSubstrate         `json:"substrates,omitempty" gorm:"many2many:modification_domain_substrates;"`
-	Evidence        *[]DomainSubstrateEvidence `json:"evidence,omitempty" gorm:"many2many:modification_domain_evidences;"`
-	References      pq.StringArray             `json:"references" gorm:"type:text[]"`
-	Stereochemistry pq.StringArray             `json:"stereochemistry" gorm:"type:text[],omitempty"`
-	Details         string                     `json:"details,omitempty"`
+	ID              uint64                    `json:"db_id"`
+	Type            string                    `json:"type"`
+	Subtype         string                    `json:"subtype"`
+	Gene            string                    `json:"gene"`
+	LocationID      uint64                    `json:"db_location_id"`
+	Location        DomainLocation            `json:"location"`
+	Inactive        *bool                     `json:"inactive,omitempty"`
+	Substrates      []DomainSubstrate         `json:"substrates,omitempty" gorm:"many2many:modification_domain_substrates;"`
+	Evidence        []DomainSubstrateEvidence `json:"evidence,omitempty" gorm:"many2many:modification_domain_evidences;"`
+	References      pq.StringArray            `json:"references" gorm:"type:text[]"`
+	Stereochemistry pq.StringArray            `json:"stereochemistry" gorm:"type:text[],omitempty"`
+	Details         string                    `json:"details,omitempty"`
 }
 
 type DomainSubstrate struct {

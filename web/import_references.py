@@ -80,9 +80,9 @@ def load_references(filename):
             print(f"{filename}: {e}", file=sys.stderr)
             return
 
-        bgc_id = filename.stem.replace("_data", "")
-        entry = Entry.get_or_create(bgc_id=bgc_id)
-        entry.add_references(references)
+        # bgc_id = filename.stem.replace("_data", "")
+        # entry = Entry.get_or_create(bgc_id=bgc_id)
+        # entry.add_references(references)
 
 
 def valid_format(ref):

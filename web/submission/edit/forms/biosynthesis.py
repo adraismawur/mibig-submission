@@ -28,8 +28,8 @@ from submission.utils.custom_validators import ValidateTagListRegexp, ValidateCi
 
 
 class NRPSForm(Form):
-    db_id = IntegerField(default=0)
-    db_biosynth_id = IntegerField(default=0)
+    db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
     class_ = HiddenField(default="NRPS")
 
     class ReleaseTypeForm(Form):

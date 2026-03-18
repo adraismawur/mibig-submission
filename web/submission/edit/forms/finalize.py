@@ -6,15 +6,19 @@ from wtforms import (
     SubmitField,
     validators,
 )
+from wtforms.widgets import HiddenInput
 from submission.utils.custom_widgets import SelectDefault, SubmitIndicator
 
 
 class FinalizeForm(Form):
 
+    accession = StringField(widget=HiddenInput())
+
     completeness = SelectField(
         "Completeness *",
         choices=["complete", "incomplete", "unknown"],
         description="Are all genes needed for production of compounds present in the specified locus/loci?",
+        default="unknown",
         widget=SelectDefault(),
         validate_choice=False,
         validators=[validators.InputRequired()],
@@ -23,13 +27,3 @@ class FinalizeForm(Form):
         description="Please embargo my gene cluster information, pending publication of the results. "
         "For newly characterized gene clusters only. Please notify us upon publication so that the embargo can be lifted."
     )
-    comments = StringField("Additional comments")
-
-    acknowledge = BooleanField(
-        "Confirm",
-        description="By checking this you indicate that you have, to the best of your abilities, confirmed "
-        "that the information in this submission is correct",
-        validators=[validators.InputRequired()],
-    )
-
-    submit = SubmitField("Submit for review", widget=SubmitIndicator())

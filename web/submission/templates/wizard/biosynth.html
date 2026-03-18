@@ -106,7 +106,8 @@ Editing {{ bgc_id }}
                         </a>
                     </td>
                     <td>
-                        <a href="{{ url_for('edit.remove_biosynth_module', bgc_id=bgc_id, module_id=module['db_id'].data) }}">
+                        <a
+                            href="{{ url_for('edit.remove_biosynth_module', bgc_id=bgc_id, module_id=module['db_id'].data) }}">
                             <button type="button" class="btn btn-danger" type="button">X</button>
                         </a>
                     </td>
@@ -142,8 +143,7 @@ Editing {{ bgc_id }}
                         {{path['steps'].data}}
                     </td>
                     <td>
-                        <a
-                            href="{{ url_for('edit.edit_biosynth_path', bgc_id=bgc_id, path_id=path['db_id'].data) }}">
+                        <a href="{{ url_for('edit.edit_biosynth_path', bgc_id=bgc_id, path_id=path['db_id'].data) }}">
                             <button type="button" class="btn btn-primary" type="button">Edit</button>
                         </a>
                     </td>
@@ -165,9 +165,9 @@ Editing {{ bgc_id }}
     </div>
 
     <div class="form-group">
-        {{ macros.render_wizard_nav(show_nav, bgc_id, prev_form, next_form)}}
+        {{ macros.render_wizard_nav(show_nav, bgc_id, prev_form, next_form, show_save=False)}}
     </div>
-    
+
 
 </div>
 

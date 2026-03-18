@@ -68,4 +68,9 @@
             }
         })
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var elems = document.querySelectorAll('input[tooltip]');
+        var instances = M.Tooltip.init(elems, {});
+    });
 </script>

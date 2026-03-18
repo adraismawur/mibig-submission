@@ -15,7 +15,7 @@ from wtforms import (
 )
 from submission.edit.forms.compounds import CompoundsSubForm
 from submission.utils.custom_fields import TagListField
-from submission.utils.custom_forms import location_form_factory, EvidenceForm
+from submission.utils.custom_forms import location_form_factory, LociEvidenceForm
 from submission.utils.custom_widgets import (
     FieldListAddBtn,
     TextInputIndicator,
@@ -31,7 +31,6 @@ from submission.utils.custom_validators import (
 
 
 class NewEntryForm(Form):
-
     class TaxonomyForm(Form):
         ncbi_tax_id = IntegerField(
             "NCBI Taxonomy ID *", validators=[validators.InputRequired()]
@@ -41,18 +40,21 @@ class NewEntryForm(Form):
         strain = StringField("Strain")
 
     class LocusForm(Form):
+        tooltip = SubmitField(
+            "?",
+            render_kw={
+                "tooltip": "",
+                "data-tooltip": "This is an example tooltip for this subform",
+                "data-position": "left",
+                "onclick": "preventDefault(); return false;",
+                "style": "position: absolute; right: 5px; z-index: 1000 !important; font-size: 24px; font-weight: bolder; background-color: #03adfc;"
+            }
+        )
         accession = StringField(
             "Genome identifier *",
             [validators.InputRequired(), ValidateSingleInput(), validate_genbank],
             widget=TextInputIndicator(),
             description="E.g., AL645882. Only use GenBank accessions, not RefSeq accessions or GI numbers.",
-            # render_kw={
-            #     "hx-post": "/query_ncbi",
-            #     "hx-trigger": "change",
-            #     "hx-swap": "innerHTML",
-            #     "hx-target": ".subform#taxonomy",
-            #     "hx-indicator": "#spinner",
-            # },
         )
         draft_genome = BooleanField(
             "This accession is a draft",
@@ -63,7 +65,7 @@ class NewEntryForm(Form):
             description="Start and end coordinates, may be left empty if gene cluster spans entire record.",
         )
         evidence = FieldList(
-            FormField(EvidenceForm),
+            FormField(LociEvidenceForm),
             min_entries=1,
             description="Type of evidence that shows this gene cluster is responsible for the biosynthesis of the designated molecule. Papers highlighting multiple methods can be added under each applicable method using the 'Add additional evidence' button.",
             widget=FieldListAddBtn(

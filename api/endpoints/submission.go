@@ -44,7 +44,7 @@ func SubmissionEndpoint(db *gorm.DB) Endpoint {
 			},
 			{
 				Method: "POST",
-				Path:   "/submission/submit/:accession",
+				Path:   "/submission/promote/:accession",
 				Handler: func(c *gin.Context) {
 					promoteSubmission(db, c)
 				},
@@ -235,23 +235,6 @@ func promoteSubmission(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	targetEntry, err := entry.GetEntryFromAccession(db, accession)
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	var finalDetails entry.FinalDetailsRequest
-
-	err = c.ShouldBindJSON(&finalDetails)
-
-	if err != nil {
-		slog.Error("[endpoints] [submission] Failed to unmarshal entry JSON", "error", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid entry submitted"})
-		return
-	}
-
 	var userSubmission entry.UserSubmission
 
 	err = db.
@@ -270,17 +253,6 @@ func promoteSubmission(db *gorm.DB, c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User Submission is not a draft"})
 		return
 	}
-
-	// after this we're past all the checks and we can do stuff
-	// update the changelog with the comment
-	// we know this is a submission, so we can edit the one changelog entry that
-	// exists
-	targetEntry.Changelog.Releases[0].Entries[0].Comment = finalDetails.Comment
-
-	err = db.
-		Model(&targetEntry).
-		Association("Changelog").
-		Replace(&targetEntry.Changelog)
 
 	if err != nil {
 		slog.Error("[endpoints] [submission] Failed to update entry changelog", "error", err.Error())

@@ -14,7 +14,7 @@ from submission.edit.forms.biosynthesis import (
     ClassOtherForm,
     OperonMultipleForm,
 )
-from submission.edit.forms.biosynthesis_paths import PathMultipleForm
+from submission.edit.forms.biosynthesis_paths import PathForm, PathMultipleForm
 from submission.edit.forms.biosynthesis_modules import (
     CalForm,
     NRPS_I_Form,
@@ -52,6 +52,7 @@ class FormCollection:
     other = ClassOtherForm
 
     operons = OperonMultipleForm
+    path = PathForm
     paths = PathMultipleForm
 
     # Biosynthesis modules

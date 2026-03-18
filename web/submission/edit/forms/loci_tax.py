@@ -14,7 +14,7 @@ from wtforms import (
     SubmitField,
 )
 from submission.utils.custom_fields import TagListField
-from submission.utils.custom_forms import location_form_factory, EvidenceForm
+from submission.utils.custom_forms import LociEvidenceForm, location_form_factory
 from submission.utils.custom_widgets import (
     FieldListAddBtn,
     TextInputIndicator,
@@ -60,7 +60,7 @@ class LociTaxonomyForm(Form):
             description="Start and end coordinates, may be left empty if gene cluster spans entire record.",
         )
         evidence = FieldList(
-            FormField(EvidenceForm),
+            FormField(LociEvidenceForm),
             min_entries=1,
             description="Type of evidence that shows this gene cluster is responsible for the biosynthesis of the designated molecule. Papers highlighting multiple methods can be added under each applicable method using the 'Add additional evidence' button.",
             widget=FieldListAddBtn(
@@ -74,6 +74,7 @@ class LociTaxonomyForm(Form):
         description="Locus or loci where the gene cluster is located",
         widget=FieldListAddBtn(
             label="Add additional locus",
+            render_kw={"style": "visibility: hidden;"}
         ),
     )
 

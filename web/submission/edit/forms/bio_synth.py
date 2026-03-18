@@ -18,7 +18,7 @@ from wtforms.widgets import HiddenInput
 from submission.edit.forms.biosynthesis import OperonForm
 from submission.edit.forms.biosynthesis_paths import PathForm
 from submission.utils.custom_fields import TagListField
-from submission.utils.custom_forms import location_form_factory, EvidenceForm
+from submission.utils.custom_forms import location_form_factory, LociEvidenceForm
 from submission.utils.custom_widgets import (
     FieldListAddBtn,
     TextInputIndicator,

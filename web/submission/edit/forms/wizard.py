@@ -98,8 +98,7 @@ wizard_pages = [
         "finalize",
         "final details",
         FinalizeForm,
-        data_set_endpoint="/submission/submit/<bgc_id>",
-        post_redirect={"endpoint": "main.index"},
+        data_set_endpoint="/entry/<bgc_id>/finalize",
     ),
 ]
 

@@ -6,12 +6,12 @@ from markupsafe import Markup
 from wtforms import (
     FieldList,
     Form,
-    FormField,
     IntegerField,
     SelectField,
     StringField,
     validators,
 )
+from wtforms.widgets import HiddenInput
 
 from .custom_fields import ReferenceField
 from .custom_widgets import FieldListAddBtn, TextInputWithSuggestions, SelectDefault
@@ -47,8 +47,9 @@ def location_form_factory(required: bool = False):
 class ReferenceForm(Form):
     references = FieldList(StringField())
 
-
-class EvidenceForm(Form):
+class LociEvidenceForm(Form):
+    db_id = IntegerField(widget=HiddenInput(), default=0)
+    db_locus_id = IntegerField(widget=HiddenInput(), default=0)
     method = SelectField(
         "Method *",
         choices=[
@@ -74,7 +75,6 @@ class EvidenceForm(Form):
         ),
         validators=[validators.InputRequired(), ValidateCitations()],
     )
-
 
 class SubtrateEvidenceForm(Form):
     name = SelectField(

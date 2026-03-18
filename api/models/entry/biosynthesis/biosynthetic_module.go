@@ -66,7 +66,12 @@ func CreateEntryBiosynthesisModule(db *gorm.DB, entryAccession string, module Bi
 		module.Name = strconv.Itoa(len(biosynth.Modules) + 1)
 	}
 
-	err = db.Model(&biosynth).Association("Modules").Append(&module)
+	module.Index = uint64(len(biosynth.Modules)) + 0x1
+
+	err = db.
+		Model(&biosynth).
+		Association("Modules").
+		Append(&module)
 
 	if err != nil {
 		return err
@@ -111,7 +116,7 @@ func ReorderEntryBiosynthesisModules(db *gorm.DB, idFrom uint64, idTo uint64) er
 	moduleTo.Index = moduleFrom.Index
 	moduleFrom.Index = swap
 
-	err = tx.Save(&moduleFrom).Error
+	err = tx.Select("index").Save(&moduleFrom).Error
 
 	if err != nil {
 		slog.Error("Could not save first module in module reorder operation")
@@ -119,7 +124,7 @@ func ReorderEntryBiosynthesisModules(db *gorm.DB, idFrom uint64, idTo uint64) er
 		return err
 	}
 
-	err = tx.Save(&moduleTo).Error
+	err = tx.Select("index").Save(&moduleTo).Error
 
 	if err != nil {
 		slog.Error("Could not save second module in module reorder operation")

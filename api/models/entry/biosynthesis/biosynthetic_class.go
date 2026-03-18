@@ -52,12 +52,12 @@ type RippPrecursor struct {
 }
 
 type GlycosylTransferase struct {
-	ID                  uint64                     `json:"db_id"`
-	BiosyntheticClassID uint64                     `json:"db_biosynth_class_id"`
-	Evidence            *[]DomainSubstrateEvidence `json:"evidence,omitempty" gorm:"many2many:glycosyl_transferase_evidences;"`
-	References          pq.StringArray             `json:"references" gorm:"type:text[]"`
-	Gene                string                     `json:"gene"`
-	Specificity         string                     `json:"specificity"`
+	ID                  uint64                    `json:"db_id"`
+	BiosyntheticClassID uint64                    `json:"db_biosynth_class_id"`
+	Evidence            []DomainSubstrateEvidence `json:"evidence,omitempty" gorm:"many2many:glycosyl_transferase_evidences;"`
+	References          pq.StringArray            `json:"references" gorm:"type:text[]"`
+	Gene                string                    `json:"gene"`
+	Specificity         string                    `json:"specificity"`
 }
 
 type SaccharideSubcluster struct {
@@ -76,8 +76,8 @@ type BiosyntheticClass struct {
 	Subclass string `json:"subclass"`
 
 	// NRPS
-	Thioesterases *[]Thioesterase `json:"thioesterases,omitempty" gorm:"foreignKey:BiosyntheticClassID"`
-	ReleaseTypes  *[]ReleaseType  `json:"release_types,omitempty" gorm:"foreignKey:BiosyntheticClassID"`
+	Thioesterases []Thioesterase `json:"thioesterases,omitempty" gorm:"foreignKey:BiosyntheticClassID"`
+	ReleaseTypes  []ReleaseType  `json:"release_types,omitempty" gorm:"foreignKey:BiosyntheticClassID"`
 
 	// PKS
 	Cyclases     pq.StringArray `json:"cyclases" gorm:"type:text[]"`
@@ -86,14 +86,14 @@ type BiosyntheticClass struct {
 	// TODO: iterative?
 
 	// ribosomal
-	RIPPType   *string          `json:"ripp_type,omitempty"`
-	Details    *string          `json:"details,omitempty"`
-	Peptidases pq.StringArray   `json:"peptidases,omitempty" gorm:"type:text[]"`
-	Precursors *[]RippPrecursor `json:"precursors,omitempty" gorm:"foreignKey:BiosyntheticClassID"`
+	RIPPType   *string         `json:"ripp_type,omitempty"`
+	Details    *string         `json:"details,omitempty"`
+	Peptidases pq.StringArray  `json:"peptidases,omitempty" gorm:"type:text[]"`
+	Precursors []RippPrecursor `json:"precursors,omitempty" gorm:"foreignKey:BiosyntheticClassID"`
 
 	// saccharide
-	GlycosylTransferases *[]GlycosylTransferase  `json:"glycosyltransferases,omitempty" gorm:"foreignKey:BiosyntheticClassID"`
-	Subclusters          *[]SaccharideSubcluster `json:"subclusters,omitempty" gorm:"foreignKey:BiosyntheticClassID"`
+	GlycosylTransferases []GlycosylTransferase  `json:"glycosyltransferases,omitempty" gorm:"foreignKey:BiosyntheticClassID"`
+	Subclusters          []SaccharideSubcluster `json:"subclusters,omitempty" gorm:"foreignKey:BiosyntheticClassID"`
 
 	// terpene
 	Prenyltransferases pq.StringArray `json:"prenyltransferases,omitempty" gorm:"type:text[]"`
@@ -136,30 +136,80 @@ func CreateBiosynthesisClass(db *gorm.DB, biosynthId uint64, class BiosyntheticC
 }
 
 func UpdateEntryBiosynthesisClass(db *gorm.DB, classId int, newClass BiosyntheticClass) error {
-	var biosynth Biosynthesis
+	err := db.Transaction(func(tx *gorm.DB) error {
+		var err error
 
-	err := db.
-		Model(&biosynth).
-		Where("id = ?", newClass.BiosynthesisID).
-		Preload("Classes").
-		First(&biosynth).
-		Error
+		var oldClass BiosyntheticClass
 
-	if err != nil {
-		return err
-	}
+		err = tx.
+			Model(&oldClass).
+			Where("id = ?", classId).
+			Save(&newClass).
+			Error
 
-	err = db.
-		Session(&gorm.Session{FullSaveAssociations: true}).
-		Model(&biosynth).
-		Association("Classes").
-		Replace(&newClass)
+		if err != nil {
+			return err
+		}
 
-	if err != nil {
-		return err
-	}
+		switch newClass.Class {
+		case "NRPS":
+			err = tx.
+				Model(&oldClass).
+				Association("ReleaseTypes").
+				Replace(&newClass.ReleaseTypes)
 
-	return nil
+			if err != nil {
+				return err
+			}
+
+			err = tx.
+				Model(&oldClass).
+				Association("Thioesterases").
+				Replace(&newClass.Thioesterases)
+
+			if err != nil {
+				return err
+			}
+		case "PKS":
+			break
+		case "ribosomal":
+			err = tx.
+				Model(&oldClass).
+				Where("id = ?", classId).
+				Association("Precursors").
+				Replace(&newClass.Precursors)
+
+			if err != nil {
+				return err
+			}
+		case "saccharide":
+			err = tx.
+				Model(&oldClass).
+				Association("GlycosylTransferases").
+				Replace(&newClass.GlycosylTransferases)
+
+			if err != nil {
+				return err
+			}
+
+			err = tx.
+				Model(&oldClass).
+				Association("Subclusters").
+				Replace(&newClass.Subclusters)
+
+			if err != nil {
+				return err
+			}
+		case "terpene":
+			break
+		case "other":
+			break
+		}
+
+		return nil
+	})
+
+	return err
 }
 
 func DeleteEntryBiosynthesisClass(db *gorm.DB, id int) error {
