@@ -50,6 +50,13 @@ var envs = map[EnvKey]string{
 	EnvLockDuration: "6h", // 6 hours
 }
 
+type EnvValue string
+
+const (
+	DbDialectSqlite   EnvValue = "sqlite"
+	DbDialectPostgres EnvValue = "postgres"
+)
+
 func GetConfig(key EnvKey) (val string, err error) {
 	val, contains := envs[key]
 

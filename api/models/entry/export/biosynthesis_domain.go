@@ -42,10 +42,9 @@ type CondensationDomain struct {
 }
 
 type KetoSynthaseDomain struct {
-	Type       string         `json:"type"`
-	Gene       string         `json:"gene"`
-	LocationID uint64         `json:"db_location_id"`
-	Location   DomainLocation `json:"location"`
+	Type     string         `json:"type"`
+	Gene     string         `json:"gene"`
+	Location DomainLocation `json:"location"`
 }
 
 type DomainLocation struct {

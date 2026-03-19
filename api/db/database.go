@@ -91,9 +91,9 @@ func Connect() (*gorm.DB, error) {
 
 	// We want to be specific about what we are expecting to use
 	// Postgres for production and SQLite for testing
-	if DbDialect == "postgres" {
+	if DbDialect == string(config.DbDialectPostgres) {
 		db, err = connectPostres()
-	} else if DbDialect == "sqlite" {
+	} else if DbDialect == string(config.DbDialectSqlite) {
 		db, err = connectSqlite()
 	} else {
 		slog.Error(fmt.Sprintf("Unsupported database dialect: %s", DbDialect))

@@ -62,7 +62,7 @@ func GetEntryLocks(db *gorm.DB, entryAccession string) (*[]Lock, error) {
 
 	err := db.
 		Model(&Lock{}).
-		Where("entry_accession = $1 AND unlocks_at >= $2", entryAccession, now.UnixMilli()).
+		Where("entry_accession = $1 AND unlocks_at >= $2", entryAccession, now).
 		Find(&locks).
 		Error
 
@@ -133,6 +133,7 @@ func CreateOrGetLock(db *gorm.DB, entryAccession string, category LockingCategor
 	err = db.
 		Model(&Lock{}).
 		Where("entry_accession = $1 AND category = $2", entryAccession, category).
+		Omit("LockOwner").
 		Assign(Lock{UnlocksAt: lock.UnlocksAt}).
 		FirstOrCreate(&lock).
 		Error

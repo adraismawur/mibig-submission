@@ -1,6 +1,7 @@
 package biosynthesis
 
 import (
+	"github.com/adraismawur/mibig-submission/config"
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
@@ -138,15 +139,11 @@ func ReorderEntryBiosynthesisModules(db *gorm.DB, idFrom uint64, idTo uint64) er
 }
 
 func UpdateEntryBiosynthesisModule(db *gorm.DB, newModule *BiosyntheticModule) error {
+	var oldModule BiosyntheticModule
+
 	err := db.
-		Session(&gorm.Session{FullSaveAssociations: true}).
-		Model(&BiosyntheticModule{}).
-		Preload("Carriers.Location").
-		Preload("ModificationDomains.Location").
-		Preload("ADomain.Location").
-		Preload("ATDomain.Location").
-		Preload("KSDomain.Location").
-		Where("id = $1", newModule.ID).
+		Model(&oldModule).
+		Where("biosynthetic_modules.id = $1", newModule.ID).
 		Save(&newModule).
 		Error
 
@@ -196,17 +193,34 @@ func GetEntryBiosynthesisModule(db *gorm.DB, id int) (*BiosyntheticModule, error
 func GetEntryBiosynthesisModulesById(db *gorm.DB, biosynthId uint64) (*[]BiosyntheticModule, error) {
 	var modules []BiosyntheticModule
 
-	err := db.
+	q := db.
 		Table("biosynthetic_modules").
 		Where("biosynthesis_id = $1", biosynthId).
 		Preload("Carriers.Location").
 		Preload("ModificationDomains.Location").
 		Preload("ADomain.Location").
 		Preload("ATDomain.Location").
-		Preload("KSDomain.Location").
-		Order("`index` ASC").
-		Find(&modules).
-		Error
+		Preload("KSDomain.Location")
+
+	db_dialect, err := config.GetConfig(config.EnvDbDialect)
+
+	if err != nil {
+		return nil, err
+	}
+
+	switch config.EnvValue(db_dialect) {
+	case config.DbDialectSqlite:
+		q = q.Order("`index` ASC")
+		break
+	default:
+		q = q.Order("index")
+		break
+	}
+
+	if db_dialect == string(config.DbDialectPostgres) {
+	}
+
+	err = q.Find(&modules).Error
 
 	if err != nil {
 		return nil, err
