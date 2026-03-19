@@ -44,9 +44,9 @@ type RippPrecursor struct {
 	BiosyntheticClassID uint64 `json:"db_class_id"`
 	Gene                string `json:"gene""`
 	//CoreSequence             string                   `json:"core_sequence"`
-	LeaderCleavageLocationID   *uint64                  `json:"db_leader_cleavage_location_id"`
+	LeaderCleavageLocationID   uint64                   `json:"db_leader_cleavage_location_id"`
 	LeaderCleavageLocation     *CleavageLocation        `json:"leader_cleavage_location,omitempty"`
-	FollowerCleavageLocationID *uint64                  `json:"db_follower_cleavage_location_id"`
+	FollowerCleavageLocationID uint64                   `json:"db_follower_cleavage_location_id"`
 	FollowerCleavageLocation   *CleavageLocation        `json:"follower_cleavage_location,omitempty"`
 	Crosslinks                 []RippPrecursorCrosslink `json:"crosslinks,omitempty" gorm:"foreignKey:RippPrecursorID"`
 }
@@ -136,10 +136,10 @@ func CreateBiosynthesisClass(db *gorm.DB, biosynthId uint64, class BiosyntheticC
 }
 
 func UpdateEntryBiosynthesisClass(db *gorm.DB, classId int, newClass BiosyntheticClass) error {
-	err := db.Transaction(func(tx *gorm.DB) error {
+	err := db.Session(&gorm.Session{FullSaveAssociations: true}).Transaction(func(tx *gorm.DB) error {
 		var err error
 
-		var oldClass BiosyntheticClass
+		oldClass, err := GetEntryBiosynthesisClass(tx, classId)
 
 		err = tx.
 			Model(&oldClass).
@@ -169,6 +169,14 @@ func UpdateEntryBiosynthesisClass(db *gorm.DB, classId int, newClass Biosyntheti
 
 			if err != nil {
 				return err
+			}
+
+			for _, thioEsterase := range newClass.Thioesterases {
+				err = tx.
+					Model(&DomainLocation{}).
+					Where("id = $1", thioEsterase.LocationID).
+					Save(&thioEsterase.Location).
+					Error
 			}
 		case "PKS":
 			break

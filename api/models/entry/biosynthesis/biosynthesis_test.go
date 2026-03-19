@@ -82,7 +82,7 @@ func TestCreateNRPSClass(t *testing.T) {
 		BiosynthesisID: 1,
 		Class:          "NRPS",
 		Subclass:       "Type I",
-		ReleaseTypes: &[]ReleaseType{
+		ReleaseTypes: []ReleaseType{
 			{
 				ID:                  1,
 				BiosyntheticClassID: 1,
@@ -98,7 +98,7 @@ func TestCreateNRPSClass(t *testing.T) {
 				References:          pq.StringArray{"doi:pending"},
 			},
 		},
-		Thioesterases: &[]Thioesterase{
+		Thioesterases: []Thioesterase{
 			{
 				ID:                  3,
 				BiosyntheticClassID: 1,
@@ -192,7 +192,7 @@ func TestCreateRibosomalClass(t *testing.T) {
 		Subclass:       "RiPP",
 		RIPPType:       &rippType,
 		Peptidases:     pq.StringArray{"a", "b", "c"},
-		Precursors: &[]RippPrecursor{
+		Precursors: []RippPrecursor{
 			{
 				ID:                       1,
 				BiosyntheticClassID:      1,
@@ -255,11 +255,11 @@ func TestCreateSaccharideClass(t *testing.T) {
 		BiosynthesisID: 1,
 		Class:          "saccharide",
 		Subclass:       "",
-		GlycosylTransferases: &[]GlycosylTransferase{
+		GlycosylTransferases: []GlycosylTransferase{
 			{
 				ID:                  1,
 				BiosyntheticClassID: 1,
-				Evidence: &[]DomainSubstrateEvidence{
+				Evidence: []DomainSubstrateEvidence{
 					{
 						ID:         1,
 						Method:     "a",
@@ -271,7 +271,7 @@ func TestCreateSaccharideClass(t *testing.T) {
 				Specificity: "C1CCCCC1",
 			},
 		},
-		Subclusters: &[]SaccharideSubcluster{
+		Subclusters: []SaccharideSubcluster{
 			{
 				ID:                  1,
 				BiosyntheticClassID: 1,
@@ -381,7 +381,7 @@ func TestGetNRPSClass(t *testing.T) {
 		BiosynthesisID: 1,
 		Class:          "NRPS",
 		Subclass:       "Type I",
-		ReleaseTypes: &[]ReleaseType{
+		ReleaseTypes: []ReleaseType{
 			{
 				ID:                  1,
 				BiosyntheticClassID: 1,
@@ -397,7 +397,7 @@ func TestGetNRPSClass(t *testing.T) {
 				References:          pq.StringArray{"doi:pending"},
 			},
 		},
-		Thioesterases: &[]Thioesterase{
+		Thioesterases: []Thioesterase{
 			{
 				ID:                  3,
 				BiosyntheticClassID: 1,
@@ -473,7 +473,7 @@ func TestGetRibosomalClass(t *testing.T) {
 		Subclass:       "RiPP",
 		RIPPType:       &rippType,
 		Peptidases:     pq.StringArray{"a", "b", "c"},
-		Precursors: &[]RippPrecursor{
+		Precursors: []RippPrecursor{
 			{
 				ID:                       1,
 				BiosyntheticClassID:      1,
@@ -525,11 +525,11 @@ func TestGetSaccharideClass(t *testing.T) {
 		BiosynthesisID: 1,
 		Class:          "saccharide",
 		Subclass:       "",
-		GlycosylTransferases: &[]GlycosylTransferase{
+		GlycosylTransferases: []GlycosylTransferase{
 			{
 				ID:                  1,
 				BiosyntheticClassID: 1,
-				Evidence: &[]DomainSubstrateEvidence{
+				Evidence: []DomainSubstrateEvidence{
 					{
 						ID:         1,
 						Method:     "a",
@@ -541,7 +541,7 @@ func TestGetSaccharideClass(t *testing.T) {
 				Specificity: "C1CCCCC1",
 			},
 		},
-		Subclusters: &[]SaccharideSubcluster{
+		Subclusters: []SaccharideSubcluster{
 			{
 				ID:                  1,
 				BiosyntheticClassID: 1,
@@ -625,7 +625,7 @@ func TestUpdateNRPSClass(t *testing.T) {
 		BiosynthesisID: 1,
 		Class:          "NRPS",
 		Subclass:       "Type I",
-		ReleaseTypes: &[]ReleaseType{
+		ReleaseTypes: []ReleaseType{
 			{
 				ID:                  1,
 				BiosyntheticClassID: 1,
@@ -641,13 +641,14 @@ func TestUpdateNRPSClass(t *testing.T) {
 				References:          pq.StringArray{"doi:pending"},
 			},
 		},
-		Thioesterases: &[]Thioesterase{
+		Thioesterases: []Thioesterase{
 			{
 				ID:                  3,
 				BiosyntheticClassID: 1,
 				Type:                "thioesterase",
 				LocationID:          1,
 				Location: DomainLocation{
+					ID:   1,
 					From: 1,
 					To:   2,
 				},
@@ -659,6 +660,7 @@ func TestUpdateNRPSClass(t *testing.T) {
 				Type:                "thioesterase",
 				LocationID:          2,
 				Location: DomainLocation{
+					ID:   2,
 					From: 3,
 					To:   4,
 				},
@@ -677,7 +679,7 @@ func TestUpdateNRPSClass(t *testing.T) {
 		BiosynthesisID: 1,
 		Class:          "NRPS",
 		Subclass:       "Type V",
-		ReleaseTypes: &[]ReleaseType{
+		ReleaseTypes: []ReleaseType{
 			{
 				ID:                  1,
 				BiosyntheticClassID: 1,
@@ -693,13 +695,14 @@ func TestUpdateNRPSClass(t *testing.T) {
 				References:          pq.StringArray{"f"},
 			},
 		},
-		Thioesterases: &[]Thioesterase{
+		Thioesterases: []Thioesterase{
 			{
 				ID:                  3,
 				BiosyntheticClassID: 1,
 				Type:                "thioesterase",
 				LocationID:          1,
 				Location: DomainLocation{
+					ID:   1,
 					From: 5,
 					To:   6,
 				},
@@ -711,6 +714,7 @@ func TestUpdateNRPSClass(t *testing.T) {
 				Type:                "thioesterase",
 				LocationID:          2,
 				Location: DomainLocation{
+					ID:   2,
 					From: 7,
 					To:   8,
 				},
@@ -783,7 +787,7 @@ func TestUpdateRibosomalClass(t *testing.T) {
 		Subclass:       "RiPP",
 		RIPPType:       &rippType,
 		Peptidases:     pq.StringArray{"a", "b", "c"},
-		Precursors: &[]RippPrecursor{
+		Precursors: []RippPrecursor{
 			{
 				ID:                       1,
 				BiosyntheticClassID:      1,
@@ -827,7 +831,7 @@ func TestUpdateRibosomalClass(t *testing.T) {
 		Subclass:       "unmodified",
 		RIPPType:       &rippTypeUpdate,
 		Peptidases:     pq.StringArray{"e", "f", "g"},
-		Precursors: &[]RippPrecursor{
+		Precursors: []RippPrecursor{
 			{
 				ID:                       1,
 				BiosyntheticClassID:      1,
@@ -882,11 +886,11 @@ func TestUpdateSaccharideClass(t *testing.T) {
 		BiosynthesisID: 1,
 		Class:          "saccharide",
 		Subclass:       "",
-		GlycosylTransferases: &[]GlycosylTransferase{
+		GlycosylTransferases: []GlycosylTransferase{
 			{
 				ID:                  1,
 				BiosyntheticClassID: 1,
-				Evidence: &[]DomainSubstrateEvidence{
+				Evidence: []DomainSubstrateEvidence{
 					{
 						ID:         1,
 						Method:     "a",
@@ -898,7 +902,7 @@ func TestUpdateSaccharideClass(t *testing.T) {
 				Specificity: "C1CCCCC1",
 			},
 		},
-		Subclusters: &[]SaccharideSubcluster{
+		Subclusters: []SaccharideSubcluster{
 			{
 				ID:                  1,
 				BiosyntheticClassID: 1,
@@ -919,11 +923,11 @@ func TestUpdateSaccharideClass(t *testing.T) {
 		BiosynthesisID: 1,
 		Class:          "saccharide",
 		Subclass:       "",
-		GlycosylTransferases: &[]GlycosylTransferase{
+		GlycosylTransferases: []GlycosylTransferase{
 			{
 				ID:                  1,
 				BiosyntheticClassID: 1,
-				Evidence: &[]DomainSubstrateEvidence{
+				Evidence: []DomainSubstrateEvidence{
 					{
 						ID:         1,
 						Method:     "k",
@@ -935,7 +939,7 @@ func TestUpdateSaccharideClass(t *testing.T) {
 				Specificity: "O=C(O)C[C@H](N)C(=O)N[C@H](C(=O)OC)Cc1ccccc1",
 			},
 		},
-		Subclusters: &[]SaccharideSubcluster{
+		Subclusters: []SaccharideSubcluster{
 			{
 				ID:                  1,
 				BiosyntheticClassID: 1,
