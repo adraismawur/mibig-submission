@@ -47,7 +47,7 @@ func CreateEntryBiosynthesisModule(db *gorm.DB, entryAccession string, module Bi
 
 	err := db.
 		Table("biosyntheses").
-		Where("entry_accession = ?", entryAccession).
+		Where("entry_accession = $1", entryAccession).
 		Preload("Classes").
 		Preload("Modules.Carriers.Location").
 		Preload("Modules.ModificationDomains.Location").
@@ -90,7 +90,7 @@ func ReorderEntryBiosynthesisModules(db *gorm.DB, idFrom uint64, idTo uint64) er
 	var moduleTo BiosyntheticModule
 
 	err := tx.
-		Where("id = ?", idFrom).
+		Where("id = $1", idFrom).
 		First(&moduleFrom).
 		Error
 
@@ -101,7 +101,7 @@ func ReorderEntryBiosynthesisModules(db *gorm.DB, idFrom uint64, idTo uint64) er
 	}
 
 	err = tx.
-		Where("id = ?", idTo).
+		Where("id = $1", idTo).
 		First(&moduleTo).
 		Error
 
@@ -146,7 +146,7 @@ func UpdateEntryBiosynthesisModule(db *gorm.DB, newModule *BiosyntheticModule) e
 		Preload("ADomain.Location").
 		Preload("ATDomain.Location").
 		Preload("KSDomain.Location").
-		Where("id = ?", newModule.ID).
+		Where("id = $1", newModule.ID).
 		Save(&newModule).
 		Error
 
@@ -162,7 +162,7 @@ func UpdateEntryBiosynthesisModule(db *gorm.DB, newModule *BiosyntheticModule) e
 func DeleteEntryBiosynthesisModule(db *gorm.DB, id int) error {
 	err := db.
 		Model(&BiosyntheticModule{}).
-		Delete("id = ?", id).
+		Delete("id = $1", id).
 		Error
 
 	if err != nil {
@@ -177,7 +177,7 @@ func GetEntryBiosynthesisModule(db *gorm.DB, id int) (*BiosyntheticModule, error
 
 	err := db.
 		Table("biosynthetic_modules").
-		Where("id = ?", id).
+		Where("id = $1", id).
 		Preload("Carriers.Location").
 		Preload("ModificationDomains.Location").
 		Preload("ADomain.Location").
@@ -198,7 +198,7 @@ func GetEntryBiosynthesisModulesById(db *gorm.DB, biosynthId uint64) (*[]Biosynt
 
 	err := db.
 		Table("biosynthetic_modules").
-		Where("biosynthesis_id = ?", biosynthId).
+		Where("biosynthesis_id = $1", biosynthId).
 		Preload("Carriers.Location").
 		Preload("ModificationDomains.Location").
 		Preload("ADomain.Location").

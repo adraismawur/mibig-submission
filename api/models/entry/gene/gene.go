@@ -70,7 +70,7 @@ func GetEntryGeneInformation(db *gorm.DB, accession string) (*GeneInformation, e
 		Preload("Additions.Location.Exons").
 		Preload("Deletions").
 		Preload("Annotations").
-		Where("accession = ?", accession).
+		Where("accession = $1", accession).
 		First(&geneInformation).
 		Error
 
@@ -84,7 +84,7 @@ func GetEntryGeneInformation(db *gorm.DB, accession string) (*GeneInformation, e
 func GetGeneAdditionExists(db *gorm.DB, additionId int) (bool, error) {
 	var count int64
 
-	err := db.Table("gene_additions").Where("id = ?", additionId).Count(&count).Error
+	err := db.Table("gene_additions").Where("id = $1", additionId).Count(&count).Error
 
 	if err != nil {
 		slog.Error("[genes] Error finding gene addition", "addition_id", additionId, "error", err)
@@ -101,7 +101,7 @@ func GetGeneAdditionExists(db *gorm.DB, additionId int) (bool, error) {
 func GetGeneDeletionExists(db *gorm.DB, deletionId int) (bool, error) {
 	var count int64
 
-	err := db.Table("gene_deletions").Where("id = ?", deletionId).Count(&count).Error
+	err := db.Table("gene_deletions").Where("id = $1", deletionId).Count(&count).Error
 
 	if err != nil {
 		return false, err
@@ -117,7 +117,7 @@ func GetGeneDeletionExists(db *gorm.DB, deletionId int) (bool, error) {
 func GetGeneAnnotationExists(db *gorm.DB, annotationId int) (bool, error) {
 	var count int64
 
-	err := db.Table("gene_annotations").Where("id = ?", annotationId).Count(&count).Error
+	err := db.Table("gene_annotations").Where("id = $1", annotationId).Count(&count).Error
 
 	if err != nil {
 		return false, err
@@ -135,7 +135,7 @@ func GetGeneAddition(db *gorm.DB, additionId int) (*GeneAddition, error) {
 
 	err := db.Table("gene_additions").
 		Preload("Location.Exons").
-		Where("id = ?", additionId).
+		Where("id = $1", additionId).
 		First(&addition).
 		Error
 
@@ -149,7 +149,7 @@ func GetGeneAddition(db *gorm.DB, additionId int) (*GeneAddition, error) {
 func GetGeneDeletion(db *gorm.DB, deletionId int) (*GeneDeletion, error) {
 	var deletion GeneDeletion
 
-	err := db.Table("gene_deletions").Where("id = ?", deletionId).First(&deletion).Error
+	err := db.Table("gene_deletions").Where("id = $1", deletionId).First(&deletion).Error
 
 	if err != nil {
 		return nil, err
@@ -161,7 +161,7 @@ func GetGeneDeletion(db *gorm.DB, deletionId int) (*GeneDeletion, error) {
 func GetGeneAnnotation(db *gorm.DB, annotationId int) (*GeneAnnotation, error) {
 	var annotation GeneAnnotation
 
-	err := db.Table("gene_annotations").Where("id = ?", annotationId).First(&annotation).Error
+	err := db.Table("gene_annotations").Where("id = $1", annotationId).First(&annotation).Error
 
 	if err != nil {
 		return nil, err
@@ -250,7 +250,7 @@ func DeleteGeneAddition(db *gorm.DB, additionId int) error {
 
 	err := db.
 		Table("gene_additions").
-		Where("id = ?", additionId).
+		Where("id = $1", additionId).
 		First(&addition).
 		Error
 
@@ -272,7 +272,7 @@ func DeleteGeneDeletion(db *gorm.DB, additionId int) error {
 
 	err := db.
 		Table("gene_deletions").
-		Where("id = ?", additionId).
+		Where("id = $1", additionId).
 		First(&deletion).
 		Error
 
@@ -294,7 +294,7 @@ func DeleteGeneAnnotation(db *gorm.DB, additionId int) error {
 
 	err := db.
 		Table("gene_annotations").
-		Where("id = ?", additionId).
+		Where("id = $1", additionId).
 		First(&annotation).
 		Error
 

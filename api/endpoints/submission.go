@@ -92,10 +92,10 @@ func getUserSubmissions(db *gorm.DB, c *gin.Context) {
 
 	// optional clause
 	if userID != "" {
-		q.Where("user_submissions.user_id = ?", userID)
+		q.Where("user_submissions.user_id = $1", userID)
 	}
 
-	q.Where("state != ?", entry.Discarded)
+	q.Where("state != $1", entry.Discarded)
 
 	err := q.Select("entries.accession, user_submissions.type, user_submissions.source_accession, user_submissions.state").
 		Find(&submissions).Error
@@ -120,11 +120,11 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 
 	// optional clause
 	if userID != "" {
-		q.Where("user_submissions.user_id = ?", userID)
+		q.Where("user_submissions.user_id = $1", userID)
 	}
 
 	if state != "" {
-		q.Where("user_submissions.state = ?", state)
+		q.Where("user_submissions.state = $1", state)
 	}
 
 	err := q.Select("entries.accession, user_submissions.type, user_submissions.source_accession, user_submissions.state").
@@ -256,7 +256,7 @@ func GetUserSubmissions(db *gorm.DB, userId int) ([]string, error) {
 		Table("user_submissions").
 		Select("accession").
 		Joins("JOIN entries ON entries.accession = user_submissions.entry_accession").
-		Where("user_id = ?", userId).
+		Where("user_id = $1", userId).
 		Find(&accessions).
 		Error
 
@@ -286,7 +286,7 @@ func promoteSubmission(db *gorm.DB, c *gin.Context) {
 
 	err = db.
 		Joins("JOIN entries ON entries.accession = user_submissions.entry_accession").
-		Where("entries.accession = ?", accession).
+		Where("entries.accession = $1", accession).
 		First(&userSubmission).Error
 
 	if err != nil {
@@ -339,7 +339,7 @@ func redraftSubmission(db *gorm.DB, c *gin.Context) {
 
 	err = db.
 		Joins("JOIN entries ON entries.accession = user_submissions.entry_accession").
-		Where("entries.accession = ?", accession).
+		Where("entries.accession = $1", accession).
 		First(&userSubmission).Error
 
 	if err != nil {
@@ -386,7 +386,7 @@ func discardSubmission(db *gorm.DB, c *gin.Context) {
 
 	err = db.
 		Joins("JOIN entries ON entries.accession = user_submissions.entry_accession").
-		Where("entries.accession = ?", accession).
+		Where("entries.accession = $1", accession).
 		First(&userSubmission).Error
 
 	if err != nil {

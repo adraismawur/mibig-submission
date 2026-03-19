@@ -17,7 +17,7 @@ func UpdateFinalDetails(db *gorm.DB, details FinalDetails) error {
 	err := db.
 		Table("entries").
 		Model(&FinalDetails{}).
-		Where("accession = ?", details.Accession).
+		Where("accession = $1", details.Accession).
 		Save(details).
 		Error
 

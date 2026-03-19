@@ -61,10 +61,10 @@ func getEntryCompounds(db *gorm.DB, c *gin.Context) {
 	q := db.Table("compounds").
 		Preload("Evidence").
 		Preload("BioActivities").
-		Where("entry_accession = ?", accession)
+		Where("entry_accession = $1", accession)
 
 	if id != "" {
-		q = q.Where("id = ?", id)
+		q = q.Where("id = $1", id)
 	}
 
 	err := q.Find(&response.Compounds).
@@ -174,7 +174,7 @@ func deleteEntryCompound(db *gorm.DB, c *gin.Context) {
 
 	err := db.
 		Model(&compounds).
-		Delete("id = ?", compoundId).
+		Delete("id = $1", compoundId).
 		Error
 
 	//if err != nil {

@@ -35,7 +35,7 @@ func GetBiosynthesisPath(db *gorm.DB, pathId int) (*BiosyntheticPathway, error) 
 
 	err := db.
 		Model(&BiosyntheticPathway{}).
-		Where("id = ?", pathId).
+		Where("id = $1", pathId).
 		Preload("Products").
 		First(&path).
 		Error
@@ -72,7 +72,7 @@ func UpdateBiosynthesisPath(db *gorm.DB, path BiosyntheticPathway) error {
 		var oldPath BiosyntheticPathway
 		err := tx.
 			Model(&oldPath).
-			Where("id = ?", path.ID).
+			Where("id = $1", path.ID).
 			Save(&path).
 			Error
 
@@ -100,7 +100,7 @@ func UpdateBiosynthesisPath(db *gorm.DB, path BiosyntheticPathway) error {
 func DeleteBiosynthesisPath(db *gorm.DB, pathId int) error {
 	err := db.
 		Model(&BiosyntheticPathway{}).
-		Delete("id = ?", pathId).
+		Delete("id = $1", pathId).
 		Error
 
 	if err != nil {

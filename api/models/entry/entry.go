@@ -274,7 +274,7 @@ func LoadEntries(db *gorm.DB, path string) error {
 func GetEntryExists(db *gorm.DB, accession string) (bool, error) {
 	var count int64
 
-	err := db.Table("entries").Where("accession = ?", accession).Count(&count).Error
+	err := db.Table("entries").Where("accession = $1", accession).Count(&count).Error
 
 	if err != nil {
 		return false, err
@@ -290,7 +290,7 @@ func GetEntryFromAccession(db *gorm.DB, accession string) (*Entry, error) {
 	// ideally doing this amount of preloading is rare. This is done here on getting the entire entry
 	err := db.
 		Table("entries").
-		Where("accession = ?", accession).
+		Where("accession = $1", accession).
 		Preload("Changelog.Releases.Entries").
 		Preload("Loci.Location").
 		Preload("Loci.Evidence").
@@ -321,7 +321,7 @@ func GetEntryGenes(db *gorm.DB, accession string) (*[]string, error) {
 
 	db.Model(&Gene{}).
 		Select("name").
-		Where("genes.entry_accession = ?", accession).
+		Where("genes.entry_accession = $1", accession).
 		Find(&genes)
 
 	return &genes, nil

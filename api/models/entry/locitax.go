@@ -17,7 +17,7 @@ func GetLociTax(db *gorm.DB, accession string) (*LociTax, error) {
 
 	err := db.
 		Table("entries").
-		Where("accession = ?", accession).
+		Where("accession = $1", accession).
 		Preload("Loci.Location").
 		Preload("Loci.Evidence").
 		Preload("Taxonomy").
@@ -36,7 +36,7 @@ func UpdateLociTax(db *gorm.DB, accession string, oldLociTax LociTax, newLociTax
 			Table("entries").
 			Omit("accession").
 			Model(&oldLociTax).
-			Where("accession = ?", accession).
+			Where("accession = $1", accession).
 			Save(&newLociTax).
 			Error
 

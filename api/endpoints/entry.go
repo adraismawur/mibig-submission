@@ -92,7 +92,7 @@ func listEntries(db *gorm.DB, c *gin.Context) {
 	}
 
 	if search != "" {
-		q = q.Where("entries.accession LIKE ?", "%"+search+"%")
+		q = q.Where("entries.accession LIKE $1", "%"+search+"%")
 	}
 
 	q = q.Offset(start)
@@ -112,7 +112,7 @@ func listEntries(db *gorm.DB, c *gin.Context) {
 	q = db.Table("entries")
 
 	if search != "" {
-		q = q.Where("entries.accession LIKE ?", "%"+search+"%")
+		q = q.Where("entries.accession LIKE $1", "%"+search+"%")
 	}
 
 	q = q.Count(&recordCount)

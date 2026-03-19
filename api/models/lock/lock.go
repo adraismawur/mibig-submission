@@ -36,7 +36,7 @@ func EntryCanCreateLock(db *gorm.DB, entryAccession string, category LockingCate
 
 	err := db.
 		Model(&Lock{}).
-		Where("entry_accession = ? AND (category = ? OR category = ?)", entryAccession, category, Full).
+		Where("entry_accession = $1 AND (category = $2 OR category = $3)", entryAccession, category, Full).
 		Find(&lock).
 		Error
 
@@ -62,7 +62,7 @@ func GetEntryLocks(db *gorm.DB, entryAccession string) (*[]Lock, error) {
 
 	err := db.
 		Model(&Lock{}).
-		Where("entry_accession = ? AND unlocks_at >= ?", entryAccession, now.UnixMilli()).
+		Where("entry_accession = $1 AND unlocks_at >= $2", entryAccession, now.UnixMilli()).
 		Find(&locks).
 		Error
 
@@ -78,7 +78,7 @@ func GetEntryLock(db *gorm.DB, entryAccession string, category LockingCategory) 
 
 	err := db.
 		Model(&Lock{}).
-		Where("entry_accession = ? AND (category = ? OR category = ?)", entryAccession, category, Full).
+		Where("entry_accession = $1 AND (category = $2 OR category = $3)", entryAccession, category, Full).
 		Find(&lock).
 		Error
 
@@ -132,7 +132,7 @@ func CreateOrGetLock(db *gorm.DB, entryAccession string, category LockingCategor
 
 	err = db.
 		Model(&Lock{}).
-		Where("entry_accession = ? AND category = ?", entryAccession, category).
+		Where("entry_accession = $1 AND category = $2", entryAccession, category).
 		Assign(Lock{UnlocksAt: lock.UnlocksAt}).
 		FirstOrCreate(&lock).
 		Error
@@ -149,7 +149,7 @@ func ReleaseLock(db *gorm.DB, entryAccession string, category LockingCategory, u
 
 	err := db.
 		Model(&Lock{}).
-		Where("entry_accession = ? AND category = ?", entryAccession, category).
+		Where("entry_accession = $1 AND category = $2", entryAccession, category).
 		Find(&existingLock).
 		Error
 

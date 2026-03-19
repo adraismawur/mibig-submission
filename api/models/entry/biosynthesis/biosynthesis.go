@@ -23,7 +23,7 @@ func GetEntryBiosynthesis(db *gorm.DB, accession string) (*Biosynthesis, error) 
 
 	err := db.
 		Table("biosyntheses").
-		Where("entry_accession = ?", accession).
+		Where("entry_accession = $1", accession).
 		Preload("Classes").
 		Preload("Paths.Products").
 		First(&biosynth).
@@ -49,7 +49,7 @@ func GetBiosynthesisById(db *gorm.DB, id uint64) (*Biosynthesis, error) {
 
 	err := db.
 		Table("biosyntheses").
-		Where("id = ?", id).
+		Where("id = $1", id).
 		Preload("Classes").
 		First(&biosynth).
 		Error

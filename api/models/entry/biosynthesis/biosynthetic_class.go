@@ -143,7 +143,7 @@ func UpdateEntryBiosynthesisClass(db *gorm.DB, classId int, newClass Biosyntheti
 
 		err = tx.
 			Model(&oldClass).
-			Where("id = ?", classId).
+			Where("id = $1", classId).
 			Save(&newClass).
 			Error
 
@@ -175,7 +175,7 @@ func UpdateEntryBiosynthesisClass(db *gorm.DB, classId int, newClass Biosyntheti
 		case "ribosomal":
 			err = tx.
 				Model(&oldClass).
-				Where("id = ?", classId).
+				Where("id = $1", classId).
 				Association("Precursors").
 				Replace(&newClass.Precursors)
 
@@ -215,7 +215,7 @@ func UpdateEntryBiosynthesisClass(db *gorm.DB, classId int, newClass Biosyntheti
 func DeleteEntryBiosynthesisClass(db *gorm.DB, id int) error {
 	err := db.
 		Model(&BiosyntheticClass{}).
-		Delete("id = ?", id).
+		Delete("id = $1", id).
 		Error
 
 	return err
@@ -226,7 +226,7 @@ func GetEntryBiosynthesisClass(db *gorm.DB, id int) (*BiosyntheticClass, error) 
 
 	err := db.
 		Table("biosynthetic_classes").
-		Where("id = ?", id).
+		Where("id = $1", id).
 		First(&class).
 		Error
 

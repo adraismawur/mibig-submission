@@ -182,7 +182,7 @@ func GetUser(db *gorm.DB, id int) (*User, error) {
 	tx := db.
 		Preload("Roles").
 		Preload("Info").
-		Where("id = ?", id).
+		Where("id = $1", id).
 		Omit("password").
 		Find(&user)
 
@@ -211,7 +211,7 @@ func GetUsers(db *gorm.DB, offset int, limit int, search string) ([]User, error)
 		Joins("LEFT OUTER JOIN user_infos ON user_infos.user_id = users.id")
 
 	if search != "" {
-		tx = tx.Where("user_infos.name LIKE ?", "%"+search+"%")
+		tx = tx.Where("user_infos.name LIKE $1", "%"+search+"%")
 	}
 
 	tx = tx.Offset(offset).
@@ -235,7 +235,7 @@ func GetUserExistsByEmail(db *gorm.DB, email string) (bool, error) {
 	var count int64
 
 	tx := db.Table("users").
-		Where("email = ?", email).
+		Where("email = $1", email).
 		Count(&count)
 
 	if tx.Error != nil {
@@ -248,7 +248,7 @@ func GetUserExistsByEmail(db *gorm.DB, email string) (bool, error) {
 
 // GetUserExistsByID returns true if a user with a given Role exists
 func GetUserExistsByID(db *gorm.DB, id int) (bool, error) {
-	tx := db.Exec(`SELECT EXISTS (SELECT 1 FROM users WHERE id = ?)`, id)
+	tx := db.Exec(`SELECT EXISTS (SELECT 1 FROM users WHERE id = $1)`, id)
 
 	if tx.Error != nil {
 		slog.Error("[user] Error getting user existence by id", "id", id, "error", tx.Error)
@@ -270,7 +270,7 @@ func UpdateUser(db *gorm.DB, id int, newUser User) error {
 
 		err := tx.
 			Omit("Password"). // password done separately
-			//Where("id = ?", id).
+			//Where("id = $1", id).
 			Select("*").
 			Save(&newUser).Error
 
@@ -300,7 +300,7 @@ func UpdateUser(db *gorm.DB, id int, newUser User) error {
 // DeleteUser deletes a user from the database with the given Role
 // performs a soft delete
 func DeleteUser(db *gorm.DB, id int) error {
-	tx := db.Delete(User{}, "id = ?", id)
+	tx := db.Delete(User{}, "id = $1", id)
 
 	if tx.Error != nil {
 		slog.Error("[user] Error deleting user", "id", id, "error", tx.Error)
@@ -326,7 +326,7 @@ func UpdateUserPassword(db *gorm.DB, userId int, plainPassword string) error {
 	err = db.
 		Model(&User{}).
 		Select("password").
-		Where("id = ?", userId).
+		Where("id = $1", userId).
 		Update("password", &hashedPasswordString).
 		Error
 

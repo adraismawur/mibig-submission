@@ -158,15 +158,15 @@ func getAntismashStatus(db *gorm.DB, c *gin.Context) {
 	query := db
 
 	if taskGuid != "" {
-		query = query.Where("guid = ?", taskGuid)
+		query = query.Where("guid = $1", taskGuid)
 	}
 
 	if taskAccession != "" {
-		query = query.Where("accession = ?", taskAccession)
+		query = query.Where("accession = $1", taskAccession)
 	}
 
 	if taskBGCID != "" {
-		query = query.Where("bgc_id = ?", taskBGCID)
+		query = query.Where("bgc_id = $1", taskBGCID)
 	}
 
 	query = query.Find(&status)
@@ -220,7 +220,7 @@ func getRecordAntismashAccessions(db *gorm.DB, c *gin.Context) {
 
 	err := db.
 		Table("antismash_runs").
-		Where("entry_accession = ?", entryAccession).
+		Where("entry_accession = $1", entryAccession).
 		Select("locus_accession").
 		Find(&locusAccessions).
 		Error
@@ -255,7 +255,7 @@ func AntismashWorker(db *gorm.DB) {
 
 		request := models.AntismashRun{}
 
-		result := db.Where("state = ?", models.Pending).Find(&request)
+		result := db.Where("state = $1", models.Pending).Find(&request)
 		err := result.Error
 
 		if err != nil {
