@@ -22,7 +22,7 @@ const (
 type User struct {
 	ID        uint64     `json:"db_id"`
 	anonymous bool       `json:"anonymous"`
-	Email     string     `json:"email"`
+	Email     string     `json:"email" gorm:"unique"`
 	Password  string     `json:"password,omitempty"`
 	Active    bool       `json:"active"`
 	Roles     []UserRole `json:"roles" gorm:"foreignKey:UserID"`
@@ -38,8 +38,8 @@ type LoginRequest struct {
 // UserRole model that represents a list of roles
 type UserRole struct {
 	ID     uint64 `json:"-" gorm:"primaryKey"`
-	UserID uint64 `json:"user_id"`
-	Role   Role   `json:"role"`
+	UserID uint64 `json:"user_id" gorm:"uniqueIndex:role_idx"`
+	Role   Role   `json:"role" gorm:"uniqueIndex:role_idx"`
 }
 
 // UserInfo model that represents additional information about a user
