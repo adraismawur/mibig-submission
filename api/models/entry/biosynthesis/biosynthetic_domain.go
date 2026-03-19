@@ -75,7 +75,7 @@ type ModificationDomain struct {
 	Substrates      []DomainSubstrate         `json:"substrates,omitempty" gorm:"many2many:modification_domain_substrates;"`
 	Evidence        []DomainSubstrateEvidence `json:"evidence,omitempty" gorm:"many2many:modification_domain_evidences;"`
 	References      pq.StringArray            `json:"references" gorm:"type:text[]"`
-	Stereochemistry pq.StringArray            `json:"stereochemistry" gorm:"type:text[],omitempty"`
+	Stereochemistry pq.StringArray            `json:"stereochemistry" gorm:"type:text[]"`
 	Details         string                    `json:"details,omitempty"`
 }
 
