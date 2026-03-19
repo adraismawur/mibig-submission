@@ -1,3 +1,6 @@
 .idea
-api/data
+
+api/data/*
+!api/data/what-is-this.md
+
 **/.vscode
