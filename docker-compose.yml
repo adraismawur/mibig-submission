@@ -16,31 +16,33 @@ services:
     ports:
       - 8992:8000
 
-    depends_on:
-      mibig-submission-db:
-        condition: service_healthy
+    user: root
+
+    # depends_on:
+    #   mibig-submission-db:
+    #     condition: service_healthy
 
     volumes:
-      - ./api/data:/mibig-submission/api/data
+      - ./api/data:/home/mambauser/mibig-submission/api/data
 
     environment:
       DB_DIALECT: sqlite
-      DB_PATH: /mibig-submission/api/data/data.db
+      # DB_PATH: /home/mambauser/mibig-submission/api/data/data.db
       # DB_DIALECT: postgres
       # DB_HOST: mibig-submission-db
       # DB_PASS: changeme
 
-  mibig-submission-db:
-    image: postgres
-    restart: always
+  # mibig-submission-db:
+  #   image: postgres
+  #   restart: always
 
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-u", "postgres"]
-      interval: 1s
-      timeout: 5s
-      retries: 10
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready", "-u", "postgres"]
+  #     interval: 1s
+  #     timeout: 5s
+  #     retries: 10
 
-    environment:
-      PGUSER: postgres
-      POSTGRES_DB: mibig_submission
-      POSTGRES_PASSWORD: changeme
+  #   environment:
+  #     PGUSER: postgres
+  #     POSTGRES_DB: mibig_submission
+  #     POSTGRES_PASSWORD: changeme
