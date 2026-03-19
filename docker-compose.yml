@@ -24,9 +24,11 @@ services:
       - ./api/data:/mibig-submission/api/data
 
     environment:
-      DB_DIALECT: postgres
-      DB_HOST: mibig-submission-db
-      DB_PASS: changeme
+      DB_DIALECT: sqlite
+      DB_PATH: /mibig-submission/api/data/data.db
+      # DB_DIALECT: postgres
+      # DB_HOST: mibig-submission-db
+      # DB_PASS: changeme
 
   mibig-submission-db:
     image: postgres
