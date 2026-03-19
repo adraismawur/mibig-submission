@@ -27,13 +27,13 @@ type BiosyntheticModule struct {
 	IntegratedMonomers  []IntegratedMonomer      `json:"integrated_monomers" gorm:"foreignKey:BiosyntheticModuleID"`
 	Carriers            []CarrierDomain          `json:"carriers" gorm:"many2many:biosynth_carrier_domains"`
 	ModificationDomains []ModificationDomain     `json:"modification_domains,omitempty" gorm:"many2many:biosynth_modification_domains"`
-	CDomainID           uint64                   `json:"db_c_domain_id"`
+	CDomainID           *uint64                  `json:"db_c_domain_id"`
 	CDomain             *CondensationDomain      `json:"c_domain"`
-	ADomainID           uint64                   `json:"db_a_domain_id"`
+	ADomainID           *uint64                  `json:"db_a_domain_id"`
 	ADomain             *AdenylationDomain       `json:"a_domain,omitempty"`
-	ATDomainID          uint64                   `json:"db_at_domain_id"`
+	ATDomainID          *uint64                  `json:"db_at_domain_id"`
 	ATDomain            *AcetyltransferaseDomain `json:"at_domain,omitempty"`
-	KSDomainID          uint64                   `json:"db_ks_domain_id"`
+	KSDomainID          *uint64                  `json:"db_ks_domain_id"`
 	KSDomain            *KetoSynthaseDomain      `json:"ks_domain,omitempty"`
 }
 

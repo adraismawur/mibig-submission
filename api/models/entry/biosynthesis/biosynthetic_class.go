@@ -44,9 +44,9 @@ type RippPrecursor struct {
 	BiosyntheticClassID uint64 `json:"db_class_id"`
 	Gene                string `json:"gene""`
 	//CoreSequence             string                   `json:"core_sequence"`
-	LeaderCleavageLocationID   uint64                   `json:"db_leader_cleavage_location_id"`
+	LeaderCleavageLocationID   *uint64                  `json:"db_leader_cleavage_location_id"`
 	LeaderCleavageLocation     *CleavageLocation        `json:"leader_cleavage_location,omitempty"`
-	FollowerCleavageLocationID uint64                   `json:"db_follower_cleavage_location_id"`
+	FollowerCleavageLocationID *uint64                  `json:"db_follower_cleavage_location_id"`
 	FollowerCleavageLocation   *CleavageLocation        `json:"follower_cleavage_location,omitempty"`
 	Crosslinks                 []RippPrecursorCrosslink `json:"crosslinks,omitempty" gorm:"foreignKey:RippPrecursorID"`
 }
