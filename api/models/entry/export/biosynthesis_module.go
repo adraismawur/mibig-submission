@@ -2,57 +2,22 @@ package export
 
 import "github.com/lib/pq"
 
-type BiosyntheticModuleDomainLocation struct {
-	From int `json:"from"`
-	To   int `json:"to"`
-}
-
-type BiosyntheticModuleDomain struct {
-	DomainType string                           `json:"type"`
-	Gene       string                           `json:"gene"`
-	Location   BiosyntheticModuleDomainLocation `gorm:"foreignKey:BiosyntheticModuleID"`
-}
-
-type CarrierModuleDomain struct {
-	BiosyntheticModuleDomain
-	Subtype       string `json:"subtype,omitempty"`
-	BetaBranching bool   `json:"beta_branching"`
-}
-
-type AModuleDomainSubstrate struct {
-	Name          string `json:"name"`
-	Structure     string `json:"structure"`
-	Proteinogenic bool   `json:"proteinogenic"`
-}
-
-type AModuleDomain struct {
-	BiosyntheticModuleDomain
-	References pq.StringArray           `json:"references" gorm:"type:text[]"`
-	Substrates []AModuleDomainSubstrate `json:"substrates" gorm:"foreignKey:AModuleDomainID"`
-}
-
-type ATModuleDomain struct {
-	BiosyntheticModuleDomain
-	Substrates pq.StringArray `json:"substrates" gorm:"type:text[]"`
-	Evidence   pq.StringArray `json:"evidence" gorm:"type:text[]"`
-}
-
-type KSModuleDomain struct {
-	BiosyntheticModuleDomain
-}
-
-type ModificationModuleDomain struct {
-	BiosyntheticModuleDomain
+type IntegratedMonomer struct {
+	Name       string         `json:"name"`
+	Structure  string         `json:"structure"`
+	References pq.StringArray `json:"references" gorm:"type:text[]"`
 }
 
 type BiosyntheticModule struct {
-	Type                string                     `json:"type"`
-	Name                string                     `json:"name"`
-	Genes               pq.StringArray             `json:"genes" gorm:"type:text[]"`
-	Active              bool                       `json:"active"`
-	Carriers            []CarrierModuleDomain      `json:"carriers" gorm:"foreignKey:BiosyntheticModuleID"`
-	ModificationDomains []ModificationModuleDomain `json:"modification_domains,omitempty" gorm:"foreignKey:BiosyntheticModuleID"`
-	ADomain             *AModuleDomain             `json:"a_domain,omitempty" gorm:"foreignKey:BiosyntheticModuleID"`
-	ATDomain            *ATModuleDomain            `json:"at_domain,omitempty" gorm:"foreignKey:BiosyntheticModuleID"`
-	KSDomain            *KSModuleDomain            `json:"ks_domain,omitempty" gorm:"foreignKey:BiosyntheticModuleID"`
+	Type                string                   `json:"type"`
+	Name                string                   `json:"name"`
+	Genes               pq.StringArray           `json:"genes" gorm:"type:text[]"`
+	Active              bool                     `json:"active"`
+	IntegratedMonomers  []IntegratedMonomer      `json:"integrated_monomers" gorm:"foreignKey:BiosyntheticModuleID"`
+	Carriers            []CarrierDomain          `json:"carriers" gorm:"many2many:biosynth_carrier_domains"`
+	ModificationDomains []ModificationDomain     `json:"modification_domains,omitempty" gorm:"many2many:biosynth_modification_domains"`
+	CDomain             *CondensationDomain      `json:"c_domain"`
+	ADomain             *AdenylationDomain       `json:"a_domain,omitempty"`
+	ATDomain            *AcetyltransferaseDomain `json:"at_domain,omitempty"`
+	KSDomain            *KetoSynthaseDomain      `json:"ks_domain,omitempty"`
 }
