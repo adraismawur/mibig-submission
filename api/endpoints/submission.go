@@ -90,12 +90,9 @@ func getUserSubmissions(db *gorm.DB, c *gin.Context) {
 	q := db.Table("user_submissions").
 		Joins("JOIN entries ON entries.accession = user_submissions.entry_accession")
 
-	// optional clause
-	if userID != "" {
-		q.Where("user_submissions.user_id = $1", userID)
-	}
+	q.Where("user_submissions.user_id = $1", userID)
 
-	q.Where("state != $1", entry.Discarded)
+	q.Where("state != $2", entry.Discarded)
 
 	err := q.Select("entries.accession, user_submissions.type, user_submissions.source_accession, user_submissions.state").
 		Find(&submissions).Error
