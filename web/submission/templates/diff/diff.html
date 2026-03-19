@@ -20,17 +20,19 @@ Viewing diff
 
 <script type="application/javascript">
     const diffContainer = document.getElementById('diff-container');
-    const leftFileName = '{{ left }}';
-    const rightFileName = '{{ right }}';
-    const mibigJsonUrl = '{{ mibig_json_url }}';
-    
-    
+    // const leftFileName = '{{ left }}';
+    // const rightFileName = '{{ right }}';
+    // const mibigJsonUrl = '{{ mibig_json_url }}';
+
+
     let getDiff = async () => {
-        const leftResponse = await fetch(mibigJsonUrl + leftFileName + '?pretty=true');
-        const leftData = await leftResponse.text();
-        
-        const rightResponse = await fetch(mibigJsonUrl + rightFileName + '?pretty=true');
-        const rightData = await rightResponse.text();
+        // const leftResponse = await fetch(mibigJsonUrl + leftFileName + '?pretty=true');
+        // const leftData = await leftResponse.text();
+        const leftData = JSON.stringify({{ content_left | safe }}, null, 2);
+
+        // const rightResponse = await fetch(mibigJsonUrl + rightFileName + '?pretty=true');
+        // const rightData = await rightResponse.text();
+        const rightData = JSON.stringify({{ content_right | safe }}, null, 2);
 
 
         // Diff HTML strings
@@ -41,13 +43,13 @@ Viewing diff
         document.getElementById("output").innerHTML = output;
         // document.getElementById("outputOriginal").innerHTML = originalHTML;
         // document.getElementById("outputNew").innerHTML = input;
-        
+
         // const diff = Diff.diffJson(leftData, rightData);
-        
+
         // diff.forEach((part) => {
         //     // green for additions, red for deletions
         //     // grey for common parts
-            
+
         //     const color = part.added ? 'green' :
         //     part.removed ? 'red' : 'grey';
         //     span = document.createElement('div');
@@ -57,10 +59,10 @@ Viewing diff
         //     diffContainer.appendChild(span);
         // });
     };
-    
+
     getDiff();
-    
-    
+
+
 </script>
 
 
