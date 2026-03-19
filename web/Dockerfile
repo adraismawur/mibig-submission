@@ -7,4 +7,4 @@ WORKDIR /mibig-submission/web
 RUN pip install --upgrade pip
 RUN pip install .
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8991", "submission:create_app()"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "submission:create_app()"]
