@@ -6,6 +6,9 @@ services:
     ports:
       - 8991:5000
 
+    environment:
+      API_BASE: http://mibig-submission-api:8000
+
   mibig-submission-api:
     image: mibig-submission-api
     build: ./api
