@@ -64,7 +64,7 @@ func getEntryCompounds(db *gorm.DB, c *gin.Context) {
 		Where("entry_accession = $1", accession)
 
 	if id != "" {
-		q = q.Where("id = $1", id)
+		q = q.Where("compounds.id = $2", id)
 	}
 
 	err := q.Find(&response.Compounds).
