@@ -39,7 +39,7 @@ Editing {{ bgc_id }}
                     <td>
                         <a
                             href="{{ url_for('edit.remove_biosynth_class', bgc_id=bgc_id, class_id=class['db_id'].data) }}">
-                            <button type="button" class="btn btn-danger" type="button">X</button>
+                            <button type="button" class="btn red" type="button">X</button>
                         </a>
                     </td>
                 </tr>
@@ -108,7 +108,7 @@ Editing {{ bgc_id }}
                     <td>
                         <a
                             href="{{ url_for('edit.remove_biosynth_module', bgc_id=bgc_id, module_id=module['db_id'].data) }}">
-                            <button type="button" class="btn btn-danger" type="button">X</button>
+                            <button type="button" class="btn red" type="button">X</button>
                         </a>
                     </td>
                 </tr>
@@ -149,7 +149,7 @@ Editing {{ bgc_id }}
                     </td>
                     <td>
                         <a href="{{ url_for('edit.remove_biosynth_path', bgc_id=bgc_id, path_id=path['db_id'].data) }}">
-                            <button type="button" class="btn btn-danger" type="button">X</button>
+                            <button type="button" class="btn red" type="button">X</button>
                         </a>
                     </td>
                 </tr>

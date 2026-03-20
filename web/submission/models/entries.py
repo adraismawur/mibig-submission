@@ -394,6 +394,42 @@ class Entry(db.Model):
 
         return None, response.json()["error"]
 
+    def get_gene_addition_text(bgc_id: str, addition_id: int, pretty=False):
+        pretty = str(pretty).lower()
+        response = requests.get(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/gene_information/to_add/{addition_id}?pretty={pretty}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+
+        if response.status_code == 200:
+            return response.text, None
+
+        return None, response.json()["error"]
+
+    def get_gene_deletion_text(bgc_id: str, deletion_id: int, pretty=False):
+        pretty = str(pretty).lower()
+        response = requests.get(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/gene_information/to_delete/{deletion_id}?pretty={pretty}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+
+        if response.status_code == 200:
+            return response.text, None
+
+        return None, response.json()["error"]
+
+    def get_gene_annotation_text(bgc_id: str, annotation_id: int, pretty=False):
+        pretty = str(pretty).lower()
+        response = requests.get(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/gene_information/annotation/{annotation_id}?pretty={pretty}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+
+        if response.status_code == 200:
+            return response.text, None
+
+        return None, response.json()["error"]
+
     def update_or_create_gene_addition(bgc_id: str, data_json):
         # have to fix the strand here
         data_json["location"]["strand"] = int(data_json["location"]["strand"])

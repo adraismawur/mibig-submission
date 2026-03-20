@@ -807,10 +807,11 @@ def render_gene_information_edit(
             form = getattr(FormCollection, form_type)(request.form)
             data, error = data_set_function[form_type](bgc_id, form.data)
 
-            if error:
-                flash(error, "error")
-            else:
+            if error is None:
                 flash("Update successful")
+                return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="gene_information"))
+            else:
+                flash(error, "error")
 
         else:
             data, error = data_get_function[form_type](bgc_id, id)
@@ -876,7 +877,7 @@ def edit_gene_addition(bgc_id: str, addition_id: int):
 @login_required
 def edit_gene_deletion(bgc_id: str, deletion_id: int):
     return render_gene_information_edit(
-        bgc_id, "gene addition", "edit_deletion", deletion_id, False
+        bgc_id, "gene deletion", "edit_deletion", deletion_id, False
     )
 
 
@@ -887,7 +888,7 @@ def edit_gene_deletion(bgc_id: str, deletion_id: int):
 @login_required
 def edit_gene_annotation(bgc_id: str, annotation_id: int):
     return render_gene_information_edit(
-        bgc_id, "gene addition", "edit_annotation", annotation_id, False
+        bgc_id, "gene annotation", "edit_annotation", annotation_id, False
     )
 
 
@@ -900,17 +901,17 @@ def remove_gene_information(bgc_id: str, type: str, information_id: int):
     types = {
         "gene_addition": {
             "human_readable": "gene addition",
-            "get_method": Entry.get_gene_addition,
+            "get_method": Entry.get_gene_addition_text,
             "delete_method": Entry.remove_gene_addition,
         },
         "gene_deletion": {
             "human_readable": "gene deletion",
-            "get_method": Entry.get_gene_deletion,
+            "get_method": Entry.get_gene_deletion_text,
             "delete_method": Entry.remove_gene_deletion,
         },
         "gene_annotation": {
             "human_readable": "gene annotation",
-            "get_method": Entry.get_gene_annotation,
+            "get_method": Entry.get_gene_annotation_text,
             "delete_method": Entry.remove_gene_annotation,
         },
     }

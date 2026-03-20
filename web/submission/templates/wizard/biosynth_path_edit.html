@@ -8,19 +8,23 @@ Editing {{ bgc_id }}
 
 {% block body %}
 
-<div class="form-wrapper">
+<div class="form-wrapper container">
     <h4>Editing biosynthetic pathway</h4>
 
-    <form method="post" class="container">
+    <form method="post" class="">
         {{ macros.simple_divform_inner(form, is_reviewer=is_reviewer, reviewed=reviewed) }}
-        <div class="form-group row">
-            <input type="submit" class="btn btn-primary" value="Save path changes">
+        <div class="container">
+            <div class="form-group row">
+                <input type="submit" class="btn btn-primary btn-wide green" value="Save path changes">
+            </div>
         </div>
     </form>
+    <div class="container">
+        <div class="form-group row">
+            <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id='biosynth') }}"><button id="back-btn"
+                    class="btn btn-outline-secondary btn-wide red">Cancel</button></a>
+        </div>
+    </div>
 </div>
-<div class="container">
-    <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id='biosynth') }}"><button id="back-btn"
-            class="btn btn-outline-secondary">Back to
-            Biosynthesis overview</button></a>
-</div>
+
 {% endblock %}

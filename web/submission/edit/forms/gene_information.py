@@ -54,6 +54,7 @@ class GeneLocationForm(Form):
 
 class AddGeneForm(Form):
     db_id = IntegerField(widget=HiddenInput())
+    gene_information_id = IntegerField(widget=HiddenInput())
     accession = StringField(
         "Gene identifier", description="The commonly used gene name (e.g. nisA)"
     )
@@ -66,6 +67,8 @@ class AddGeneForm(Form):
 
 class DeleteGeneForm(Form):
     db_id = IntegerField(widget=HiddenInput())
+    gene_information_id = IntegerField(widget=HiddenInput())
+    
     accession = GeneIdField("Gene *", validators=[validators.InputRequired()])
     reason = StringField(
         "Reason",
@@ -76,6 +79,7 @@ class DeleteGeneForm(Form):
 class AnnotationForm(Form):
     class FunctionForm(Form):
         class MutationPhenotype(Form):
+            db_id = IntegerField(widget=HiddenInput())
             phenotype = StringField(
                 "Phenotype", description="Observed phenotype upon mutation."
             )
@@ -91,6 +95,11 @@ class AnnotationForm(Form):
                     ValidateCitations(),
                 ],
             )
+
+
+        db_id = IntegerField(widget=HiddenInput())
+        db_gene_annotation_id = IntegerField(widget=HiddenInput())
+        db_mutation_phenotype_id = IntegerField(widget=HiddenInput())
 
         function = SelectField(
             "Function *",
@@ -127,6 +136,7 @@ class AnnotationForm(Form):
         )
 
     db_id = IntegerField(widget=HiddenInput())
+    gene_information_id = IntegerField(widget=HiddenInput())
     accession = GeneIdField("Gene *", validators=[validators.InputRequired()])
     name = StringField("Gene name", description="Commonly used gene name (e.g. scbA)")
     product = StringField(

@@ -8,28 +8,31 @@ Editing {{ bgc_id }}
 
 {% block body %}
 
-<div class="form-wrapper">
+<div class="form-wrapper container">
     {% if new %}
-        <h4>Add a new compound</h4>
+    <h4>Add a new compound</h4>
     {% else %}
-        <h4>Editing compound</h4>
+    <h4>Editing compound</h4>
     {% endif %}
 
     <form method="post" class="">
         {{ macros.simple_divform_inner(form, is_reviewer=False, reviewed=False) }}
-        <div class="form-group row">
-            {% if new %}
-                <input type="submit" class="btn btn-primary" value="Create compound">
-            {% else %}
-                <input type="submit" class="btn btn-primary" value="Save compound changes">
-            {% endif %}
+        <div class="container">
+            <div class="form-group row">
+                {% if new %}
+                <input type="submit" class="btn btn-primary btn-wide green" value="Create compound">
+                {% else %}
+                <input type="submit" class="btn btn-primary btn-wide green" value="Save compound changes">
+                {% endif %}
+            </div>
         </div>
     </form>
+    <div class="container">
+        <div class="form-group row">
+            <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id='compounds') }}"><button id="back-btn"
+                    class="btn btn-outline-secondary btn-wide red">Cancel</button></a>
+        </div>
+    </div>
 
-</div>
-<div class="container">
-    <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id='compounds') }}"><button id="back-btn"
-            class="btn btn-outline-secondary">Back to
-            compound overview</button></a>
 </div>
 {% endblock %}

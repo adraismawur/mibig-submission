@@ -264,25 +264,16 @@ func getEntryGeneAnnotation(db *gorm.DB, c *gin.Context) {
 func updateOrCreateEntryGeneAddition(db *gorm.DB, c *gin.Context) {
 	accession := c.Param("accession")
 
-	genes, err := gene.GetEntryGeneInformation(db, accession)
-
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
-		return
-	}
-
 	var addition gene.GeneAddition
 
-	err = c.ShouldBindJSON(&addition)
+	err := c.ShouldBindJSON(&addition)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
 		return
 	}
 
-	addition.GeneInformationID = genes.ID
-
-	newAddition, err := gene.UpdateOrCreateGeneAddition(db, &addition)
+	newAddition, err := gene.UpdateOrCreateGeneAddition(db, accession, &addition)
 
 	if err != nil {
 		slog.Error("[endpoints] [genes] Could not update or create gene addition")
@@ -296,25 +287,16 @@ func updateOrCreateEntryGeneAddition(db *gorm.DB, c *gin.Context) {
 func updateOrCreateEntryGeneDeletion(db *gorm.DB, c *gin.Context) {
 	accession := c.Param("accession")
 
-	geneInformation, err := gene.GetEntryGeneInformation(db, accession)
-
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
-		return
-	}
-
 	var deletion gene.GeneDeletion
 
-	err = c.ShouldBindJSON(&deletion)
+	err := c.ShouldBindJSON(&deletion)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
 		return
 	}
 
-	deletion.GeneInformationID = geneInformation.ID
-
-	newDeletion, err := gene.UpdateOrCreateGeneDeletion(db, &deletion)
+	newDeletion, err := gene.UpdateOrCreateGeneDeletion(db, accession, &deletion)
 
 	if err != nil {
 		slog.Error("[endpoints] [genes] Could not update or create gene deletion")
@@ -328,28 +310,19 @@ func updateOrCreateEntryGeneDeletion(db *gorm.DB, c *gin.Context) {
 func updateOrCreateEntryGeneAnnotation(db *gorm.DB, c *gin.Context) {
 	accession := c.Param("accession")
 
-	geneInformation, err := gene.GetEntryGeneInformation(db, accession)
-
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
-		return
-	}
-
 	var annotation gene.GeneAnnotation
 
-	err = c.ShouldBindJSON(&annotation)
+	err := c.ShouldBindJSON(&annotation)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
 		return
 	}
 
-	annotation.GeneInformationID = geneInformation.ID
-
-	newDeletion, err := gene.UpdateOrCreateGeneAnnotation(db, &annotation)
+	newDeletion, err := gene.UpdateOrCreateGeneAnnotation(db, accession, &annotation)
 
 	if err != nil {
-		slog.Error("[endpoints] [genes] Could not update or create gene annotation")
+		slog.Error("[endpoints] [genes] Could not update or create gene deletion")
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
