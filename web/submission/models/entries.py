@@ -310,10 +310,9 @@ class Entry(db.Model):
         return None
 
     def update_compound(bgc_id: str, compound_data: dict[any]):
-        compound_data["id"] = int(compound_data["id"])
         compound_data["mass"] = float(compound_data["mass"])
 
-        request_url = f"{current_app.config['API_BASE']}/entry/{bgc_id}/compounds/{compound_data['id']}"
+        request_url = f"{current_app.config['API_BASE']}/entry/{bgc_id}/compounds/{compound_data['db_id']}"
 
         response = requests.post(
             request_url,
@@ -324,7 +323,6 @@ class Entry(db.Model):
         return response
 
     def create_compound(bgc_id: str, compound_data: dict[any]):
-        compound_data["id"] = 0
         compound_data["mass"] = float(compound_data["mass"])
 
         request_url = f"{current_app.config['API_BASE']}/entry/{bgc_id}/compounds"

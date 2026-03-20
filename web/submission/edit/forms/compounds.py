@@ -53,7 +53,7 @@ class BioactivitySubForm(Form):
 
 class CompoundEvidence(Form):
     db_id = IntegerField(widget=HiddenInput(), default=0, validators=None)
-    compound_id = IntegerField(widget=HiddenInput(), default=0)
+    db_compound_id = IntegerField(widget=HiddenInput(), default=0)
     method = StringField()
     references = ReferenceField(
         label="Citation(s) *",

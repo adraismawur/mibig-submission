@@ -754,6 +754,9 @@ def edit_compound(bgc_id: str, compound_id: int):
         response = Entry.update_compound(bgc_id, form.data)
         if response.status_code == 200:
             flash("Compound updated successfully")
+            compoundData = Entry.get_compound(bgc_id, compound_id)
+
+            form = CompoundsSubForm(data=compoundData["compounds"][0])
         else:
             flash("Failed to update compound: " + response.json()["error"], "error")
 
