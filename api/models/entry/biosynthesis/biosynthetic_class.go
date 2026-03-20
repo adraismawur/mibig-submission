@@ -177,6 +177,10 @@ func UpdateEntryBiosynthesisClass(db *gorm.DB, classId int, newClass Biosyntheti
 					Where("id = $1", thioEsterase.LocationID).
 					Save(&thioEsterase.Location).
 					Error
+
+				if err != nil {
+					return err
+				}
 			}
 		case "PKS":
 			break

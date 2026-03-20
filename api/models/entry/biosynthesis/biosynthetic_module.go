@@ -6,7 +6,6 @@ import (
 	"github.com/lib/pq"
 	"gorm.io/gorm"
 	"log/slog"
-	"strconv"
 )
 
 type IntegratedMonomer struct {
@@ -28,13 +27,13 @@ type BiosyntheticModule struct {
 	IntegratedMonomers  []IntegratedMonomer      `json:"integrated_monomers" gorm:"foreignKey:BiosyntheticModuleID"`
 	Carriers            []CarrierDomain          `json:"carriers" gorm:"many2many:biosynth_carrier_domains"`
 	ModificationDomains []ModificationDomain     `json:"modification_domains,omitempty" gorm:"many2many:biosynth_modification_domains"`
-	CDomainID           *uint64                  `json:"db_c_domain_id"`
-	CDomain             *CondensationDomain      `json:"c_domain"`
-	ADomainID           *uint64                  `json:"db_a_domain_id"`
+	CDomainID           uint64                   `json:"db_c_domain_id"`
+	CDomain             *CondensationDomain      `json:"c_domain,omitempty"`
+	ADomainID           uint64                   `json:"db_a_domain_id"`
 	ADomain             *AdenylationDomain       `json:"a_domain,omitempty"`
-	ATDomainID          *uint64                  `json:"db_at_domain_id"`
+	ATDomainID          uint64                   `json:"db_at_domain_id"`
 	ATDomain            *AcetyltransferaseDomain `json:"at_domain,omitempty"`
-	KSDomainID          *uint64                  `json:"db_ks_domain_id"`
+	KSDomainID          uint64                   `json:"db_ks_domain_id"`
 	KSDomain            *KetoSynthaseDomain      `json:"ks_domain,omitempty"`
 }
 
@@ -44,33 +43,15 @@ func init() {
 }
 
 func CreateEntryBiosynthesisModule(db *gorm.DB, entryAccession string, module BiosyntheticModule) error {
-	var biosynth *Biosynthesis
-
-	err := db.
-		Table("biosyntheses").
-		Where("entry_accession = $1", entryAccession).
-		Preload("Classes").
-		Preload("Modules.Carriers.Location").
-		Preload("Modules.ModificationDomains.Location").
-		Preload("Modules.ADomain.Location").
-		Preload("Modules.ATDomain.Location").
-		Preload("Modules.KSDomain.Location").
-		First(&biosynth).
-		Error
+	bioSynth, err := GetEntryBiosynthesis(db, entryAccession)
 
 	if err != nil {
 		return err
 	}
 
-	// get new module number if it doesn't exist
-	if module.Name == "" {
-		module.Name = strconv.Itoa(len(biosynth.Modules) + 1)
-	}
-
-	module.Index = uint64(len(biosynth.Modules)) + 0x1
-
 	err = db.
-		Model(&biosynth).
+		Session(&gorm.Session{FullSaveAssociations: true}).
+		Model(&bioSynth).
 		Association("Modules").
 		Append(&module)
 
@@ -138,22 +119,203 @@ func ReorderEntryBiosynthesisModules(db *gorm.DB, idFrom uint64, idTo uint64) er
 	return nil
 }
 
-func UpdateEntryBiosynthesisModule(db *gorm.DB, newModule *BiosyntheticModule) error {
-	var oldModule BiosyntheticModule
+func UpdateEntryBiosynthesisModule(db *gorm.DB, newModule BiosyntheticModule) error {
+	err := db.Session(&gorm.Session{FullSaveAssociations: true}).Transaction(func(tx *gorm.DB) error {
+		var err error
 
-	err := db.
-		Model(&oldModule).
-		Where("biosynthetic_modules.id = $1", newModule.ID).
-		Save(&newModule).
-		Error
+		oldModule, err := GetEntryBiosynthesisModule(tx, int(newModule.ID))
 
-	// TODO: replace associations. guh
+		err = tx.
+			Model(&oldModule).
+			Where("biosynthetic_modules.id = $1", newModule.ID).
+			Save(&newModule).
+			Error
 
-	if err != nil {
-		return err
-	}
+		if err != nil {
+			return err
+		}
 
-	return nil
+		err = tx.
+			Model(&oldModule).
+			Association("IntegratedMonomers").
+			Replace(&newModule.IntegratedMonomers)
+
+		if err != nil {
+			return err
+		}
+
+		err = tx.
+			Model(&oldModule).
+			Association("Carriers").
+			Replace(&newModule.Carriers)
+
+		if err != nil {
+			return err
+		}
+
+		for _, carrier := range newModule.Carriers {
+
+			err = tx.
+				Model(&CarrierDomain{}).
+				Where("id = $1", carrier.ID).
+				Save(&carrier.Location).
+				Error
+
+			if err != nil {
+				return err
+			}
+		}
+
+		err = tx.
+			Model(&oldModule).
+			Association("ModificationDomains").
+			Replace(&newModule.ModificationDomains)
+
+		if err != nil {
+			return err
+		}
+
+		for _, modificationDomain := range newModule.ModificationDomains {
+
+			err = tx.
+				Model(&DomainLocation{}).
+				Where("id = $1", modificationDomain.Location.ID).
+				Save(&modificationDomain.Location).
+				Error
+
+			if err != nil {
+				return err
+			}
+		}
+
+		if newModule.CDomain != nil {
+			err = tx.
+				Model(&CondensationDomain{}).
+				Where("id = $1", newModule.CDomain.ID).
+				Save(&newModule.CDomain).
+				Error
+
+			if err != nil {
+				return err
+			}
+
+			err = tx.
+				Model(&DomainLocation{}).
+				Where("id = $1", newModule.CDomain.Location.ID).
+				Save(&newModule.CDomain.Location).
+				Error
+
+			if err != nil {
+				return err
+			}
+		}
+
+		if newModule.ADomain != nil {
+			err = tx.
+				Model(&AdenylationDomain{}).
+				Where("id = $1", newModule.ADomain.ID).
+				Save(&newModule.ADomain).
+				Error
+
+			if err != nil {
+				return err
+			}
+
+			err = tx.
+				Model(&DomainLocation{}).
+				Where("id = $1", newModule.ADomain.Location.ID).
+				Save(&newModule.ADomain.Location).
+				Error
+
+			if err != nil {
+				return err
+			}
+
+			err = tx.
+				Model(&newModule.ADomain).
+				Association("Evidence").
+				Replace(&newModule.ADomain.Evidence)
+
+			if err != nil {
+				return err
+			}
+
+			err = tx.
+				Model(&newModule.ADomain).
+				Association("Substrates").
+				Replace(&newModule.ADomain.Substrates)
+
+			if err != nil {
+				return err
+			}
+		}
+
+		if newModule.ATDomain != nil {
+			err = tx.
+				Model(&AcetyltransferaseDomain{}).
+				Where("id = $1", newModule.ATDomain.ID).
+				Save(&newModule.ATDomain).
+				Error
+
+			if err != nil {
+				return err
+			}
+
+			err = tx.
+				Model(&DomainLocation{}).
+				Where("id = $1", newModule.ATDomain.Location.ID).
+				Save(&newModule.ATDomain.Location).
+				Error
+
+			if err != nil {
+				return err
+			}
+
+			err = tx.
+				Model(&newModule.ATDomain).
+				Association("Substrates").
+				Replace(&newModule.ATDomain.Substrates)
+
+			if err != nil {
+				return err
+			}
+
+			err = tx.
+				Model(&newModule.ATDomain).
+				Association("Evidence").
+				Replace(&newModule.ATDomain.Evidence)
+
+			if err != nil {
+				return err
+			}
+		}
+
+		if newModule.KSDomain != nil {
+			err = tx.
+				Model(&KetoSynthaseDomain{}).
+				Where("id = $1", newModule.KSDomain.ID).
+				Save(&newModule.KSDomain).
+				Error
+
+			if err != nil {
+				return err
+			}
+
+			err = tx.
+				Model(&DomainLocation{}).
+				Where("id = $1", newModule.KSDomain.Location.ID).
+				Save(&newModule.KSDomain.Location).
+				Error
+
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	return err
 }
 
 func DeleteEntryBiosynthesisModule(db *gorm.DB, id int) error {
@@ -175,10 +337,19 @@ func GetEntryBiosynthesisModule(db *gorm.DB, id int) (*BiosyntheticModule, error
 	err := db.
 		Table("biosynthetic_modules").
 		Where("id = $1", id).
+		Preload("IntegratedMonomers").
 		Preload("Carriers.Location").
+		Preload("Carriers.Evidence").
 		Preload("ModificationDomains.Location").
+		Preload("ModificationDomains.Substrates").
+		Preload("ModificationDomains.Evidence").
+		Preload("CDomain.Location").
 		Preload("ADomain.Location").
+		Preload("ADomain.Evidence").
+		Preload("ADomain.Substrates").
 		Preload("ATDomain.Location").
+		Preload("ATDomain.Substrates").
+		Preload("ATDomain.Evidence").
 		Preload("KSDomain.Location").
 		First(&module).
 		Error
@@ -195,20 +366,15 @@ func GetEntryBiosynthesisModulesById(db *gorm.DB, biosynthId uint64) (*[]Biosynt
 
 	q := db.
 		Table("biosynthetic_modules").
-		Where("biosynthesis_id = $1", biosynthId).
-		Preload("Carriers.Location").
-		Preload("ModificationDomains.Location").
-		Preload("ADomain.Location").
-		Preload("ATDomain.Location").
-		Preload("KSDomain.Location")
+		Where("biosynthesis_id = $1", biosynthId)
 
-	db_dialect, err := config.GetConfig(config.EnvDbDialect)
+	dbDialect, err := config.GetConfig(config.EnvDbDialect)
 
 	if err != nil {
 		return nil, err
 	}
 
-	switch config.EnvValue(db_dialect) {
+	switch config.EnvValue(dbDialect) {
 	case config.DbDialectSqlite:
 		q = q.Order("`index` ASC")
 		break
@@ -217,7 +383,7 @@ func GetEntryBiosynthesisModulesById(db *gorm.DB, biosynthId uint64) (*[]Biosynt
 		break
 	}
 
-	if db_dialect == string(config.DbDialectPostgres) {
+	if dbDialect == string(config.DbDialectPostgres) {
 	}
 
 	err = q.Find(&modules).Error
