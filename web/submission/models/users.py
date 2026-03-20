@@ -23,7 +23,7 @@ class UserRole:
         return str(self.role)
 
     def asdict(self):
-        return {"role": self.role}
+        return {"role": self.role.value}
 
     @classmethod
     def from_enum(cls, value: Role):
