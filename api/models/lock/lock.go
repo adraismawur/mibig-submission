@@ -187,3 +187,53 @@ func ReleaseLock(db *gorm.DB, entryAccession string, category LockingCategory, u
 
 	return nil
 }
+
+func ClearLocks(db *gorm.DB, entryAccession string, user models.User) error {
+	err := db.Session(&gorm.Session{FullSaveAssociations: true}).Transaction(func(tx *gorm.DB) error {
+		var existingLocks []Lock
+
+		err := tx.
+			Model(&Lock{}).
+			Where("entry_accession = $1", entryAccession).
+			Find(&existingLocks).
+			Error
+
+		userIsAdmin := false
+
+		for _, role := range user.Roles {
+			if role.Role == models.Admin {
+				userIsAdmin = true
+				break
+			}
+		}
+
+		for _, existingLock := range existingLocks {
+			hasAccess := existingLock.LockOwnerID == user.ID || userIsAdmin
+
+			if !hasAccess {
+				return errors.New("user cannot release lock from entry category")
+			}
+
+			if err != nil {
+				return err
+			}
+
+			if existingLock.ID == 0 {
+				return nil
+			}
+
+			err = tx.
+				Delete(existingLock).
+				Error
+
+			if err != nil {
+				return err
+			}
+
+		}
+
+		return nil
+	})
+
+	return err
+}

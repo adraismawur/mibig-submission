@@ -17,7 +17,9 @@ type SubmissionState string
 
 const (
 	Draft         SubmissionState = "draft"
-	PendingReview                 = "pending_review"
+	PendingReview                 = "pending review"
+	Reviewing                     = "being reviewed"
+	RFC                           = "requested changes"
 	Accepted                      = "accepted"
 	Discarded                     = "discarded"
 )
@@ -38,8 +40,16 @@ type UserSubmission struct {
 	State           SubmissionState `json:"state"`
 }
 
+type SubmissionReviewer struct {
+	ID        uint64      `json:"db_id"`
+	Accession string      `json:"accession"`
+	UserID    uint64      `json:"db_reviewer_id"`
+	User      models.User `json:"reviewer"`
+}
+
 func init() {
 	models.Models = append(models.Models, UserSubmission{})
+	models.Models = append(models.Models, SubmissionReviewer{})
 }
 
 func CreateNewUserSubmission(db *gorm.DB, minimalEntry MinimalEntry, user models.User) (*Entry, error) {

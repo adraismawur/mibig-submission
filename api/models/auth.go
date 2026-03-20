@@ -17,6 +17,16 @@ type Token struct {
 	jwt.RegisteredClaims
 }
 
+func GetIsUserRole(user *User, role Role) bool {
+	for _, userRole := range user.Roles {
+		if userRole.Role == role {
+			return true
+		}
+	}
+
+	return false
+}
+
 func GetUserFromContext(c *gin.Context) (*User, error) {
 	bearerToken, err := GetAuthHeaderToken(c)
 

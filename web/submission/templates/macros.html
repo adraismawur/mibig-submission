@@ -216,7 +216,7 @@
                             class="btn btn-danger red">Discard</button></a>
                     {% endif %}
 
-                    {% if submission.state == "pending_review" %}
+                    {% if submission.state == "pending review" %}
                     <a href="{{url_for('edit.redraft_bgc', bgc_id=submission.accession)}}"><button
                             class="btn btn-danger red">Redraft</button></a>
                     {% endif %}

@@ -6,8 +6,9 @@
 
 <div class="content">
     <div class="form-wrapper">
-        <h3>Please select an entry to review</h3>
+        <h3>Currently reviewing:</h3>
         <div class="form-group subgroup">
+            {% if reviewing | length > 0 %}
             <table class="table">
                 <thead class="table-header">
                     <th>
@@ -17,13 +18,16 @@
                         Type
                     </th>
                     <th>
+                        State
+                    </th>
+                    <th>
                         Edit
                     </th>
                     <th>
-                        View options
+                        Review options
                     </th>
                 </thead>
-                {% for submission in submissions %}
+                {% for submission in reviewing %}
                 <tr>
                     <td>
                         {{ submission.accession }}
@@ -32,7 +36,10 @@
                         {{ submission.type }}
                     </td>
                     <td>
-                        <a href="{{ url_for('edit.edit_bgc', bgc_id=submission.accession, form_id='locitax' )}}">
+                        {{ submission.state }}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('edit.edit_bgc_redirect', bgc_id=submission.accession )}}">
                             <button class="btn btn-primary">Edit</button>
                         </a>
                     </td>
@@ -47,10 +54,65 @@
                             <button class="btn btn-primary">View diff with original</button>
                         </a>
                         {% endif %}
+                        <a href="{{ url_for('review.cancel_review', bgc_id=submission.accession )}}">
+                            <button class="btn btn-primary red">Cancel review</button>
+                        </a>
+                        <a href="{{ url_for('review.approve', bgc_id=submission.accession )}}">
+                            <button class="btn btn-primary green">Approve</button>
+                        </a>
                     </td>
                 </tr>
                 {% endfor %}
             </table>
+            {% else %}
+            <h5>You are not reviewing any submissions or mutations</h5>
+            {% endif %}
+        </div>
+
+
+        <h3>Pending review:</h3>
+        <div class="form-group subgroup">
+            {% if pending_submissions | length > 0 %}
+            <table class="table">
+                <thead class="table-header">
+                    <th>
+                        Submission ID
+                    </th>
+                    <th>
+                        Type
+                    </th>
+                    <th>
+                        State
+                    </th>
+                    <th>
+                        Edit
+                    </th>
+                    <th>
+
+                    </th>
+                </thead>
+                {% for submission in pending_submissions %}
+                <tr>
+                    <td>
+                        {{ submission.accession }}
+                    </td>
+                    <td>
+                        {{ submission.type }}
+                    </td>
+                    <td>
+                        {{ submission.state }}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('review.claim_review', bgc_id=submission.accession )}}">
+                            <button class="btn btn-primary">Claim for review</button>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <h5>There are no submissions or mutations pending review</h5>
+            {% endif %}
         </div>
     </div>
 </div>

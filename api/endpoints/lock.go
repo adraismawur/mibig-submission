@@ -45,6 +45,13 @@ func LockEndpoint(db *gorm.DB) Endpoint {
 					releaseEntryLock(db, c)
 				},
 			},
+			{
+				Method: http.MethodPost,
+				Path:   "/lock/clear/:accession",
+				Handler: func(c *gin.Context) {
+					clearEntryLock(db, c)
+				},
+			},
 		},
 	}
 }
@@ -194,6 +201,26 @@ func releaseEntryLock(db *gorm.DB, c *gin.Context) {
 	}
 
 	err = lock.ReleaseLock(db, request.Accession, request.Category, *user)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+func clearEntryLock(db *gorm.DB, c *gin.Context) {
+	accession := c.Param("accession")
+
+	user, err := models.GetUserFromContext(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+
+	err = lock.ClearLocks(db, accession, *user)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})

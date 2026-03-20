@@ -265,6 +265,17 @@ def promote_bgc(bgc_id: str):
     entry_json = Entry.get_text(bgc_id)
 
     if request.method == "POST":
+        # clear locks first
+        response = requests.post(
+            f"{current_app.config['API_BASE']}/lock/clear/{bgc_id}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+
+        if response.status_code != 200:
+            flash(response.json()["error"], "error")
+            return redirect(url_for("main.index"))
+
+
         submission_endpoint = "/submission/promote/" + bgc_id
         response = requests.post(
             f"{current_app.config['API_BASE']}" + submission_endpoint,

@@ -20,7 +20,8 @@ from submission.models import Entry
 class SUBMISSION_STATE:
     DRAFT = "draft"
     EDIT = "edit"
-    PENDING = "pending_review"
+    PENDING = "pending review"
+    REVIEWING = "being reviewed"
     ACCEPTED = "accepted"
 
 
@@ -28,9 +29,58 @@ class SUBMISSION_STATE:
 @login_required
 def list_submissions():
     # get the list of submissions that are marked ready for review
-    submissions_api_path = (
-        f"{current_app.config['API_BASE']}/submission?state={SUBMISSION_STATE.PENDING}"
-    )
-    submissions = requests.get(submissions_api_path).json()
+    pending_submissions = requests.get(f"{current_app.config['API_BASE']}/submission?state={SUBMISSION_STATE.PENDING}").json()
+    reviewing = requests.get(
+        f"{current_app.config['API_BASE']}/reviews",
+        headers={"Authorization": f"Bearer {session['token']}"},
+    ).json()
 
-    return render_template("review/list_submissions.html", submissions=submissions)
+    return render_template("review/list_submissions.html", pending_submissions=pending_submissions, reviewing=reviewing)
+
+@bp_review.route("/claim_review/<bgc_id>", methods=["GET", "POST"])
+@login_required
+def claim_review(bgc_id: str):
+    if request.method == "POST":
+        response = requests.post(
+            f"{current_app.config['API_BASE']}/submission/claim_review/{bgc_id}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+
+        if response.status_code != 200:
+            flash(response.json()["error"], "error")
+
+        return redirect(url_for("review.list_submissions"))
+
+    return render_template("review/claim_review.html", bgc_id=bgc_id)
+
+@bp_review.route("/cancel/<bgc_id>", methods=["GET", "POST"])
+@login_required
+def cancel_review(bgc_id: str):
+    if request.method == "POST":
+        response = requests.post(
+            f"{current_app.config['API_BASE']}/submission/cancel_review/{bgc_id}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+
+        if response.status_code != 200:
+            flash(response.json()["error"], "error")
+
+        return redirect(url_for("review.list_submissions"))
+
+    return render_template("review/cancel_review.html", bgc_id=bgc_id)
+
+@bp_review.route("/approve/<bgc_id>", methods=["GET", "POST"])
+@login_required
+def approve(bgc_id: str):
+    if request.method == "POST":
+        response = requests.post(
+            f"{current_app.config['API_BASE']}/submission/accept/{bgc_id}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+
+        if response.status_code != 200:
+            flash(response.json()["error"], "error")
+
+        return redirect(url_for("review.list_submissions"))
+
+    return render_template("review/approve.html", bgc_id=bgc_id)

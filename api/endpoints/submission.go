@@ -44,6 +44,13 @@ func SubmissionEndpoint(db *gorm.DB) Endpoint {
 				},
 			},
 			{
+				Method: "GET",
+				Path:   "/reviews",
+				Handler: func(c *gin.Context) {
+					getReviews(db, c)
+				},
+			},
+			{
 				Method: "POST",
 				Path:   "/submission",
 				Handler: func(c *gin.Context) {
@@ -62,6 +69,34 @@ func SubmissionEndpoint(db *gorm.DB) Endpoint {
 				Path:   "/submission/promote/:accession",
 				Handler: func(c *gin.Context) {
 					promoteSubmission(db, c)
+				},
+			},
+			{
+				Method: "POST",
+				Path:   "/submission/claim_review/:accession",
+				Handler: func(c *gin.Context) {
+					claimReview(db, c)
+				},
+			},
+			{
+				Method: "POST",
+				Path:   "/submission/cancel_review/:accession",
+				Handler: func(c *gin.Context) {
+					cancelReview(db, c)
+				},
+			},
+			{
+				Method: "POST",
+				Path:   "/submission/accept/:accession",
+				Handler: func(c *gin.Context) {
+					acceptSubmission(db, c)
+				},
+			},
+			{
+				Method: "POST",
+				Path:   "/submission/rfc/:accession",
+				Handler: func(c *gin.Context) {
+					requestSubmissionChanges(db, c)
 				},
 			},
 			{
@@ -129,6 +164,39 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		slog.Error("[endpoints] [submission] Could not find submissions", "user_id", userID, "error", err)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, submissions)
+}
+
+func getReviews(db *gorm.DB, c *gin.Context) {
+	var submissions []SubmissionInfo
+
+	user, err := models.GetUserFromContext(c)
+
+	if !models.GetIsUserRole(user, models.Reviewer) {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "user is not a reviewer"})
+		return
+	}
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
+		return
+	}
+
+	err = db.Table("user_submissions").
+		Joins("JOIN entries ON entries.accession = user_submissions.entry_accession").
+		Joins("JOIN submission_reviewers ON submission_reviewers.accession = user_submissions.entry_accession").
+		Where("user_submissions.state = $1", entry.Reviewing).
+		Where("submission_reviewers.user_id = $2", user.ID).
+		Select("entries.accession, user_submissions.type, user_submissions.source_accession, user_submissions.state").
+		Find(&submissions).
+		Error
+
+	if err != nil {
+		slog.Error("[endpoints] [submission] Could not find reviews", "user_id", user.ID, "error", err)
 		c.Status(http.StatusInternalServerError)
 		return
 	}
@@ -315,6 +383,221 @@ func promoteSubmission(db *gorm.DB, c *gin.Context) {
 	}
 
 	c.Status(http.StatusOK)
+}
+
+func claimReview(db *gorm.DB, c *gin.Context) {
+	var err error
+	accession := c.Param("accession")
+
+	user, err := models.GetUserFromContext(c)
+
+	if !models.GetIsUserRole(user, models.Reviewer) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "requester is not a reviewer"})
+		return
+	}
+
+	err = db.Session(&gorm.Session{FullSaveAssociations: true}).Transaction(func(tx *gorm.DB) error {
+
+		exists, transactionErr := entry.GetEntryExists(tx, accession)
+
+		if transactionErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": transactionErr.Error()})
+			return transactionErr
+		}
+
+		if !exists {
+			c.JSON(http.StatusNotFound, gin.H{"error": "entry not found"})
+			return transactionErr
+		}
+
+		var userSubmission entry.UserSubmission
+
+		transactionErr = tx.
+			Joins("JOIN entries ON entries.accession = user_submissions.entry_accession").
+			Where("entries.accession = $1", accession).
+			First(&userSubmission).Error
+
+		if transactionErr != nil {
+			slog.Error("[endpoints] [submission] Failed to find user submission", "error", transactionErr.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find user submission"})
+			return transactionErr
+		}
+
+		if userSubmission.State != entry.PendingReview {
+			slog.Error("[endpoints] [submission] User Submission is not pending review")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "User Submission is not pending review"})
+			return transactionErr
+		}
+
+		userSubmission.State = entry.Reviewing
+
+		transactionErr = tx.Save(&userSubmission).Error
+
+		if transactionErr != nil {
+			slog.Error("[endpoints] [submission] Failed to update user submission", "error", transactionErr.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user submission"})
+			return transactionErr
+		}
+
+		// finally create the reviewer
+		reviewer := entry.SubmissionReviewer{
+			User:      *user,
+			UserID:    user.ID,
+			Accession: accession,
+		}
+
+		transactionErr = tx.
+			Omit("User").
+			Create(&reviewer).
+			Error
+
+		if transactionErr != nil {
+			slog.Error("[endpoints] [submission] Failed to create submission reviewer", "error", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create submission reviewer"})
+			return transactionErr
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+func cancelReview(db *gorm.DB, c *gin.Context) {
+	var err error
+	accession := c.Param("accession")
+
+	user, err := models.GetUserFromContext(c)
+
+	if !models.GetIsUserRole(user, models.Reviewer) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "requester is not a reviewer"})
+		return
+	}
+
+	err = db.Session(&gorm.Session{FullSaveAssociations: true}).Transaction(func(tx *gorm.DB) error {
+		exists, transactionErr := entry.GetEntryExists(tx, accession)
+
+		if transactionErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return transactionErr
+		}
+
+		if !exists {
+			c.JSON(http.StatusNotFound, gin.H{"error": "entry not found"})
+			return transactionErr
+		}
+
+		var userSubmission entry.UserSubmission
+
+		transactionErr = tx.
+			Joins("JOIN entries ON entries.accession = user_submissions.entry_accession").
+			Where("entries.accession = $1", accession).
+			First(&userSubmission).Error
+
+		if transactionErr != nil {
+			slog.Error("[endpoints] [submission] Failed to find user submission", "error", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find user submission"})
+			return transactionErr
+		}
+
+		if userSubmission.State != entry.Reviewing {
+			slog.Error("[endpoints] [submission] User Submission is not being reviewed")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "User Submission is not being reviewed"})
+			return transactionErr
+		}
+
+		userSubmission.State = entry.PendingReview
+
+		transactionErr = tx.Save(&userSubmission).Error
+
+		if transactionErr != nil {
+			slog.Error("[endpoints] [submission] Failed to update user submission", "error", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user submission"})
+			return transactionErr
+		}
+
+		transactionErr = tx.
+			Model(&entry.SubmissionReviewer{}).
+			Where("accession = $1", accession).
+			Delete(&entry.SubmissionReviewer{}).
+			Error
+
+		if transactionErr != nil {
+			slog.Error("[endpoints] [submission] Failed to delete submission reviewer", "error", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete submission reviewer"})
+			return transactionErr
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+func acceptSubmission(db *gorm.DB, c *gin.Context) {
+	accession := c.Param("accession")
+
+	user, err := models.GetUserFromContext(c)
+
+	if !models.GetIsUserRole(user, models.Reviewer) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "requester is not a reviewer"})
+		return
+	}
+
+	exists, err := entry.GetEntryExists(db, accession)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "entry not found"})
+		return
+	}
+
+	var userSubmission entry.UserSubmission
+
+	err = db.
+		Joins("JOIN entries ON entries.accession = user_submissions.entry_accession").
+		Where("entries.accession = $1", accession).
+		First(&userSubmission).Error
+
+	if err != nil {
+		slog.Error("[endpoints] [submission] Failed to find user submission", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find user submission"})
+		return
+	}
+
+	if userSubmission.State != entry.Reviewing {
+		slog.Error("[endpoints] [submission] User Submission is not being reviewed")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User Submission is not being reviewed"})
+		return
+	}
+
+	userSubmission.State = entry.Accepted
+
+	err = db.Save(&userSubmission).Error
+
+	if err != nil {
+		slog.Error("[endpoints] [submission] Failed to update user submission", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user submission"})
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+func requestSubmissionChanges(db *gorm.DB, c *gin.Context) {
+
 }
 
 func redraftSubmission(db *gorm.DB, c *gin.Context) {
