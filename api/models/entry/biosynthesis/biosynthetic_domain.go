@@ -3,6 +3,7 @@ package biosynthesis
 import (
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/lib/pq"
+	"gorm.io/gorm"
 )
 
 type AcetyltransferaseDomain struct {
@@ -76,7 +77,7 @@ type ModificationDomain struct {
 	Substrates      []DomainSubstrate         `json:"substrates,omitempty" gorm:"many2many:modification_domain_substrates;"`
 	Evidence        []DomainSubstrateEvidence `json:"evidence,omitempty" gorm:"many2many:modification_domain_evidences;"`
 	References      pq.StringArray            `json:"references,omitempty" gorm:"type:text[]"`
-	Stereochemistry pq.StringArray            `json:"stereochemistry,omitempty" gorm:"type:text[]"`
+	Stereochemistry string                    `json:"stereochemistry,omitempty"`
 	Details         string                    `json:"details,omitempty"`
 }
 
@@ -104,4 +105,127 @@ func init() {
 	models.Models = append(models.Models, ModificationDomain{})
 	models.Models = append(models.Models, DomainSubstrate{})
 	models.Models = append(models.Models, DomainSubstrateEvidence{})
+}
+
+func CreateModificationDomain(db *gorm.DB, biosyntheticModuleID int, newModificationDomain ModificationDomain) error {
+	bioSynth, err := GetEntryBiosynthesisModule(db, biosyntheticModuleID)
+
+	if err != nil {
+		return err
+	}
+
+	err = db.
+		Session(&gorm.Session{FullSaveAssociations: true}).
+		Model(&bioSynth).
+		Association("ModificationDomains").
+		Append(&newModificationDomain)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetModificationDomains(db *gorm.DB, moduleID int) ([]ModificationDomain, error) {
+	var module BiosyntheticModule
+
+	err := db.
+		Model(&BiosyntheticModule{}).
+		Where("id = $1", moduleID).
+		Preload("ModificationDomains.Location").
+		Preload("ModificationDomains.Substrates").
+		Preload("ModificationDomains.Evidence").
+		First(&module).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return module.ModificationDomains, nil
+}
+
+func GetModificationDomain(db *gorm.DB, modificationDomainID int) (*ModificationDomain, error) {
+	var modificationDomain ModificationDomain
+
+	err := db.
+		Table("modification_domains").
+		Where("id = $1", modificationDomainID).
+		Preload("Location").
+		Preload("Substrates").
+		Preload("Evidence").
+		First(&modificationDomain).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &modificationDomain, nil
+}
+
+func UpdateModificationDomain(db *gorm.DB, newModificationDomain ModificationDomain) error {
+	err := db.Session(&gorm.Session{FullSaveAssociations: true}).Transaction(func(tx *gorm.DB) error {
+		var transactionErr error
+
+		oldModificationDomain, transactionErr := GetModificationDomain(tx, int(newModificationDomain.ID))
+
+		if transactionErr != nil {
+			return transactionErr
+		}
+
+		transactionErr = tx.
+			Model(&oldModificationDomain).
+			Save(newModificationDomain).
+			Error
+
+		if transactionErr != nil {
+			return transactionErr
+		}
+
+		transactionErr = tx.
+			Model(&oldModificationDomain.Location).
+			Save(&newModificationDomain.Location).
+			Error
+
+		if transactionErr != nil {
+			return transactionErr
+		}
+
+		transactionErr = tx.
+			Model(&oldModificationDomain).
+			Association("Substrates").
+			Replace(newModificationDomain.Substrates)
+
+		if transactionErr != nil {
+			return transactionErr
+		}
+
+		transactionErr = tx.
+			Model(&oldModificationDomain).
+			Association("Evidence").
+			Replace(newModificationDomain.Evidence)
+
+		if transactionErr != nil {
+			return transactionErr
+		}
+
+		return nil
+	})
+
+	return err
+}
+
+func DeleteModificationDomain(db *gorm.DB, modificationDomainID int) error {
+	err := db.
+		Model(&ModificationDomain{}).
+		Delete("id = $1", modificationDomainID).
+		Error
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

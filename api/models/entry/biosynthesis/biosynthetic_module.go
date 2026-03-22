@@ -128,6 +128,7 @@ func UpdateEntryBiosynthesisModule(db *gorm.DB, newModule BiosyntheticModule) er
 		err = tx.
 			Model(&oldModule).
 			Where("biosynthetic_modules.id = $1", newModule.ID).
+			Omit("index").
 			Save(&newModule).
 			Error
 

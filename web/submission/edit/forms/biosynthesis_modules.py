@@ -29,7 +29,6 @@ from submission.edit.forms.biosynthesis_domains import (
 
 class CalForm(Form):
     db_id = IntegerField(widget=HiddenInput(), default=0)
-    db_index = IntegerField(widget=HiddenInput(), default=0)
     db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
     type = HiddenField(default="cal")
     name = StringField()
@@ -131,9 +130,6 @@ class PKSIterativeForm(Form):
     integrated_monomers = FieldList(
         FormField(MonomerForm), widget=FieldListAddBtn(label="Add addional monomer")
     )
-    modification_domains = FieldList(
-        FormField(ModificationDomainForm), widget=FieldListAddBtn(), min_entries=1
-    )
     comments = StringField("Comments (Optional)")
 
 
@@ -156,9 +152,6 @@ class PKSModularForm(Form):
     integrated_monomers = FieldList(
         FormField(MonomerForm), widget=FieldListAddBtn(label="Add addional monomer")
     )
-    modification_domains = FieldList(
-        FormField(ModificationDomainForm), widget=FieldListAddBtn(label="Add modification domain"), min_entries=1
-    )
     comments = StringField("Comments (Optional)")
 
 
@@ -179,9 +172,6 @@ class PKSTransForm(Form):
     )
     integrated_monomers = FieldList(
         FormField(MonomerForm), widget=FieldListAddBtn(label="Add addional monomer")
-    )
-    modification_domains = FieldList(
-        FormField(ModificationDomainForm), widget=FieldListAddBtn(), min_entries=1
     )
     comments = StringField("Comments (Optional)")
 

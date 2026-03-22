@@ -243,7 +243,7 @@ func TestCreateEntryBiosynthesisModule(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, testModule, actualModule)
 
-	testDb.Delete(&BiosyntheticModule{}).Where("id = ?", testModule.ID)
+	testDb.Where("id = ?", testModule.ID).Delete(&BiosyntheticModule{})
 }
 
 func TestGetEntryBiosynthesisModule(t *testing.T) {

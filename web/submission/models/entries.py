@@ -236,6 +236,84 @@ class Entry(db.Model):
             return True
 
         return False
+    
+
+    def get_modification_domain_list(bgc_id: str, module_id: int):
+        response = requests.get(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/modification_domain/list/{module_id}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+
+        if response.status_code == 200:
+            data = response.json()
+
+            for domain in data:
+                domain["domain_type"] = domain["type"]
+
+            return (data, None)
+        
+        return (None, response.json()['error'])
+    
+
+    def get_modification_domain(bgc_id: str, modification_domain_id: int, pretty=False):
+        url = f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/modification_domain/{modification_domain_id}"
+
+        if pretty:
+            url = url + "?pretty=true"
+
+        response = requests.get(
+            url,
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+
+        if response.status_code == 200:
+            if pretty:
+                return response.text, None
+            else:
+                data = response.json()
+                data["domain_type"] = data["type"]
+                return (response.json(), None)
+        
+        return (None, response.json()['error'])
+    
+    def create_modification_domain(bgc_id: str, module_id: int, data):
+        response = requests.post(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/modification_domain/add/{module_id}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+            json=data
+        )
+
+        if response.status_code == 200:
+            return (True, None)
+        
+        return (False, response.json()['error'])
+
+    def update_modification_domain(bgc_id: str, modification_domain_id: int, data):
+        response = requests.post(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/modification_domain/{modification_domain_id}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+            json=data
+        )
+
+        if response.status_code == 200:
+            data = response.json()
+            return (data, None)
+        
+        return (None, response.json()['error'])
+
+    def remove_modification_domain(bgc_id: str, modification_domain_id: int):
+        response = requests.delete(
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/modification_domain/{modification_domain_id}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+
+        if response.status_code == 200:
+            return (True, None)
+        
+        return (False, response.json()['error'])
+        
+
+
 
     def get_path(bgc_id: str, path_id: int):
         response = requests.get(

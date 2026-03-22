@@ -669,6 +669,129 @@ def create_biosynth_path(
         form=form,
     )
 
+@bp_edit.route("/<bgc_id>/biosynth/modification_domains/<module_id>")
+@login_required
+def list_modification_domains(bgc_id: str, module_id: int):
+    modification_domains, error = Entry.get_modification_domain_list(bgc_id, module_id)
+
+    if error is not None:
+        flash(f"Failed to get modification domain list: {error}", "error")
+    
+    return render_template(
+        "wizard/biosynth_mod_domain_list.html", 
+        bgc_id=bgc_id,
+        module_id=module_id,
+        modification_domains=modification_domains,
+    )
+
+@bp_edit.route("/<bgc_id>/biosynth/modification_domains/<module_id>/new/<domain_type>", methods=["GET", "POST"])
+@login_required
+def create_modification_domain(bgc_id: str, module_id: int, domain_type: str):
+    choices = [
+        {"label": "Aminotransferase", "value": "aminotransferase"},
+        {"label": "Cyclase", "value": "cyclase"},
+        {"label": "Dehydratase", "value": "dehydratase"},
+        {"label": "Enoylreductase", "value": "enoylreductase"},
+        {"label": "Epimerase", "value": "epimerase"},
+        {"label": "Hydroxylase", "value": "hydroxylase"},
+        {"label": "Ketoreductase", "value": "ketoreductase"},
+        {"label": "Methyltransferase", "value": "methyltransferase"},
+        {"label": "Oxidase", "value": "oxidase"},
+        {"label": "Other", "value": "other_domain"},
+    ]
+
+    if domain_type != "new":
+        if request.form:
+            form = getattr(FormCollection, domain_type)(request.form)
+        else:
+            form = getattr(FormCollection, domain_type)()
+    else:
+        form = None
+
+    if request.method == "POST":
+        data = form.data
+        data['type'] = data['domain_type']
+
+        success, error = Entry.create_modification_domain(bgc_id, module_id, data)
+
+        if success:
+            flash("Successfully created modification domain")
+            return redirect(url_for("edit.list_modification_domains", bgc_id=bgc_id, module_id=module_id), code=302)
+        else:
+            flash(f"Error creating modification domain: {error}", "error")
+
+
+    return render_template(
+        "wizard/biosynth_mod_domain_new.html",
+        bgc_id=bgc_id,
+        module_id=module_id,
+        choices=choices,
+        domain_type=domain_type,
+        form=form
+    )
+
+@bp_edit.route("/<bgc_id>/biosynth/modification_domains/<module_id>/edit/<modification_domain_id>/<domain_type>", methods=["GET", "POST"])
+@login_required
+def edit_modification_domain(bgc_id: str, module_id: int, modification_domain_id: int, domain_type: str):
+    
+    modification_domain, error = Entry.get_modification_domain(bgc_id, modification_domain_id)
+
+    if error is not None:
+        flash(f"Error getting modification domain data: {error}", "error")
+        return redirect(url_for("edit.list_modification_domains", bgc_id=bgc_id, module_id=module_id), code=302)
+
+    if request.form:
+        form = getattr(FormCollection, domain_type)(request.form)
+    else:
+        form = getattr(FormCollection, domain_type)(data=modification_domain)
+
+
+    if request.method == "POST":
+        data = form.data
+        data['type'] = data['domain_type']
+
+        data, error = Entry.update_modification_domain(bgc_id, modification_domain_id, data)
+
+        if error is not None:
+            flash(f"Error creating modification domain: {error}", "error")
+        else:
+            flash("Successfully edited modification domain")
+            form = getattr(FormCollection, domain_type)(data=data)
+
+
+    return render_template(
+        "wizard/biosynth_mod_domain_edit.html",
+        bgc_id=bgc_id,
+        module_id=module_id,
+        form=form,
+    )
+
+@bp_edit.route("/<bgc_id>/biosynth/modification_domains/<module_id>/remove/<modification_domain_id>", methods=["GET", "POST"])
+@login_required
+def remove_modification_domain(bgc_id: str, module_id: int, modification_domain_id: int):
+    modification_domain_text, error = Entry.get_modification_domain(bgc_id, modification_domain_id, pretty=True)
+
+    if error is not None:
+        flash(f"Error getting modification domain data: {error}", "error")
+        return redirect(url_for("edit.list_modification_domains", bgc_id=bgc_id, module_id=module_id), code=302)
+
+
+    if request.method == "POST":
+        success, error = Entry.remove_modification_domain(bgc_id, modification_domain_id)
+
+        if success:
+            flash("Successfully removed modification domain")
+            return redirect(url_for("edit.list_modification_domains", bgc_id=bgc_id, module_id=module_id), code=302)
+        else:
+            flash(f"Error removing modification domain: {error}", "error")
+
+    return render_template(
+        "wizard/biosynth_mod_domain_remove.html",
+        bgc_id=bgc_id,
+        module_id=module_id,
+        modification_domain_text=modification_domain_text,
+    )
+
 
 @bp_edit.route("/<bgc_id>/biosynth/edit_path/<path_id>/path", methods=["GET", "POST"])
 @login_required

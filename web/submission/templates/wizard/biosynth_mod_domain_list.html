@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block header %}
+Editing {{ bgc_id }}
+{% endblock %}
+
+{% block body %}
+
+{% import 'bgc_viewer.html' as bgc_viewer %}
+
+<div class="form-wrapper">
+    <div class="form-group">
+        <p class="form-label fw-bold">Modification domains</p>
+        {% if modification_domains | length > 0 %}
+        <table class="table">
+            <tbody id="class-table">
+                <tr>
+                    <th>Type</th>
+                    <th>Subtype</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                {% for modification_domain in modification_domains %}
+                <tr>
+                    <td>{{modification_domain['type']}}</td>
+                    <td>{{modification_domain['subtype'] or ""}}</td>
+                    <td>
+                        <a
+                            href="{{ url_for('edit.edit_modification_domain', bgc_id=bgc_id, module_id=module_id, modification_domain_id=modification_domain['db_id'], domain_type=modification_domain['domain_type']) }}">
+                            <button type="button" class="btn btn-primary" type="button">Edit</button>
+                        </a>
+                    </td>
+                    <td>
+                        <a
+                            href="{{ url_for('edit.remove_modification_domain', bgc_id=bgc_id, module_id=module_id, modification_domain_id=modification_domain['db_id']) }}">
+                            <button type="button" class="btn red" type="button">X</button>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div>No modification domains yet. Add new modification domains using the button below</div>
+        {% endif %}
+        <a href="{{url_for('edit.create_modification_domain', bgc_id=bgc_id, module_id=module_id, domain_type='new')}}">
+            <button class="btn btn-primary" type="button">Add new modification domain</button>
+        </a>
+    </div>
+
+    <div class="form-group">
+        <a href="{{url_for('edit.edit_bgc', bgc_id=bgc_id, form_id='biosynth')}}">
+            <button class="btn btn-wide">Return to biosynth overview</button>
+        </a>
+    </div>
+
+
+</div>
+
+{% endblock %}

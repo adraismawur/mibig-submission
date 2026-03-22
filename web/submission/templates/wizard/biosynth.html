@@ -68,6 +68,7 @@ Editing {{ bgc_id }}
                     <th></th>
                     <th></th>
                     <th></th>
+                    <th></th>
                 </tr>
                 {% for module in form.modules %}
                 <tr>
@@ -100,9 +101,17 @@ Editing {{ bgc_id }}
                         {{module['type'].data}}
                     </td>
                     <td>
+                    </td>
+                    <td>
                         <a
                             href="{{ url_for('edit.edit_biosynth_module', bgc_id=bgc_id, module_id=module['db_id'].data, module=module['type'].data.replace('-', '_')) }}">
-                            <button type="button" class="btn btn-primary" type="button">Edit</button>
+                            <button type="button" class="btn btn-primary" type="button">Edit general
+                                information</button>
+                        </a>
+                        <a
+                            href="{{ url_for('edit.list_modification_domains', bgc_id=bgc_id, module_id=module['db_id'].data) }}">
+                            <button type="button" class="btn btn-primary" type="button">Edit Modification
+                                domains</button>
                         </a>
                     </td>
                     <td>

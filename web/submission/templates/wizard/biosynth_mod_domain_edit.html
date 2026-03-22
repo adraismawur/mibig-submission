@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block header %}
+Editing {{ bgc_id }}
+{% endblock %}
+
+{% block body %}
+
+<div class="form-wrapper container">
+    <h4>Editing {{domain_type}} modification domain</h4>
+
+    <form method="post" class="">
+        {{ macros.simple_divform_inner(form, is_reviewer=is_reviewer, reviewed=reviewed) }}
+        <div class="container">
+            <div class="form-group row">
+                <input type="submit" class="btn btn-primary btn-wide green" value="Save modification domain changes">
+            </div>
+        </div>
+    </form>
+    <div class="container">
+        <div class="form-group row">
+            <a href="{{ url_for('edit.list_modification_domains', bgc_id=bgc_id, module_id=module_id) }}"><button
+                    id="back-btn" class="btn btn-outline-secondary btn-wide red">Cancel</button></a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -24,6 +24,18 @@ from submission.edit.forms.biosynthesis_modules import (
     PKSTransForm,
     ModuleOtherForm,
 )
+from submission.edit.forms.biosynthesis_domains import (
+    AminotransferaseDomain,
+    CyclaseDomain,
+    DehydrataseDomain,
+    EnoylreductaseDomain,
+    EpimeraseDomain,
+    HydroxylaseDomain,
+    KetoreductaseDomain,
+    MethyltransferaseDomain,
+    OtherDomain,
+    OxidaseDomain
+)
 from submission.edit.forms.tailoring import TailoringMultipleForm
 from submission.edit.forms.gene_information import (
     AddGeneForm,
@@ -51,10 +63,6 @@ class FormCollection:
     terpene = TerpeneForm
     other = ClassOtherForm
 
-    operons = OperonMultipleForm
-    path = PathForm
-    paths = PathMultipleForm
-
     # Biosynthesis modules
     cal = CalForm
     nrps_type1 = NRPS_I_Form
@@ -62,6 +70,23 @@ class FormCollection:
     pks_iterative = PKSIterativeForm
     pks_modular = PKSModularForm
     pks_trans_at = PKSTransForm
+
+    # Biosynthesis module modification domains
+    aminotransferase = AminotransferaseDomain
+    cyclase = CyclaseDomain
+    dehydratase = DehydrataseDomain
+    enoylreductase = EnoylreductaseDomain
+    epimerase = EpimeraseDomain
+    hydroxylase = HydroxylaseDomain
+    ketoreductase = KetoreductaseDomain
+    methyltransferase = MethyltransferaseDomain
+    oxidase = OxidaseDomain
+    other_domain = OtherDomain
+
+    # other biosynth stuff
+    operons = OperonMultipleForm
+    path = PathForm
+    paths = PathMultipleForm
 
     tailoring = TailoringMultipleForm
     annotation = GeneInformationForm
