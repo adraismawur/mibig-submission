@@ -144,18 +144,6 @@ func UpdateEntryBiosynthesisModule(db *gorm.DB, newModule BiosyntheticModule) er
 			return err
 		}
 
-		//for _, integratedMonomer := range newModule.IntegratedMonomers {
-		//	err = tx.
-		//		Model(&IntegratedMonomer{}).
-		//		Where("id = $1", integratedMonomer.ID).
-		//		Association("Evidence").
-		//		Replace(&integratedMonomer.Evidence)
-		//
-		//	if err != nil {
-		//		return err
-		//	}
-		//}
-
 		err = tx.
 			Model(&oldModule).
 			Association("Carriers").
@@ -176,15 +164,6 @@ func UpdateEntryBiosynthesisModule(db *gorm.DB, newModule BiosyntheticModule) er
 			if err != nil {
 				return err
 			}
-		}
-
-		err = tx.
-			Model(&oldModule).
-			Association("ModificationDomains").
-			Replace(&newModule.ModificationDomains)
-
-		if err != nil {
-			return err
 		}
 
 		for _, modificationDomain := range newModule.ModificationDomains {

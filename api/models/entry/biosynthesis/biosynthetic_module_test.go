@@ -287,7 +287,6 @@ func TestUpdateEntryBiosynthesisModule(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	var expectedInactive = true
 	var expectedModule = BiosyntheticModule{
 		ID:             1,
 		Index:          1,
@@ -338,48 +337,6 @@ func TestUpdateEntryBiosynthesisModule(t *testing.T) {
 						},
 					},
 				},
-			},
-		},
-		ModificationDomains: []ModificationDomain{
-			{
-				ID:         1,
-				Type:       "o_test",
-				Subtype:    "p_test",
-				Gene:       "q_test",
-				LocationID: 2,
-				Location: DomainLocation{
-					ID:   2,
-					From: 3,
-					To:   4,
-				},
-				Inactive: &expectedInactive,
-				Substrates: []DomainSubstrate{
-					{
-						ID:        1,
-						Name:      "r_test",
-						Details:   "s_test",
-						Structure: "t_test",
-					},
-				},
-				Evidence: []DomainSubstrateEvidence{
-					{
-						ID:     3,
-						Method: "u_test",
-						References: pq.StringArray{
-							"w_test",
-							"x_test",
-						},
-					},
-				},
-				References: pq.StringArray{
-					"y_test",
-					"z_test",
-				},
-				Stereochemistry: pq.StringArray{
-					"aa_test",
-					"bb_test",
-				},
-				Details: "cc_test",
 			},
 		},
 		CDomainID: 1,
@@ -480,6 +437,9 @@ func TestUpdateEntryBiosynthesisModule(t *testing.T) {
 	}
 
 	err = UpdateEntryBiosynthesisModule(testDb, expectedModule)
+
+	// add modification domains to expected module here as they should not have changed
+	expectedModule.ModificationDomains = testModule.ModificationDomains
 
 	assert.Nil(t, err)
 
