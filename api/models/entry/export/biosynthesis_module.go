@@ -3,9 +3,9 @@ package export
 import "github.com/lib/pq"
 
 type IntegratedMonomer struct {
-	Name       string         `json:"name"`
-	Structure  string         `json:"structure"`
-	References pq.StringArray `json:"references" gorm:"type:text[]"`
+	Name      string                    `json:"name"`
+	Structure string                    `json:"structure"`
+	Evidence  []DomainSubstrateEvidence `json:"evidence" gorm:"many2many:integrated_monomer_evidences"`
 }
 
 type BiosyntheticModule struct {

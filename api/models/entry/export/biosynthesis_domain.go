@@ -38,6 +38,7 @@ type CondensationDomain struct {
 	Type       string         `json:"type"`
 	Gene       string         `json:"gene"`
 	Location   DomainLocation `json:"location"`
+	Subtype    string         `json:"subtype"`
 	References pq.StringArray `json:"references" gorm:"type:text[]"`
 }
 
@@ -61,7 +62,7 @@ type ModificationDomain struct {
 	Substrates      []DomainSubstrate         `json:"substrates,omitempty" gorm:"many2many:modification_domain_substrates;"`
 	Evidence        []DomainSubstrateEvidence `json:"evidence,omitempty" gorm:"many2many:modification_domain_evidences;"`
 	References      pq.StringArray            `json:"references" gorm:"type:text[]"`
-	Stereochemistry pq.StringArray            `json:"stereochemistry" gorm:"type:text[],omitempty"`
+	Stereochemistry string                    `json:"stereochemistry,omitempty"`
 	Details         string                    `json:"details,omitempty"`
 }
 
