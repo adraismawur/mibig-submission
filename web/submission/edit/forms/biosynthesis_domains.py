@@ -31,7 +31,7 @@ class CondensationDomain(Form):
     db_biosynth_module_id = IntegerField(widget=HiddenInput(), default=0)
     _type = HiddenField("condensation")
     gene = GeneIdField("Gene")
-    location = FormField(location_form_factory())
+    location = FormField(location_form_factory(location_default=-1))
     subtype = SelectField(
         "Subtype",
         choices=[
@@ -71,7 +71,7 @@ class AdenylationDomain(Form):
 
     _type = HiddenField("adenylation")
     gene = GeneIdField("Gene")
-    location = FormField(location_form_factory())
+    location = FormField(location_form_factory(location_default=-1))
     inactive = BooleanField("Inactive?")
     evidence = FieldList(
         FormField(SubtrateEvidenceForm),
@@ -93,7 +93,7 @@ class CarrierDomain(Form):
         "Subtype", choices=["ACP", "PCP"], widget=SelectDefault(), validate_choice=False
     )
     gene = GeneIdField("Gene")
-    location = FormField(location_form_factory())
+    location = FormField(location_form_factory(location_default=-1))
     inactive = BooleanField("Inactive?")
     beta_branching = BooleanField("Beta-branching?")
     evidence = FieldList(
@@ -107,7 +107,7 @@ class AminotransferaseDomain(Form):
     db_biosynth_module_id = IntegerField(widget=HiddenInput(), default=0)
     _type = HiddenField("aminotransferase")
     gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
-    location = FormField(location_form_factory(required=True), label="Location *")
+    location = FormField(location_form_factory(required=True, location_default=-1), label="Location *")
     inactive = BooleanField("Inactive?")
 
 
@@ -125,31 +125,31 @@ class CyclaseDomain(Form):
 class DehydrataseDomain(Form):
     _type = HiddenField("dehydratase")
     gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
-    location = FormField(location_form_factory(required=True), label="Location *")
+    location = FormField(location_form_factory(required=True, location_default=-1), label="Location *")
 
 
 class EnoylreductaseDomain(Form):
     _type = HiddenField("enoylreductase")
     gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
-    location = FormField(location_form_factory(required=True), label="Location *")
+    location = FormField(location_form_factory(required=True, location_default=-1), label="Location *")
 
 
 class EpimeraseDomain(Form):
     _type = HiddenField("epimerase")
     gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
-    location = FormField(location_form_factory(required=True), label="Location *")
+    location = FormField(location_form_factory(required=True, location_default=-1), label="Location *")
 
 
 class HydroxylaseDomain(Form):
     _type = HiddenField("hydroxylase")
     gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
-    location = FormField(location_form_factory(required=True), label="Location *")
+    location = FormField(location_form_factory(required=True, location_default=-1), label="Location *")
 
 
 class KetoreductaseDomain(Form):
     _type = HiddenField("ketoreductase")
     gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
-    location = FormField(location_form_factory(required=True), label="Location *")
+    location = FormField(location_form_factory(required=True, location_default=-1), label="Location *")
     inactive = BooleanField("Inactive?")
     stereochemistry = SelectField(
         "Stereochemistry",
@@ -166,7 +166,7 @@ class KetoreductaseDomain(Form):
 class MethyltransferaseDomain(Form):
     _type = HiddenField("methyltransferase")
     gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
-    location = FormField(location_form_factory(required=True), label="Location *")
+    location = FormField(location_form_factory(required=True, location_default=-1), label="Location *")
     subtype = SelectField(
         "Subtype",
         choices=["C", "N", "O", "other"],
@@ -181,13 +181,13 @@ class OtherDomain(Form):
     _type = HiddenField("other")
     subtype = StringField("Subtype *", validators=[validators.InputRequired()])
     gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
-    location = FormField(location_form_factory(required=True), label="Location *")
+    location = FormField(location_form_factory(required=True, location_default=-1), label="Location *")
 
 
 class OxidaseDomain(Form):
     _type = HiddenField("oxidase")
     gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
-    location = FormField(location_form_factory(required=True), label="Location *")
+    location = FormField(location_form_factory(required=True, location_default=-1), label="Location *")
 
 
 modification_domain_types = [
@@ -213,7 +213,7 @@ class ModificationDomainForm(Form):
     db_biosynth_module_id = IntegerField(widget=HiddenInput(), default=0)
     type = SelectField(choices=modification_domain_types)
     gene = StringField()
-    location = FormField(location_form_factory())
+    location = FormField(location_form_factory(location_default=-1))
 
 
 # class ModificationDomainForm(Form):
@@ -288,7 +288,7 @@ class AcyltransferaseForm(Form):
 
     _type = HiddenField("acyltransferase")
     gene = GeneIdField()
-    location = FormField(location_form_factory())
+    location = FormField(location_form_factory(location_default=-1))
     subtype = SelectField(
         choices=["cis-AT", "trans-AT"], widget=SelectDefault(), validate_choice=False
     )

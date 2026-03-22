@@ -78,7 +78,7 @@ func createEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 	err = biosynthesis.CreateEntryBiosynthesisModule(db, accession, module)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -97,7 +97,7 @@ func reorderBiosynthModules(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		slog.Error("[endpoints] [biosynth] Failed to unmarshal reorder request", "error", err)
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -105,7 +105,7 @@ func reorderBiosynthModules(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		slog.Error("[endpoints] [biosynth] Could not reorder modules", "error", err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -119,7 +119,7 @@ func updateEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 	iModuleId, err := strconv.Atoi(moduleId)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -127,7 +127,7 @@ func updateEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 	err = c.ShouldBindJSON(&module)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		slog.Error("[endpoints] [biosynth] Failed to marshal existing module", "error", err.Error())
 		return
 	}
@@ -153,7 +153,7 @@ func updateEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 	err = biosynthesis.UpdateEntryBiosynthesisModule(db, module)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		slog.Error("[endpoints] [biosynth] Failed to update biosynthesis module", "error", err.Error())
 		return
 	}
@@ -168,7 +168,7 @@ func getEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 	iModuleId, err := strconv.Atoi(moduleId)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -220,7 +220,7 @@ func deleteEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 	iModuleId, err := strconv.Atoi(moduleId)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -237,7 +237,7 @@ func deleteEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 	err = biosynthesis.DeleteEntryBiosynthesisModule(db, iModuleId)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

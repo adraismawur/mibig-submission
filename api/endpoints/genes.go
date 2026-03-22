@@ -131,7 +131,7 @@ func getEntryGeneAddition(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		slog.Error("[endpoints] [genes] Error finding gene addition", "addition_id", additionId, "error", err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -144,7 +144,7 @@ func getEntryGeneAddition(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		slog.Error("[endpoints] [genes] Could not retrieve gene addition", "error", err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -179,7 +179,7 @@ func getEntryGeneDeletion(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		slog.Error("[endpoints] [genes] Error finding gene deletion", "deletion_id", deletionId, "error", err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -192,7 +192,7 @@ func getEntryGeneDeletion(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		slog.Error("[endpoints] [genes] Could not retrieve gene deletion", "error", err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -227,7 +227,7 @@ func getEntryGeneAnnotation(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		slog.Error("[endpoints] [genes] Error finding gene annotation", "annotation_id", annotationId, "error", err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -240,7 +240,7 @@ func getEntryGeneAnnotation(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		slog.Error("[endpoints] [genes] Could not retrieve gene annotation", "error", err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -269,7 +269,7 @@ func updateOrCreateEntryGeneAddition(db *gorm.DB, c *gin.Context) {
 	err := c.ShouldBindJSON(&addition)
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -277,7 +277,7 @@ func updateOrCreateEntryGeneAddition(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		slog.Error("[endpoints] [genes] Could not update or create gene addition")
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -292,7 +292,7 @@ func updateOrCreateEntryGeneDeletion(db *gorm.DB, c *gin.Context) {
 	err := c.ShouldBindJSON(&deletion)
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -300,7 +300,7 @@ func updateOrCreateEntryGeneDeletion(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		slog.Error("[endpoints] [genes] Could not update or create gene deletion")
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -315,7 +315,7 @@ func updateOrCreateEntryGeneAnnotation(db *gorm.DB, c *gin.Context) {
 	err := c.ShouldBindJSON(&annotation)
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -323,7 +323,7 @@ func updateOrCreateEntryGeneAnnotation(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		slog.Error("[endpoints] [genes] Could not update or create gene deletion")
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -334,14 +334,14 @@ func deleteEntryGeneAddition(db *gorm.DB, c *gin.Context) {
 	additionId, err := strconv.Atoi(c.Param("addition_id"))
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	err = gene.DeleteGeneAddition(db, additionId)
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -352,14 +352,14 @@ func deleteEntryGeneDeletion(db *gorm.DB, c *gin.Context) {
 	deletionId, err := strconv.Atoi(c.Param("deletion_id"))
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	err = gene.DeleteGeneDeletion(db, deletionId)
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -370,14 +370,14 @@ func deleteEntryGeneAnnotation(db *gorm.DB, c *gin.Context) {
 	annotationId, err := strconv.Atoi(c.Param("annotation_id"))
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	err = gene.DeleteGeneAnnotation(db, annotationId)
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

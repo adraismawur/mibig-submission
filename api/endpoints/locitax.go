@@ -50,7 +50,7 @@ func getEntryLociTax(db *gorm.DB, c *gin.Context) {
 	result, err := entry.GetLociTax(db, accession)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -90,7 +90,7 @@ func updateEntryLociTax(db *gorm.DB, c *gin.Context) {
 	err = entry.UpdateLociTax(db, accession, *oldLociTax, newLociTax)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

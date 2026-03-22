@@ -582,10 +582,11 @@ def edit_biosynth_module(
         reviewed = False
 
     if request.method == "POST" and form.validate():
-        if Entry.update_module(bgc_id, module_id, form.data):
+        success, error = Entry.update_module(bgc_id, module_id, form.data)
+        if success:
             flash("Updated biosynthetic module!")
         else:
-            flash("Failed to update biosynthetic module", "error")
+            flash(f"Failed to update biosynthetic module: {error}", "error")
 
         return redirect(
             url_for(
@@ -1019,9 +1020,15 @@ def add_field(field=None) -> str:
         curr = getattr(curr, subform)[actual_idx]
         i += 2
 
-    # until we reach the final field that issued the request
-    final = getattr(curr, directions[i])
-    final.append_entry()
+    if i == 0:
+        for direction in directions:
+            curr = getattr(curr, direction)
+        final = curr
+        final.append_entry()
+    else:
+        # until we reach the final field that issued the request
+        final = getattr(curr, directions[i])
+        final.append_entry()
 
     return render_template_string(
         """{% import 'macros.html' as m %}

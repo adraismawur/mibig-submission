@@ -67,7 +67,7 @@ func getEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
 	class, err := biosynthesis.GetEntryBiosynthesisClass(db, class_id)
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -81,7 +81,7 @@ func createEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
 	err := c.ShouldBindJSON(&class)
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -107,7 +107,7 @@ func createEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
 	err = biosynthesis.CreateBiosynthesisClass(db, biosynth.ID, class)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -134,7 +134,7 @@ func updateEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
 	err = c.ShouldBindJSON(&class)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		slog.Error("[endpoints] [biosynth] Failed to marshal existing class", "error", err.Error())
 		return
 	}
@@ -160,7 +160,7 @@ func updateEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
 	err = biosynthesis.UpdateEntryBiosynthesisClass(db, classId, class)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		slog.Error("[endpoints] [biosynth] Failed to update biosynthesis class", "error", err.Error())
 		return
 	}
@@ -187,7 +187,7 @@ func deleteEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
 	err = biosynthesis.DeleteEntryBiosynthesisClass(db, class_id)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

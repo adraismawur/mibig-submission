@@ -33,7 +33,7 @@ func updateFinalDetails(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		slog.Error("[endpoints] [finalize] Could not bind final details json")
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -41,7 +41,7 @@ func updateFinalDetails(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		slog.Error("[endpoints] [finalize] Could not update final details")
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

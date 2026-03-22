@@ -209,7 +209,7 @@ func getEntryGeneList(db *gorm.DB, c *gin.Context) {
 	exists, err := entry.GetEntryExists(db, accession)
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -221,7 +221,7 @@ func getEntryGeneList(db *gorm.DB, c *gin.Context) {
 	genes, err := entry.GetEntryGenes(db, accession)
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

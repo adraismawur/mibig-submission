@@ -274,7 +274,7 @@ func updateUserPassword(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		slog.Error("[endpoints] [user] Cannot bind request json")
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -282,7 +282,7 @@ func updateUserPassword(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		slog.Error("[endpoints] [user] Could not find user", "id", id)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 

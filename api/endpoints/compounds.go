@@ -179,7 +179,7 @@ func deleteEntryCompound(db *gorm.DB, c *gin.Context) {
 
 	//if err != nil {
 	//	slog.Error("[endpoints] [compound] Could find compound to delete", "error", err)
-	//	c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+	//	c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	//	return
 	//}
 	//
@@ -187,7 +187,7 @@ func deleteEntryCompound(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		slog.Error("[endpoints] [compound] Could not delete compound", "error", err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

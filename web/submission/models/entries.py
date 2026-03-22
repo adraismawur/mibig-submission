@@ -223,9 +223,9 @@ class Entry(db.Model):
             json=data,
         )
         if response.status_code == 200:
-            return True
+            return (True, None)
 
-        return False
+        return (False, response.json()['error'])
 
     def delete_module(bgc_id: str, module_id: str):
         response = requests.delete(

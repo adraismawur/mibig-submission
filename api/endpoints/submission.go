@@ -182,7 +182,7 @@ func getReviews(db *gorm.DB, c *gin.Context) {
 	}
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -257,7 +257,7 @@ func createNewMutation(db *gorm.DB, c *gin.Context) {
 
 	if err := c.BindJSON(&request); err != nil {
 		slog.Error("[endpoints] [submission] Failed to unmarshal mutation request JSON", "error", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -469,7 +469,7 @@ func claimReview(db *gorm.DB, c *gin.Context) {
 	})
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -553,7 +553,7 @@ func cancelReview(db *gorm.DB, c *gin.Context) {
 	})
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -625,7 +625,7 @@ func acceptSubmission(db *gorm.DB, c *gin.Context) {
 	})
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

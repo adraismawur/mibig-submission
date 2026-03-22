@@ -139,6 +139,9 @@ def validate_smiles(form, field):
     Raises:
         ValidationError: on invalid SMILES
     """
+    if field.data is None or field.data == "":
+        raise ValidationError("Invalid SMILES")
+
     mol = Chem.MolFromSmiles(field.data)
     if mol is None:
         raise ValidationError("Invalid SMILES")

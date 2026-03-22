@@ -47,6 +47,7 @@ type CondensationDomain struct {
 	Gene       string         `json:"gene"`
 	LocationID uint64         `json:"db_location_id"`
 	Location   DomainLocation `json:"location"`
+	Subtype    string         `json:"subtype"`
 	References pq.StringArray `json:"references" gorm:"type:text[]"`
 }
 

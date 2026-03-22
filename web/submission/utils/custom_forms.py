@@ -18,7 +18,7 @@ from .custom_widgets import FieldListAddBtn, TextInputWithSuggestions, SelectDef
 from .custom_validators import ValidateCitations, validate_loci
 
 
-def location_form_factory(required: bool = False):
+def location_form_factory(required: bool = False, location_default=None):
     """Create customized location form
 
     Args:
@@ -35,11 +35,12 @@ def location_form_factory(required: bool = False):
 
     class LocationForm(Form):
         """Subform for location entry, use in combination with FormField"""
+        db_id = IntegerField(widget=HiddenInput(), default=0)
 
         pass
 
-    setattr(LocationForm, "from", IntegerField("From", validators=valids))
-    setattr(LocationForm, "to", IntegerField("To", validators=valids))
+    setattr(LocationForm, "from", IntegerField("From", validators=valids, default=location_default))
+    setattr(LocationForm, "to", IntegerField("To", validators=valids, default=location_default))
 
     return LocationForm
 
@@ -77,7 +78,8 @@ class LociEvidenceForm(Form):
     )
 
 class SubtrateEvidenceForm(Form):
-    name = SelectField(
+    db_id = IntegerField(widget=HiddenInput(), default=0)
+    method = SelectField(
         "Method *",
         choices=[
             "Activity assay",

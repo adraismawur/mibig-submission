@@ -9,11 +9,11 @@ import (
 )
 
 type IntegratedMonomer struct {
-	ID                   uint64         `json:"db_id"`
-	BiosyntheticModuleID uint64         `json:"db_biosynth_module_id"`
-	Name                 string         `json:"name"`
-	Structure            string         `json:"structure"`
-	References           pq.StringArray `json:"references" gorm:"type:text[]"`
+	ID                   uint64                    `json:"db_id"`
+	BiosyntheticModuleID uint64                    `json:"db_biosynth_module_id"`
+	Name                 string                    `json:"name"`
+	Structure            string                    `json:"structure"`
+	Evidence             []DomainSubstrateEvidence `json:"evidence" gorm:"many2many:integrated_monomer_evidences"`
 }
 
 type BiosyntheticModule struct {
@@ -144,6 +144,18 @@ func UpdateEntryBiosynthesisModule(db *gorm.DB, newModule BiosyntheticModule) er
 			return err
 		}
 
+		//for _, integratedMonomer := range newModule.IntegratedMonomers {
+		//	err = tx.
+		//		Model(&IntegratedMonomer{}).
+		//		Where("id = $1", integratedMonomer.ID).
+		//		Association("Evidence").
+		//		Replace(&integratedMonomer.Evidence)
+		//
+		//	if err != nil {
+		//		return err
+		//	}
+		//}
+
 		err = tx.
 			Model(&oldModule).
 			Association("Carriers").
@@ -156,8 +168,8 @@ func UpdateEntryBiosynthesisModule(db *gorm.DB, newModule BiosyntheticModule) er
 		for _, carrier := range newModule.Carriers {
 
 			err = tx.
-				Model(&CarrierDomain{}).
-				Where("id = $1", carrier.ID).
+				Model(&DomainLocation{}).
+				Where("id = $1", carrier.Location.ID).
 				Save(&carrier.Location).
 				Error
 
@@ -338,6 +350,7 @@ func GetEntryBiosynthesisModule(db *gorm.DB, id int) (*BiosyntheticModule, error
 		Table("biosynthetic_modules").
 		Where("id = $1", id).
 		Preload("IntegratedMonomers").
+		Preload("IntegratedMonomers.Evidence").
 		Preload("Carriers.Location").
 		Preload("Carriers.Evidence").
 		Preload("ModificationDomains.Location").

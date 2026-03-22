@@ -26,9 +26,12 @@ var testModule = BiosyntheticModule{
 			BiosyntheticModuleID: 1,
 			Name:                 "e",
 			Structure:            "f",
-			References: pq.StringArray{
-				"g",
-				"h",
+			Evidence: []DomainSubstrateEvidence{
+				{
+					ID:         1,
+					Method:     "g",
+					References: []string{"h"},
+				},
 			},
 		},
 	},
@@ -48,7 +51,7 @@ var testModule = BiosyntheticModule{
 			BetaBranching: false,
 			Evidence: []DomainSubstrateEvidence{
 				{
-					ID:     1,
+					ID:     2,
 					Method: "l",
 					References: pq.StringArray{
 						"m",
@@ -81,7 +84,7 @@ var testModule = BiosyntheticModule{
 			},
 			Evidence: []DomainSubstrateEvidence{
 				{
-					ID:     2,
+					ID:     3,
 					Method: "u",
 					References: pq.StringArray{
 						"w",
@@ -130,7 +133,7 @@ var testModule = BiosyntheticModule{
 		Inactive: false,
 		Evidence: []DomainSubstrateEvidence{
 			{
-				ID:     3,
+				ID:     4,
 				Method: "jj",
 				References: pq.StringArray{
 					"kk",
@@ -174,7 +177,7 @@ var testModule = BiosyntheticModule{
 		},
 		Evidence: []DomainSubstrateEvidence{
 			{
-				ID:     4,
+				ID:     5,
 				Method: "xx",
 				References: pq.StringArray{
 					"yy",
@@ -220,6 +223,7 @@ func TestCreateEntryBiosynthesisModule(t *testing.T) {
 		Table("biosynthetic_modules").
 		Where("id = $1", testModule.ID).
 		Preload("IntegratedMonomers").
+		Preload("IntegratedMonomers.Evidence").
 		Preload("Carriers.Location").
 		Preload("Carriers.Evidence").
 		Preload("ModificationDomains.Location").
@@ -263,7 +267,7 @@ func TestGetEntryBiosynthesisModule(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, testModule, *actualModule)
 
-	testDb.Delete(&BiosyntheticModule{}).Where("id = ?", testModule.ID)
+	testDb.Where("id = ?", testModule.ID).Delete(&BiosyntheticModule{})
 }
 
 func TestUpdateEntryBiosynthesisModule(t *testing.T) {
@@ -301,9 +305,12 @@ func TestUpdateEntryBiosynthesisModule(t *testing.T) {
 				BiosyntheticModuleID: 1,
 				Name:                 "e_test",
 				Structure:            "f_test",
-				References: pq.StringArray{
-					"g_test",
-					"h_test",
+				Evidence: []DomainSubstrateEvidence{
+					{
+						ID:         1,
+						Method:     "g_test",
+						References: []string{"h_test"},
+					},
 				},
 			},
 		},
@@ -323,7 +330,7 @@ func TestUpdateEntryBiosynthesisModule(t *testing.T) {
 				BetaBranching: true,
 				Evidence: []DomainSubstrateEvidence{
 					{
-						ID:     1,
+						ID:     2,
 						Method: "l_test",
 						References: pq.StringArray{
 							"m_test",
@@ -356,7 +363,7 @@ func TestUpdateEntryBiosynthesisModule(t *testing.T) {
 				},
 				Evidence: []DomainSubstrateEvidence{
 					{
-						ID:     2,
+						ID:     3,
 						Method: "u_test",
 						References: pq.StringArray{
 							"w_test",
@@ -405,7 +412,7 @@ func TestUpdateEntryBiosynthesisModule(t *testing.T) {
 			Inactive: true,
 			Evidence: []DomainSubstrateEvidence{
 				{
-					ID:     3,
+					ID:     4,
 					Method: "jj_test",
 					References: pq.StringArray{
 						"kk_test",
@@ -449,7 +456,7 @@ func TestUpdateEntryBiosynthesisModule(t *testing.T) {
 			},
 			Evidence: []DomainSubstrateEvidence{
 				{
-					ID:     4,
+					ID:     5,
 					Method: "xx_test",
 					References: pq.StringArray{
 						"yy_test",
@@ -482,6 +489,7 @@ func TestUpdateEntryBiosynthesisModule(t *testing.T) {
 		Table("biosynthetic_modules").
 		Where("id = $1", testModule.ID).
 		Preload("IntegratedMonomers").
+		Preload("IntegratedMonomers.Evidence").
 		Preload("Carriers.Location").
 		Preload("Carriers.Evidence").
 		Preload("ModificationDomains.Location").

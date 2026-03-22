@@ -40,7 +40,9 @@ class CalForm(Form):
     )
     active = BooleanField("Active? *")
     integrated_monomers = FieldList(
-        FormField(MonomerForm), widget=FieldListAddBtn(label="Add addional monomer")
+        FormField(MonomerForm), 
+        widget=FieldListAddBtn(label="Add addional monomer"),
+        min_entries=1
     )
     comments = StringField("Comments (Optional)")
 
