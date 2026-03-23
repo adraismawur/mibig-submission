@@ -59,7 +59,11 @@ class NRPS_I_Form(Form):
     )
     active = BooleanField("Active? *")
     c_domain = FormField(CondensationDomain)
-    a_domain = FormField(AdenylationDomain)
+    a_domain = FieldList(
+        FormField(AdenylationDomain),
+        widget=FieldListAddBtn(label="Add adenylation domain"),
+        max_entries=1
+    )
     carriers = FieldList(
         FormField(CarrierDomain), widget=FieldListAddBtn(label="Add additional carrier")
     )
@@ -80,7 +84,10 @@ class NRPS_VI_Form(Form):
         validators=[validators.InputRequired()],
     )
     active = BooleanField("Active? *")
-    a_domain = FormField(AdenylationDomain)
+    a_domain = FieldList(
+        FormField(AdenylationDomain),
+        widget=FieldListAddBtn(label="Add adenylation domain")
+    )
     carriers = FieldList(
         FormField(CarrierDomain), widget=FieldListAddBtn(label="Add additional carrier")
     )
@@ -220,7 +227,7 @@ module_map = {
     "nrps_type6": NRPS_VI_Form,
     "pks_iterative": PKSIterativeForm,
     "pks_modular": PKSModularForm,
-    "pks_trans-at": PKSTransForm,
+    "pks_trans_at": PKSTransForm,
     "module_other": ModuleOtherForm,
 }
 
