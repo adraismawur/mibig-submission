@@ -1,8 +1,11 @@
+import base64
+from datetime import datetime
 import os
 from typing import Optional
 
-from flask import Flask
+from flask import Flask, flash, json, redirect, session, url_for
 from dotenv import load_dotenv
+from flask_login import current_user, logout_user
 
 from submission.extensions import db, migrate, login_manager, mail
 from submission.main import bp_main
@@ -30,6 +33,40 @@ def create_app(test_config: Optional[dict] = None) -> Flask:
     app = configure_app(app, test_config)
 
     app = register_blueprints(app)
+
+    @app.before_request
+    def before_request():
+        token_string = session["token"]
+
+        if not token_string:
+            return
+
+        token_parts = token_string.split(".")
+        if len(token_parts) != 3:
+            flash("Invalid token", "warning")
+            return redirect(url_for("auth.login"))
+
+        token_data = base64.urlsafe_b64decode(token_parts[1] + "==")
+        if not token_data:
+            flash("Invalid token", "warning")
+            return redirect(url_for("auth.login"))
+
+        try:
+            token_data = json.loads(token_data)
+        except json.JSONDecodeError:
+            flash("Invalid token", "warning")
+            return redirect(url_for("auth.login"))
+
+        if not token_data:
+            flash("Invalid token", "warning")
+            return redirect(url_for("auth.login"))
+        
+        expires = datetime.fromtimestamp(token_data['exp'])
+
+        if expires < datetime.now():
+            flash("Your session has expired. Please log in again", "warning")
+            session["token"] = None
+            return redirect(url_for("auth.login"))
 
     db.init_app(app)
     migrate.init_app(app, db)
