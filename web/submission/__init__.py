@@ -36,6 +36,9 @@ def create_app(test_config: Optional[dict] = None) -> Flask:
 
     @app.before_request
     def before_request():
+        if "token" not in session:
+            return
+
         token_string = session["token"]
 
         if not token_string:
