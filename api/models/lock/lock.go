@@ -108,6 +108,13 @@ func CreateOrGetLock(db *gorm.DB, entryAccession string, category LockingCategor
 	}
 
 	// otherwise create a new lock
+	if activeLock.ID != 0 {
+		err = db.Delete(&activeLock).Error
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	canCreateLock, err := EntryCanCreateLock(db, entryAccession, category)
 
 	if err != nil {
