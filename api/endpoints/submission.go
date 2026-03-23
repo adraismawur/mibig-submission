@@ -220,7 +220,7 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 
 	err = q.
 		Table("user_submissions").
-		Select("user_submissions.entry_accession, user_submissions.type, user_submissions.source_accession, user_submissions.user_id = $1 as owner", user.ID).
+		Select(fmt.Sprintf("user_submissions.entry_accession, user_submissions.type, user_submissions.source_accession, user_submissions.user_id = $%d as owner", clauseIdx), user.ID).
 		Order("owner desc").
 		Find(&submissions).Error
 
