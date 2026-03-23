@@ -294,10 +294,27 @@ func GetEntryFromAccession(db *gorm.DB, accession string) (*Entry, error) {
 		Preload("Changelog.Releases.Entries").
 		Preload("Loci.Location").
 		Preload("Loci.Evidence").
-		Preload("Biosynthesis.Classes").
+		Preload("Biosynthesis.Classes.ReleaseTypes").
+		Preload("Biosynthesis.Classes.Thioesterases.Location").
+		Preload("Biosynthesis.Classes.Precursors.LeaderCleavageLocation").
+		Preload("Biosynthesis.Classes.Precursors.FollowerCleavageLocation").
+		Preload("Biosynthesis.Classes.Precursors.Crosslinks").
+		Preload("Biosynthesis.Classes.GlycosylTransferases.Evidence").
+		Preload("Biosynthesis.Classes.Subclusters").
+		Preload("Biosynthesis.Modules.IntegratedMonomers").
+		Preload("Biosynthesis.Modules.IntegratedMonomers.Evidence").
 		Preload("Biosynthesis.Modules.Carriers.Location").
+		Preload("Biosynthesis.Modules.Carriers.Evidence").
 		Preload("Biosynthesis.Modules.ModificationDomains.Location").
+		Preload("Biosynthesis.Modules.ModificationDomains.Substrates").
+		Preload("Biosynthesis.Modules.ModificationDomains.Evidence").
+		Preload("Biosynthesis.Modules.CDomain.Location").
+		Preload("Biosynthesis.Modules.ADomain.Location").
+		Preload("Biosynthesis.Modules.ADomain.Evidence").
+		Preload("Biosynthesis.Modules.ADomain.Substrates").
 		Preload("Biosynthesis.Modules.ATDomain.Location").
+		Preload("Biosynthesis.Modules.ATDomain.Substrates").
+		Preload("Biosynthesis.Modules.ATDomain.Evidence").
 		Preload("Biosynthesis.Modules.KSDomain.Location").
 		Preload("Biosynthesis.Operons").
 		Preload("Biosynthesis.Paths.Products").
