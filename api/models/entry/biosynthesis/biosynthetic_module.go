@@ -126,7 +126,126 @@ func UpdateEntryBiosynthesisModule(db *gorm.DB, newModule BiosyntheticModule) er
 
 		oldModule, err := GetEntryBiosynthesisModule(tx, int(newModule.ID))
 
+		// replacing/deleting C, A, KS and AT domains
+
+		// CDomain
+		if oldModule.CDomain == nil && newModule.CDomain != nil {
+			err = tx.
+				Session(&gorm.Session{FullSaveAssociations: true}).
+				Create(newModule.CDomain).
+				Error
+
+			if err != nil {
+				return err
+			}
+
+			newModule.CDomainID = newModule.CDomain.ID
+		}
+
+		if oldModule.CDomain != nil && newModule.CDomain == nil {
+			newModule.CDomainID = 0
+
+			err = tx.
+				Delete(&oldModule.CDomain).
+				Error
+
+			if err != nil {
+				return err
+			}
+
+			oldModule.CDomainID = 0
+			oldModule.CDomain = nil
+		}
+
+		// ADomain
+		if oldModule.ADomain == nil && newModule.ADomain != nil {
+			err = tx.
+				Session(&gorm.Session{FullSaveAssociations: true}).
+				Create(newModule.ADomain).
+				Error
+
+			if err != nil {
+				return err
+			}
+
+			newModule.ADomainID = newModule.ADomain.ID
+		}
+
+		if oldModule.ADomain != nil && newModule.ADomain == nil {
+			newModule.ADomainID = 0
+
+			err = tx.
+				Delete(&oldModule.ADomain).
+				Error
+
+			if err != nil {
+				return err
+			}
+
+			oldModule.ADomainID = 0
+			oldModule.ADomain = nil
+		}
+
+		// KSDomain
+		if oldModule.KSDomain == nil && newModule.KSDomain != nil {
+			err = tx.
+				Session(&gorm.Session{FullSaveAssociations: true}).
+				Create(newModule.KSDomain).
+				Error
+
+			if err != nil {
+				return err
+			}
+
+			newModule.KSDomainID = newModule.KSDomain.ID
+		}
+
+		if oldModule.KSDomain != nil && newModule.KSDomain == nil {
+			newModule.KSDomainID = 0
+
+			err = tx.
+				Delete(&oldModule.KSDomain).
+				Error
+
+			if err != nil {
+				return err
+			}
+
+			oldModule.KSDomainID = 0
+			oldModule.KSDomain = nil
+		}
+
+		// ATDomain
+		if oldModule.ATDomain == nil && newModule.ATDomain != nil {
+			err = tx.
+				Session(&gorm.Session{FullSaveAssociations: true}).
+				Create(newModule.ATDomain).
+				Error
+
+			if err != nil {
+				return err
+			}
+
+			newModule.CDomainID = newModule.ATDomain.ID
+		}
+
+		if oldModule.ATDomain != nil && newModule.ATDomain == nil {
+			newModule.ATDomainID = 0
+
+			err = tx.
+				Delete(&oldModule.ATDomain).
+				Error
+
+			if err != nil {
+				return err
+			}
+
+			oldModule.ATDomainID = 0
+			oldModule.ATDomain = nil
+		}
+
 		err = tx.
+			Session(&gorm.Session{FullSaveAssociations: true}).
 			Model(&oldModule).
 			Where("biosynthetic_modules.id = $1", newModule.ID).
 			Omit("index").

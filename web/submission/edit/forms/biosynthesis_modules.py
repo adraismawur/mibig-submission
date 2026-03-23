@@ -21,6 +21,7 @@ from submission.edit.forms.biosynthesis_domains import (
     CondensationDomain,
     AdenylationDomain,
     CarrierDomain,
+    KetosynthaseForm,
     MonomerForm,
     ModificationDomainForm,
     AcyltransferaseForm,
@@ -58,7 +59,13 @@ class NRPS_I_Form(Form):
         validators=[validators.InputRequired()],
     )
     active = BooleanField("Active? *")
-    c_domain = FormField(CondensationDomain)
+    db_c_domain_id = IntegerField(widget=HiddenInput(), default=0)
+    c_domain = FieldList(
+        FormField(CondensationDomain),
+        widget=FieldListAddBtn(label="Add condensation domain"),
+        max_entries=1
+    )
+    db_a_domain_id = IntegerField(widget=HiddenInput(), default=0)
     a_domain = FieldList(
         FormField(AdenylationDomain),
         widget=FieldListAddBtn(label="Add adenylation domain"),
@@ -84,9 +91,11 @@ class NRPS_VI_Form(Form):
         validators=[validators.InputRequired()],
     )
     active = BooleanField("Active? *")
+    db_a_domain_id = IntegerField(widget=HiddenInput(), default=0)
     a_domain = FieldList(
         FormField(AdenylationDomain),
-        widget=FieldListAddBtn(label="Add adenylation domain")
+        widget=FieldListAddBtn(label="Add adenylation domain"),
+        max_entries=1
     )
     carriers = FieldList(
         FormField(CarrierDomain), widget=FieldListAddBtn(label="Add additional carrier")
@@ -129,8 +138,18 @@ class PKSIterativeForm(Form):
         "Number of iterations *", validators=[validators.InputRequired()]
     )
     active = BooleanField("Active? *")
-    ks_domain = None  # TODO: add ketosynthase
-    at_domain = FormField(AcyltransferaseForm)
+    db_ks_domain_id = IntegerField(widget=HiddenInput(), default=0)
+    ks_domain = FieldList(
+        FormField(KetosynthaseForm),
+        widget=FieldListAddBtn(label="Add ketosynthase domain"),
+        max_entries=1
+    )
+    db_at_domain_id = IntegerField(widget=HiddenInput(), default=0)
+    at_domain = FieldList(
+        FormField(AcyltransferaseForm),
+        widget=FieldListAddBtn(label="Add acetyltransferase domain"),
+        max_entries=1
+    )
     carriers = FieldList(
         FormField(CarrierDomain), widget=FieldListAddBtn(label="Add additional carrier")
     )
@@ -151,8 +170,18 @@ class PKSModularForm(Form):
         validators=[validators.InputRequired()],
     )
     active = BooleanField("Active? *")
-    ks_domain = None  # TODO: add ketosynthase
-    at_domain = FormField(AcyltransferaseForm)
+    db_ks_domain_id = IntegerField(widget=HiddenInput(), default=0)
+    ks_domain = FieldList(
+        FormField(KetosynthaseForm),
+        widget=FieldListAddBtn(label="Add ketosynthase domain"),
+        max_entries=1
+    )
+    db_at_domain_id = IntegerField(widget=HiddenInput(), default=0)
+    at_domain = FieldList(
+        FormField(AcyltransferaseForm),
+        widget=FieldListAddBtn(label="Add acetyltransferase domain"),
+        max_entries=1
+    )
     carriers = FieldList(
         FormField(CarrierDomain), widget=FieldListAddBtn(label="Add additional carrier")
     )
@@ -173,7 +202,18 @@ class PKSTransForm(Form):
         validators=[validators.InputRequired()],
     )
     active = BooleanField("Active? *")
-    ks_domain = None  # TODO: add ketosynthase
+    db_ks_domain_id = IntegerField(widget=HiddenInput(), default=0)
+    ks_domain = FieldList(
+        FormField(KetosynthaseForm),
+        widget=FieldListAddBtn(label="Add ketosynthase domain"),
+        max_entries=1
+    )
+    db_at_domain_id = IntegerField(widget=HiddenInput(), default=0)
+    at_domain = FieldList(
+        FormField(AcyltransferaseForm),
+        widget=FieldListAddBtn(label="Add acetyltransferase domain"),
+        max_entries=1
+    )
     carriers = FieldList(
         FormField(CarrierDomain), widget=FieldListAddBtn(label="Add additional carrier")
     )

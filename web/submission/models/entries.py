@@ -165,11 +165,27 @@ class Entry(db.Model):
         )
         if response.status_code == 200:
             data = response.json()
-
+            # we need to do a lot of transformations
+            # other - we have several "other" forms, so we need to transform the name to differentiate
             if data["type"] == "other":
                 data["type"] = "module_other"
 
+            # this has to do with the form collections. the types in data are with dashes, but
+            # we can't have variables/fields with dashes in python so they have to become underscores
             data["type"] = data["type"].replace("-", "_")
+
+            # now we have a bunch of fields which are optional subforms. in view of time I have implemented them
+            # as fieldlists of subforms, with a max of 1 entry. we'll basically set them to empty arrays if there
+            # is no data, or we'll create an array with one element if there is data
+            wrap_arrays = ["a_domain", "c_domain", "at_domain", "ks_domain"]
+            for wrap_array in wrap_arrays:
+                if wrap_array in data:
+                    if data[wrap_array] is None:
+                        data[wrap_array] = []
+                    else:
+                        data[wrap_array] = [data[wrap_array]]
+
+
 
             return data
         return None
@@ -196,10 +212,25 @@ class Entry(db.Model):
         return None
 
     def create_module(bgc_id: str, data: dict[str, any]):
+        # we need to do a lot of transformations
+        # other - we have several "other" forms, so we need to transform the name
         if data["type"] == "module_other":
             data["type"] = "other"
 
+        # this has to do with the form collections. the types in data are with dashes, but
+        # we can't have variables/fields with dashes in python so they have to become underscores
         data["type"] = data["type"].replace("_", "-")
+
+        # now we have a bunch of fields which are optional subforms. in view of time I have implemented them
+        # as fieldlists of subforms, with a max of 1. we'll basically set them to None if there are no entries
+        # or replace the array with the first element if there is an element
+        unwrap_arrays = ["a_domain", "c_domain", "at_domain", "ks_domain"]
+        for unwrap_array in unwrap_arrays:
+            if unwrap_array in data:
+                if len(data[unwrap_array]) > 0:
+                    data[unwrap_array] = data[unwrap_array][0]
+                else:
+                    data[unwrap_array] = None
 
         response = requests.post(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/module",
@@ -212,10 +243,28 @@ class Entry(db.Model):
         return False
 
     def update_module(bgc_id: str, module_id: str, data: dict[str, any]):
+        # we need to do a lot of transformations
+        # other - we have several "other" forms, so we need to transform the name
         if data["type"] == "module_other":
             data["type"] = "other"
 
+        # this has to do with the form collections. the types in data are with dashes, but
+        # we can't have variables/fields with dashes in python so they have to become underscores
         data["type"] = data["type"].replace("_", "-")
+
+        # now we have a bunch of fields which are optional subforms. in view of time I have implemented them
+        # as fieldlists of subforms, with a max of 1. we'll basically set them to None if there are no entries
+        # or replace the array with the first element if there is an element
+        #
+        # additionally, we need to remove the association ids if they're gone
+        # lots of special treatment for this data. TODO: fix this 
+        unwrap_arrays = ["a_domain", "c_domain", "at_domain", "ks_domain"]
+        for unwrap_array in unwrap_arrays:
+            if unwrap_array in data:
+                if len(data[unwrap_array]) > 0:
+                    data[unwrap_array] = data[unwrap_array][0]
+                else:
+                    data[unwrap_array] = None
 
         response = requests.post(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/module/{module_id}",
