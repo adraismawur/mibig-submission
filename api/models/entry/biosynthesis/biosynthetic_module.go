@@ -23,6 +23,7 @@ type BiosyntheticModule struct {
 	Type                string                   `json:"type"`
 	Name                string                   `json:"name"`
 	Genes               pq.StringArray           `json:"genes" gorm:"type:text[]"`
+	Iterations          *uint64                  `json:"iterations,omitempty"`
 	Active              bool                     `json:"active"`
 	IntegratedMonomers  []IntegratedMonomer      `json:"integrated_monomers" gorm:"foreignKey:BiosyntheticModuleID"`
 	Carriers            []CarrierDomain          `json:"carriers" gorm:"many2many:biosynth_carrier_domains"`
