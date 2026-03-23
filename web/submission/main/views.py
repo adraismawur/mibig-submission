@@ -38,37 +38,55 @@ def index():
             return redirect(url_for("edit.edit_bgc"))
 
     # get the list of submissions for this user
+
+    submission_start = request.args.get("submission_start") or 0
+
+    submission_limit = request.args.get("submission_limit") or 10
+
+    submission_search = request.args.get("submission_search") or ""
+
+
     submissions_api_path = (
-        f"{current_app.config['API_BASE']}/submission/{current_user.id}"
+        f"{current_app.config['API_BASE']}/submission?start={submission_start}&limit={submission_limit}&search={submission_search}"
     )
-    user_submissions = requests.get(submissions_api_path).json()
+    response = requests.get(
+        submissions_api_path,
+        headers={"Authorization": f"Bearer {session['token']}"},
+    ).json()
 
-    start = request.args.get("start")
-    start = start if start else 0
+    existing_submissions = response["submissions"]
+    submission_count = response["record_count"]
 
-    limit = request.args.get("limit")
-    limit = limit if limit else 10
 
-    search = request.args.get("search")
-    search = search if search else ""
+    # all entries
 
-    existing_entries_api_path = f"{current_app.config['API_BASE']}/entry?start={start}&limit={limit}&search={search}"
+    entry_start = request.args.get("entry_start") or 0
+
+    entry_limit = request.args.get("entry_limit") or 10
+
+    entry_search = request.args.get("entry_search") or ""
+
+    existing_entries_api_path = f"{current_app.config['API_BASE']}/entry?start={entry_start}&limit={entry_limit}&search={entry_search}"
 
     response = requests.get(existing_entries_api_path).json()
 
     existing_entries = response["entries"]
-    record_count = response["record_count"]
+    entry_count = response["record_count"]
 
     return render_template(
         "main/index.html",
         form=form,
         user=current_user,
-        user_submissions=user_submissions,
+        existing_submissions=existing_submissions,
+        submission_start=submission_start,
+        submission_limit=submission_limit,
+        submission_search=submission_search,
+        submission_count=submission_count,
         existing_entries=existing_entries,
-        start=start,
-        limit=limit,
-        search=search,
-        record_count=record_count,
+        entry_start=entry_start,
+        entry_limit=entry_limit,
+        entry_search=entry_search,
+        entry_count=entry_count,
     )
 
 

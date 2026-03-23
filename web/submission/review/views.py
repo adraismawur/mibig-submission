@@ -17,6 +17,16 @@ from submission.edit.forms.form_collection import FormCollection
 from submission.models import Entry
 
 
+readable_category_map = {
+    "locitax": "Loci and taxonomy information",
+    "biosynth": "Biosynthetic information",
+    "compounds": "Compound information",
+    "gene_information": "Gene information",
+    "finalize": "Completeness and embargo",
+    "full": "Full entry",
+}
+
+
 class SUBMISSION_STATE:
     DRAFT = "draft"
     EDIT = "edit"
@@ -29,21 +39,28 @@ class SUBMISSION_STATE:
 @login_required
 def list_submissions():
     # get the list of submissions that are marked ready for review
-    pending_submissions = requests.get(f"{current_app.config['API_BASE']}/submission?state={SUBMISSION_STATE.PENDING}").json()
     reviewing = requests.get(
-        f"{current_app.config['API_BASE']}/reviews",
+        f"{current_app.config['API_BASE']}/reviews/active",
+        headers={"Authorization": f"Bearer {session['token']}"},
+    ).json()
+    pending_submissions = requests.get(
+        f"{current_app.config['API_BASE']}/reviews/pending",
         headers={"Authorization": f"Bearer {session['token']}"},
     ).json()
 
     return render_template("review/list_submissions.html", pending_submissions=pending_submissions, reviewing=reviewing)
 
-@bp_review.route("/claim_review/<bgc_id>", methods=["GET", "POST"])
+@bp_review.route("/claim_review/<bgc_id>/<category>", methods=["GET", "POST"])
 @login_required
-def claim_review(bgc_id: str):
+def claim_review(bgc_id: str, category: str):
     if request.method == "POST":
         response = requests.post(
-            f"{current_app.config['API_BASE']}/submission/claim_review/{bgc_id}",
+            f"{current_app.config['API_BASE']}/submission/claim_review/",
             headers={"Authorization": f"Bearer {session['token']}"},
+            json={
+                "accession": bgc_id,
+                "category": category
+            }
         )
 
         if response.status_code != 200:
@@ -51,15 +68,19 @@ def claim_review(bgc_id: str):
 
         return redirect(url_for("review.list_submissions"))
 
-    return render_template("review/claim_review.html", bgc_id=bgc_id)
+    return render_template("review/claim_review.html", bgc_id=bgc_id, category=readable_category_map[category])
 
-@bp_review.route("/cancel/<bgc_id>", methods=["GET", "POST"])
+@bp_review.route("/cancel/<bgc_id>/<category>", methods=["GET", "POST"])
 @login_required
-def cancel_review(bgc_id: str):
+def cancel_review(bgc_id: str, category: str):
     if request.method == "POST":
         response = requests.post(
-            f"{current_app.config['API_BASE']}/submission/cancel_review/{bgc_id}",
+            f"{current_app.config['API_BASE']}/submission/cancel_review/",
             headers={"Authorization": f"Bearer {session['token']}"},
+            json={
+                "accession": bgc_id,
+                "category": category
+            }
         )
 
         if response.status_code != 200:
@@ -67,15 +88,19 @@ def cancel_review(bgc_id: str):
 
         return redirect(url_for("review.list_submissions"))
 
-    return render_template("review/cancel_review.html", bgc_id=bgc_id)
+    return render_template("review/cancel_review.html", bgc_id=bgc_id, category=readable_category_map[category])
 
-@bp_review.route("/approve/<bgc_id>", methods=["GET", "POST"])
+@bp_review.route("/approve/<bgc_id>/<category>", methods=["GET", "POST"])
 @login_required
-def approve(bgc_id: str):
+def approve(bgc_id: str, category: str):
     if request.method == "POST":
         response = requests.post(
-            f"{current_app.config['API_BASE']}/submission/accept/{bgc_id}",
+            f"{current_app.config['API_BASE']}/submission/accept/",
             headers={"Authorization": f"Bearer {session['token']}"},
+            json={
+                "accession": bgc_id,
+                "category": category
+            }
         )
 
         if response.status_code != 200:

@@ -13,15 +13,25 @@ import (
 	"time"
 )
 
-type SubmissionState string
+type ReviewState string
 
 const (
-	Draft         SubmissionState = "draft"
-	PendingReview                 = "pending review"
-	Reviewing                     = "being reviewed"
-	RFC                           = "requested changes"
-	Accepted                      = "accepted"
-	Discarded                     = "discarded"
+	Draft         ReviewState = "draft"
+	PendingReview             = "pending review"
+	Reviewing                 = "being reviewed"
+	RFC                       = "requested changes"
+	Accepted                  = "accepted"
+	Discarded                 = "discarded"
+)
+
+type Category string
+
+const (
+	Locitax   Category = "locitax"
+	Biosynth  Category = "biosynth"
+	Compounds Category = "compounds"
+	Genes     Category = "gene_information"
+	Final     Category = "finalize"
 )
 
 type SubmissionType string
@@ -32,112 +42,160 @@ const (
 )
 
 type UserSubmission struct {
-	ID              uint64          `json:"db_id"`
-	EntryAccession  string          `json:"db_submission_accession"`
-	SourceAccession string          `json:"source_accession"`
-	UserID          uint64          `json:"user_id"`
-	Type            SubmissionType  `json:"type"`
-	State           SubmissionState `json:"state"`
+	ID              uint64         `json:"db_id"`
+	EntryAccession  string         `json:"db_submission_accession"`
+	SourceAccession string         `json:"source_accession"`
+	UserID          uint64         `json:"user_id"`
+	Type            SubmissionType `json:"type"`
 }
 
-type SubmissionReviewer struct {
-	ID        uint64      `json:"db_id"`
-	Accession string      `json:"accession"`
-	UserID    uint64      `json:"db_reviewer_id"`
-	User      models.User `json:"reviewer"`
+type SubmissionReview struct {
+	ID             uint64      `json:"db_id"`
+	Accession      string      `json:"accession" gorm:"uniqueIndex:compositeReviewIndex"`
+	Category       Category    `json:"category" gorm:"uniqueIndex:compositeReviewIndex"`
+	State          ReviewState `json:"state"`
+	UserID         uint64      `json:"db_reviewer_id"`
+	User           models.User `json:"reviewer"`
+	SubmitterNotes string      `json:"submitter_notes"`
+	ReviewerNotes  string      `json:"reviewer_notes"`
 }
 
 func init() {
 	models.Models = append(models.Models, UserSubmission{})
-	models.Models = append(models.Models, SubmissionReviewer{})
+	models.Models = append(models.Models, SubmissionReview{})
 }
 
 func CreateNewUserSubmission(db *gorm.DB, minimalEntry MinimalEntry, user models.User) (*Entry, error) {
 	var newEntry Entry
 
-	// first thing we do is add the one locus someone can submit
-	newEntry.Loci = append(newEntry.Loci, minimalEntry.Locus)
+	err := db.Transaction(func(tx *gorm.DB) error {
+		var transactionErr error
 
-	// then we copy over the compounds
-	// TODO: validate these compounds
-	newEntry.Compounds = minimalEntry.Compounds
+		// first thing we do is add the one locus someone can submit
+		newEntry.Loci = append(newEntry.Loci, minimalEntry.Locus)
 
-	// generate a new changelog
-	var currentDate = time.Now().Format(time.DateOnly)
+		// then we copy over the compounds
+		// TODO: validate these compounds
+		newEntry.Compounds = minimalEntry.Compounds
 
-	newEntry.Changelog = Changelog{
-		Releases: []Release{
-			{
-				Version: "1",
-				Date:    currentDate,
-				Entries: []ReleaseEntry{
-					{
-						Contributors: []string{
-							constants.AnonymousUserId,
+		// generate a new changelog
+		var currentDate = time.Now().Format(time.DateOnly)
+
+		newEntry.Changelog = Changelog{
+			Releases: []Release{
+				{
+					Version: "1",
+					Date:    currentDate,
+					Entries: []ReleaseEntry{
+						{
+							Contributors: []string{
+								user.Info.Alias,
+							},
+							Reviewers: []string{},
+							Date:      currentDate,
+							Comment:   constants.NewEntryComment,
 						},
-						Reviewers: nil,
-						Date:      currentDate,
-						Comment:   constants.NewEntryComment,
 					},
 				},
 			},
-		},
-	}
+		}
 
-	newAccession, err := GeneratePlaceholderAccession(db, "new")
+		newAccession, transactionErr := GeneratePlaceholderAccession(db, "new")
 
-	newEntry.Accession = newAccession
+		newEntry.Accession = newAccession
+
+		if transactionErr != nil {
+			slog.Error("[endpoints] [submission] Failed to generate new entry accession", "error", transactionErr)
+			return transactionErr
+		}
+
+		tx.Create(&newEntry)
+
+		var userSubmission UserSubmission
+
+		userSubmission.UserID = user.ID
+		userSubmission.EntryAccession = newEntry.Accession
+		userSubmission.SourceAccession = "new"
+		userSubmission.Type = NewSubmission
+
+		transactionErr = tx.Create(&userSubmission).Error
+
+		if transactionErr != nil {
+			return transactionErr
+		}
+
+		return nil
+	})
 
 	if err != nil {
-		slog.Error("[endpoints] [submission] Failed to generate new entry accession", "error", err)
 		return nil, err
 	}
-
-	db.Create(&newEntry)
-
-	var userSubmission UserSubmission
-
-	userSubmission.UserID = user.ID
-	userSubmission.EntryAccession = newEntry.Accession
-	userSubmission.SourceAccession = "new"
-	userSubmission.Type = NewSubmission
-	userSubmission.State = Draft
-
-	err = db.Create(&userSubmission).Error
 
 	return &newEntry, err
 }
 
 func CreateNewUserMutation(db *gorm.DB, accession string, user models.User) (*Entry, error) {
+	var newEntry Entry
 
-	var entryExport export.Entry
+	err := db.Transaction(func(tx *gorm.DB) error {
+		var entryExport export.Entry
 
-	existingEntry, err := GetEntryFromAccession(db, accession)
+		existingEntry, transactionErr := GetEntryFromAccession(tx, accession)
+
+		if transactionErr != nil {
+			return transactionErr
+		}
+
+		transactionErr = mapstructure.Decode(existingEntry, &entryExport)
+
+		if transactionErr != nil {
+			return transactionErr
+		}
+
+		transactionErr = mapstructure.Decode(&entryExport, &newEntry)
+
+		if transactionErr != nil {
+			return transactionErr
+		}
+
+		mutAccession, transactionErr := GeneratePlaceholderAccession(tx, "mut")
+
+		if transactionErr != nil {
+			return transactionErr
+		}
+
+		newEntry.Accession = mutAccession
+
+		transactionErr = tx.Create(&newEntry).Error
+
+		if transactionErr != nil {
+			return transactionErr
+		}
+
+		var userSubmission UserSubmission
+
+		userSubmission.UserID = user.ID
+		userSubmission.EntryAccession = newEntry.Accession
+		userSubmission.SourceAccession = accession
+		userSubmission.Type = Mutation
+
+		transactionErr = tx.Create(&userSubmission).Error
+
+		if transactionErr != nil {
+			return transactionErr
+		}
+
+		if transactionErr != nil {
+			return transactionErr
+		}
+
+		return nil
+
+	})
 
 	if err != nil {
 		return nil, err
 	}
-
-	var newEntry Entry
-
-	mapstructure.Decode(existingEntry, &entryExport)
-	mapstructure.Decode(&entryExport, &newEntry)
-
-	mutAccession, err := GeneratePlaceholderAccession(db, "mut")
-
-	newEntry.Accession = mutAccession
-
-	err = db.Create(&newEntry).Error
-
-	var userSubmission UserSubmission
-
-	userSubmission.UserID = user.ID
-	userSubmission.EntryAccession = newEntry.Accession
-	userSubmission.SourceAccession = accession
-	userSubmission.Type = Mutation
-	userSubmission.State = Draft
-
-	err = db.Create(&userSubmission).Error
 
 	return &newEntry, err
 }

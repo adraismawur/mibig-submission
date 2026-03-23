@@ -39,7 +39,7 @@
                         {{ submission.state }}
                     </td>
                     <td>
-                        <a href="{{ url_for('edit.edit_bgc_redirect', bgc_id=submission.accession )}}">
+                        <a href="{{ url_for('edit.edit_bgc', bgc_id=submission.accession, form_id=submission.category )}}">
                             <button class="btn btn-primary">Edit</button>
                         </a>
                     </td>
@@ -54,10 +54,10 @@
                             <button class="btn btn-primary">View diff with original</button>
                         </a>
                         {% endif %}
-                        <a href="{{ url_for('review.cancel_review', bgc_id=submission.accession )}}">
+                        <a href="{{ url_for('review.cancel_review', bgc_id=submission.accession, category=submission.category )}}">
                             <button class="btn btn-primary red">Cancel review</button>
                         </a>
-                        <a href="{{ url_for('review.approve', bgc_id=submission.accession )}}">
+                        <a href="{{ url_for('review.approve', bgc_id=submission.accession, category=submission.category )}}">
                             <button class="btn btn-primary green">Approve</button>
                         </a>
                     </td>
@@ -82,6 +82,9 @@
                         Type
                     </th>
                     <th>
+                        Category
+                    </th>
+                    <th>
                         State
                     </th>
                     <th>
@@ -100,10 +103,13 @@
                         {{ submission.type }}
                     </td>
                     <td>
+                        {{ submission.category }}
+                    </td>
+                    <td>
                         {{ submission.state }}
                     </td>
                     <td>
-                        <a href="{{ url_for('review.claim_review', bgc_id=submission.accession )}}">
+                        <a href="{{ url_for('review.claim_review', bgc_id=submission.accession, category=submission.category )}}">
                             <button class="btn btn-primary">Claim for review</button>
                         </a>
                     </td>

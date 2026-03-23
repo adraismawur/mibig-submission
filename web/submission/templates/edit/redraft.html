@@ -8,15 +8,15 @@ Redrafting {{ bgc_id }}
 
 {% block body %}
 
-<div class="form-wrapper">
+<div class="form-wrapper center-align">
     <h4>Confirm redraft</h4>
 
     <form method="post" class="container">
         <div class="form-group row">
             <div class="row">
-                <h3>Are you sure you want to redraft the following submission?</h3>
+                <h3>Are you sure you want to redraft the following?</h3>
 
-                <h2>{{ bgc_id }}</h2>
+                <h4>{{ bgc_id }} {{ category }}</h4>
                 <!-- 
                 <span style="white-space: pre-line;">
                     {{ entry_json }}
@@ -29,10 +29,10 @@ Redrafting {{ bgc_id }}
             </div>
             <div class="row">
                 <div class="col">
-                    <input type="submit" class="btn btn-danger" value="Redraft submission" data-method="post" />
+                    <input type="submit" class="btn btn-danger orange" value="Redraft submission" data-method="post" />
                 </div>
                 <div class="col col-auto">
-                    <a href="{{ url_for('main.index') }}"><button class="btn btn-primary"
+                    <a href="{{ url_for('edit.edit_bgc_redirect', bgc_id=bgc_id) }}"><button class="btn btn-primary"
                             type="button">Cancel</button></a>
                 </div>
             </div>

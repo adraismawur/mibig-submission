@@ -26,10 +26,11 @@
 
         {% if current_user.is_submitter() %}
         <h4>Edit an existing submission or mutation</h4>
-        {{ macros.list_user_submissions(user_submissions) }}
+        {{ macros.list_submissions(existing_submissions, submission_start, submission_limit, submission_search,
+        submission_count) }}
 
         <h4>Create a mutation for an existing entry</h4>
-        {{ macros.list_existing_entries(existing_entries, start, limit, search, record_count) }}
+        {{ macros.list_existing_entries(existing_entries, entry_start, entry_limit, entry_search, entry_count) }}
 
         {% endif %}
     </div>

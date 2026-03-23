@@ -44,6 +44,15 @@ from submission.utils.custom_errors import ReferenceNotFound
 from submission.models import Entry, NPAtlas, Substrate
 
 
+readable_category_map = {
+    "locitax": "Loci and taxonomy information",
+    "biosynth": "Biosynthetic information",
+    "compounds": "Compound information",
+    "gene_information": "Gene information",
+    "finalize": "Completeness and embargo",
+    "full": "Full entry",
+}
+
 
 @bp_edit.route("/<bgc_id>")
 @login_required
@@ -66,28 +75,34 @@ def edit_bgc_redirect(bgc_id: str):
         "biosynth",
         "compounds",
         "gene_information",
+        "finalize",
     ]
 
     # show finalize details if this is a full lock
     # or if this is a new entry, which is hacky and not great
     # TODO: fix this being hacky and not great
-    if "full" in lock_info or bgc_id[0:3] == "new":
-        lock_keys.append("finalize")
+    # if "full" in lock_info or bgc_id[0:3] == "new":
+    #     lock_keys.append("finalize")
 
-    readable_category_map = {
-        "locitax": "Loci and taxonomy information",
-        "biosynth": "Biosynthetic information",
-        "compounds": "Compound information",
-        "gene_information": "Gene information",
-        "finalize": "Completeness and embargo",
-        "full": "Full entry",
-    }
+    reviews_endpoint = "/reviews/" + bgc_id
+    response = requests.get(
+        f"{current_app.config['API_BASE']}" + reviews_endpoint,
+        headers={"Authorization": f"Bearer {session['token']}"},
+    )
+
+    entry_reviews = response.json()
+
+    review_info = {}
+
+    for review in entry_reviews:
+        review_info[review['category']] = review
 
     return render_template(
         "edit/edit.html",
         bgc_id=bgc_id,
         lock_keys=lock_keys,
         lock_info=lock_info,
+        review_info=review_info,
         readable_category_map=readable_category_map,
     )
 
@@ -237,32 +252,38 @@ def view_json(bgc_id: str):
     return render_template("edit/view_json.html", entry=entry)
 
 
-@bp_edit.route("/redraft/<bgc_id>", methods=["GET", "POST"])
+@bp_edit.route("/redraft/<bgc_id>/<category>", methods=["GET", "POST"])
 @login_required
-def redraft_bgc(bgc_id: str):
+def redraft_bgc(bgc_id: str, category: str):
 
     entry_json = Entry.get_text(bgc_id)
 
     if request.method == "POST":
-        submission_endpoint = "/submission/redraft/" + bgc_id
+        submission_endpoint = "/submission/redraft/"
         response = requests.post(
             f"{current_app.config['API_BASE']}" + submission_endpoint,
             headers={"Authorization": f"Bearer {session['token']}"},
+            json={
+                "accession": bgc_id,
+                "category": category
+            }
         )
 
         if response.status_code != 200:
             flash(response.json()["error"], "error")
+            return redirect(url_for("edit.edit_bgc_redirect", bgc_id=bgc_id))
 
-        return redirect(url_for("main.index"))
-
-    return render_template("edit/redraft.html", bgc_id=bgc_id, entry_json=entry_json)
+        return redirect(url_for("edit.edit_bgc_redirect", bgc_id=bgc_id))
 
 
-@bp_edit.route("/promote/<bgc_id>", methods=["GET", "POST"])
+    return render_template("edit/redraft.html", bgc_id=bgc_id, entry_json=entry_json, category=readable_category_map[category])
+
+
+@bp_edit.route("/promote/<bgc_id>/<category>", methods=["GET", "POST"])
 @login_required
-def promote_bgc(bgc_id: str):
+def promote_bgc(bgc_id: str, category: str):
 
-    entry_json = Entry.get_text(bgc_id)
+    # entry_json = Entry.get_text(bgc_id)
 
     if request.method == "POST":
         # clear locks first
@@ -273,21 +294,30 @@ def promote_bgc(bgc_id: str):
 
         if response.status_code != 200:
             flash(response.json()["error"], "error")
-            return redirect(url_for("main.index"))
+            return redirect(url_for("edit.edit_bgc_redirect", bgc_id=bgc_id))
 
 
-        submission_endpoint = "/submission/promote/" + bgc_id
+        submission_endpoint = "/submission/promote"
         response = requests.post(
             f"{current_app.config['API_BASE']}" + submission_endpoint,
             headers={"Authorization": f"Bearer {session['token']}"},
+            json={
+                "accession": bgc_id,
+                "category": category
+            }
         )
 
         if response.status_code != 200:
             flash(response.json()["error"], "error")
 
-        return redirect(url_for("main.index"))
+        return redirect(url_for("edit.edit_bgc_redirect", bgc_id=bgc_id))
 
-    return render_template("edit/promote.html", bgc_id=bgc_id, entry_json=entry_json)
+    return render_template(
+        "edit/promote.html",
+        bgc_id=bgc_id,
+        category=readable_category_map[category],
+        # entry_json=entry_json,
+    )
 
 
 @bp_edit.route("/discard/<bgc_id>", methods=["GET", "POST"])

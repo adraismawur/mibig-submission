@@ -8,22 +8,22 @@ Claiming {{ bgc_id }} review
 
 {% block body %}
 
-<div class="form-wrapper">
+<div class="form-wrapper center-align">
     <h4>Confirm claim</h4>
 
     <form method="post" class="container">
         <div class="form-group row">
             <div class="row">
-                <h3>Are you sure you want to start reviewing this submission?</h3>
+                <h4>Are you sure you want to start reviewing this submission?</h4>
 
-                <h2>{{ bgc_id }}</h2>
+                <h5>{{ bgc_id }} {{ category }}</h5>
                 <!-- 
                 <span style="white-space: pre-line;">
                     {{ entry_json }}
                 </span> -->
 
-                <small>This will prevent the submitter from re-drafting this submission, and will allow you exclusively
-                    to review the submission</small>
+                <h6>This will prevent the submitter from re-drafting this submission, and will allow you exclusively
+                    to review the submission</h6>
 
 
 

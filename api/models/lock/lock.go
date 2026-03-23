@@ -15,6 +15,7 @@ const (
 	Biosynth        LockingCategory = "biosynth"
 	Compounds       LockingCategory = "compounds"
 	GeneInformation LockingCategory = "gene_information"
+	Final           LockingCategory = "finalize"
 	Full            LockingCategory = "full"
 )
 

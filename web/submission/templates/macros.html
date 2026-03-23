@@ -178,11 +178,30 @@
         </div>
         {% endmacro %}
 
-        {% macro list_user_submissions(user_submissions) %}
+        {% macro list_submissions(existing_submissions, submission_start, submission_limit, submission_search,
+        submission_count) %}
 
-        <div class="form-group subgroup">
+        <div id="submission-list" class="form-group subgroup">
+            <div class="">
+                <div class="row">
+                    <div class="col s5">
+                        <input type="text" class="form-control" id="submissionSearch"
+                            placeholder="Search for submission or mutation" value="{{submission_search}}">
+                    </div>
+                    <div class="col s2">
+                        <button id="submissionSearchBtn" class="btn btn-primary">Search</button>
+                        <script type="application/javascript">
+                            const submissionSearchBtn = document.getElementById('submissionSearchBtn');
+                            const submissionSearch = document.getElementById('submissionSearch');
+                            submissionSearchBtn.addEventListener('click', () => {
+                                document.location.href = "?submission_search=" + submissionSearch.value + "#submission-list";
+                            });
+                        </script>
+                    </div>
+                </div>
+            </div>
             <div class="row">
-                {% if user_submissions | count == 0 %}
+                {% if existing_submissions | count == 0 %}
                 <div class="col 3"></div>
                 <div class="col 6">There are no submissions or mutations to display.</div>
                 {% else %}
@@ -190,41 +209,43 @@
                     <thead class="table-header">
                         <th>Accession</th>
                         <th>Type</th>
-                        <th>Source</th>
-                        <th>Category</th>
-                        <th>State</th>
+                        <th>Creator</th>
                         <th></th>
                     </thead>
-                    {% for submission in user_submissions %}
-                    <tr>
+                    {% for submission in existing_submissions %}
+                    <tr class="{{ 'blue lighten-5' if submission.owner else '' }}">
                         <td>{{ submission.accession }}</td>
-                        <td>{{ submission.type }}</td>
-                        <td>{{ submission.source_accession }}</td>
-                        <td>{{ submission.category or "N/A" }}</td>
-                        <td>{{ submission.state }}</td>
+                        <td>{{ submission.type if submission.type == "new submission" else "mutation of " +
+                            submission.source_accession }}</td>
+                        <td>{{ "You" if submission.owner else "Someone else" }}</td>
+                        <td></td>
                         <td>
 
-                            {% if submission.state == "draft" %}
                             <a href="{{url_for('edit.edit_bgc_redirect', bgc_id=submission.accession)}}"><button
                                     class="btn btn-primary">Edit</button></a>
-                            {% endif %}
-                            {% if submission.state == "draft" %}
-                            <a href="{{url_for('edit.promote_bgc', bgc_id=submission.accession)}}"><button
-                                    class="btn btn-danger green">Send to reviewer</button></a>
-                            {% endif %}
-                            {% if submission.state == "draft" %}
-                            <a href="{{url_for('edit.discard_bgc', bgc_id=submission.accession)}}"><button
-                                    class="btn btn-danger red">Discard</button></a>
-                            {% endif %}
-
-                            {% if submission.state == "pending review" %}
-                            <a href="{{url_for('edit.redraft_bgc', bgc_id=submission.accession)}}"><button
-                                    class="btn btn-danger red">Redraft</button></a>
-                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
                 </table>
+                <div class="container">
+                    <div class="row">
+                        <div class="col s1 offset-s4">
+                            {% if submission_start | int > 0 %}
+                            <a href="/?submission_start={{[0, submission_start | int - 10] | max}}#submission-list"><button
+                                    class="btn btn-primary">&lt;</button></a>
+                            {% endif %}
+                        </div>
+                        <div class="col s2 center-align">
+                            {{submission_start | int + 1}} - {{[submission_count, submission_start | int + 10 ] | min}}
+                        </div>
+                        <div class="col s1">
+                            {% if submission_start | int + 10 < submission_count %} <a
+                                href="/?submission_start={{[submission_count, submission_start | int + 10 ] | min}}#submission-list">
+                                <button class="btn btn-primary">&gt;</button></a>
+                                {% endif %}
+                        </div>
+                    </div>
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -232,7 +253,7 @@
         {% endmacro %}
 
 
-        {% macro list_existing_entries(existing_entries, start, limit, search, record_count) %}
+        {% macro list_existing_entries(existing_entries, entry_start, entry_limit, entry_search, entry_count) %}
 
         <div id="existing-entry" class="form-group subgroup">
             <div class="">
@@ -247,10 +268,7 @@
                             const searchBtn = document.getElementById('searchBtn');
                             const bgcSearch = document.getElementById('bgcSearch');
                             searchBtn.addEventListener('click', () => {
-                                if (bgcSearch.value === "") {
-                                    return;
-                                }
-                                document.location.href = "?search=" + bgcSearch.value + "#existing-entry";
+                                document.location.href = "?entry_search=" + bgcSearch.value + "#existing-entry";
                             });
                         </script>
                     </div>
@@ -276,18 +294,18 @@
             <div class="container">
                 <div class="row">
                     <div class="col s1 offset-s4">
-                        {% if start | int > 0 %}
-                        <a href="/?start={{[0, start | int - 10] | max}}#existing-entry"><button
+                        {% if entry_start | int > 0 %}
+                        <a href="/?entry_start={{[0, entry_start | int - 10] | max}}#existing-entry"><button
                                 class="btn btn-primary">&lt;</button></a>
                         {% endif %}
                     </div>
                     <div class="col s2 center-align">
-                        {{start | int + 1}} - {{[record_count, start | int + 10 ] | min}}
+                        {{entry_start | int + 1}} - {{[entry_count, entry_start | int + 10 ] | min}}
                     </div>
                     <div class="col s1">
-                        {% if start | int + 10 < record_count %} <a
-                            href="/?start={{[record_count, start | int + 10 ] | min}}#existing-entry"><button
-                                class="btn btn-primary">&gt;</button></a>
+                        {% if entry_start | int + 10 < entry_count %} <a
+                            href="/?entry_start={{[entry_count, entry_start | int + 10 ] | min}}#existing-entry">
+                            <button class="btn btn-primary">&gt;</button></a>
                             {% endif %}
                     </div>
                 </div>
