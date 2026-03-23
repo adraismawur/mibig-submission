@@ -50,11 +50,12 @@
 <div id="{{field.id}}" class="subform">
     {{descr(field)}}
 
-    {% if field.max_entries==1 %}
+    {% for subfield in field %}
+
+    {% if field.min_entries and loop.index <= field.min_entries %}
     {% set ns.delete=false %}
     {% endif %}
 
-    {% for subfield in field %}
     {{simple_divsubform(subfield, deletebtn=ns.delete)}}
     {% endfor %}
     {{field}}
