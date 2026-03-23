@@ -127,7 +127,7 @@ Editing {{ bgc_id }}
         {% else %}
         <div>No biosynthetic modules yet. Add new biosynthetic modules using the button below</div>
         {% endif %}
-        <a href="{{url_for('edit.create_biosynth_module_new', bgc_id=bgc_id)}}">
+        <a href="{{url_for('edit.create_biosynth_module', bgc_id=bgc_id, module='cal')}}">
             <button class="btn btn-primary" type="button">Add new module</button>
         </a>
     </div>

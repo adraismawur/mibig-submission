@@ -503,13 +503,6 @@ def remove_biosynth_class(bgc_id: str, class_id: int):
     )
 
 
-@bp_edit.route("/<bgc_id>/biosynth/new_module", methods=["GET"])
-@login_required
-def create_biosynth_module_new(bgc_id):
-
-    return create_biosynth_module(bgc_id, None)
-
-
 @bp_edit.route("/<bgc_id>/biosynth/new_module/<module>", methods=["GET", "POST"])
 @login_required
 def create_biosynth_module(bgc_id: str, module: str) -> Union[str, response.Response]:
