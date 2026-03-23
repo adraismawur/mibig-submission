@@ -92,12 +92,20 @@ Editing {{ bgc_id }}
             <tbody id="module-table">
                 <tr>
                     <th>Accession</th>
+                    <th>Gene name</th>
+                    <th>product</th>
                     <th></th>
                 </tr>
                 {% for gene_annotation in form.annotations %}
                 <tr>
                     <td>
                         {{gene_annotation['accession'].data}}
+                    </td>
+                    <td>
+                        {{gene_annotation['name'].data}}
+                    </td>
+                    <td>
+                        {{gene_annotation['product'].data}}
                     </td>
                     <td>
                         <a
@@ -118,7 +126,7 @@ Editing {{ bgc_id }}
             <button class="btn btn-primary" type="button">Add new gene annotation</button>
         </a>
     </div>
-    
+
 
     <div class="form-group">
         {{ macros.render_wizard_nav(show_nav, bgc_id, prev_form, next_form, show_save=False)}}
