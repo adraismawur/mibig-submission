@@ -33,18 +33,19 @@ Editing {{ bgc_id }}
     <div class="">
         <div class="form-group row">
             <div class="col">
-                <select id="class-select" class="form-select">
+                <label class="form-label fw-bold" for="class-select">Class *</label>
+                <select id="class-select" class="form-select" onchange="createNewClass()">
                     {% for choice in choices %}
                     <option value="{{choice.value}}" {{'selected' if class_type==choice.value}}>{{choice.label}}
                     </option>
                     {% endfor %}
                 </select>
             </div>
-            <div class="col">
+            <!-- <div class="col">
                 <button class="btn btn-primary" onclick="createNewClass()">{{'Select' if class_type == None else
                     'Change'}}
                     class</button>
-            </div>
+            </div> -->
         </div>
     </div>
     {% if form %}

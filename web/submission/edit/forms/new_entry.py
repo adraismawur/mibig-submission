@@ -86,4 +86,4 @@ class NewEntryForm(Form):
         ),
     )
 
-    submit = SubmitField("Submit", widget=SubmitIndicator())
+    submit = SubmitField("Create new entry", widget=SubmitIndicator())

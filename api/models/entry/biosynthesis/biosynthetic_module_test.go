@@ -96,11 +96,8 @@ var testModule = BiosyntheticModule{
 				"y",
 				"z",
 			},
-			Stereochemistry: pq.StringArray{
-				"aa",
-				"bb",
-			},
-			Details: "cc",
+			Stereochemistry: "aa",
+			Details:         "bb",
 		},
 	},
 	CDomainID: 1,

@@ -195,7 +195,7 @@ var testBiosynthDomainTestData = ModificationDomain{
 		},
 	},
 	References:      []string{"i"},
-	Stereochemistry: []string{"j"},
+	Stereochemistry: "j",
 	Details:         "k",
 }
 
@@ -281,7 +281,7 @@ func TestUpdateModificationDomain(t *testing.T) {
 			},
 		},
 		References:      []string{"i_test"},
-		Stereochemistry: []string{"j_test"},
+		Stereochemistry: "j_test",
 		Details:         "k_test",
 	}
 

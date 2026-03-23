@@ -389,13 +389,6 @@ def edit_biosynth_operons(bgc_id: str) -> Union[str, response.Response]:
         reviewed=reviewed,
     )
 
-
-@bp_edit.route("/<bgc_id>/biosynth/new_class", methods=["GET"])
-@login_required
-def create_biosynth_class_new(bgc_id):
-    return create_biosynth_class(bgc_id, None)
-
-
 @bp_edit.route("/<bgc_id>/biosynth/new_class/<class_type>", methods=["GET", "POST"])
 @login_required
 def create_biosynth_class(

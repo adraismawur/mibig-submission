@@ -15,7 +15,7 @@ Editing {{ bgc_id }}
     <h4>Enter {{ form_description }}</h4>
 
     <div class="form-group">
-        <p class="form-label fw-bold">Classes</p>
+        <p class="form-label fw-bold">Biosynthetic classes</p>
         {% if form.classes.data | length > 0 %}
         {{ macros.descr(form.classes) }}
         <table class="table">
@@ -49,7 +49,7 @@ Editing {{ bgc_id }}
         {% else %}
         <div>No biosynthetic classes yet. Add new biosynthetic classes using the button below</div>
         {% endif %}
-        <a href="{{url_for('edit.create_biosynth_class_new', bgc_id=bgc_id)}}">
+        <a href="{{url_for('edit.create_biosynth_class', bgc_id=bgc_id, class_type='NRPS')}}">
             <button class="btn btn-primary" type="button">Add new class</button>
         </a>
     </div>
