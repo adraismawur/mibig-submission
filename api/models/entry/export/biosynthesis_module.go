@@ -11,6 +11,7 @@ type IntegratedMonomer struct {
 type BiosyntheticModule struct {
 	Type                string                   `json:"type"`
 	Name                string                   `json:"name"`
+	Index               uint64                   `json:"-"`
 	Genes               pq.StringArray           `json:"genes" gorm:"type:text[]"`
 	Active              bool                     `json:"active"`
 	IntegratedMonomers  []IntegratedMonomer      `json:"integrated_monomers" gorm:"foreignKey:BiosyntheticModuleID"`
