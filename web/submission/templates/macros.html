@@ -61,290 +61,290 @@
     {{field}}
 </div>
 
-{% elif field.name == 'structure' %}
+        {% elif field.name == 'structure' %}
 
-<div id="{{field.id}}" class="subform">
-    {{field.label(class='form-label'~is_required)}}
-    {{descr(field)}}
-    {{ field(class='form-control' + (' is-invalid' if field.errors else '')) }}
-    <img src="{{url_for('edit.render_smiles', smiles_string=field.data)}}" alt="SMILES render"
-        style="min-height: 100px;">
-</div>
-
-{% elif field.type == 'FormField' %}
-{{field.label(class='form-label'~is_required)}}
-<div id="{{field.id}}" class="subform">
-    {{descr(field)}}
-    {{ simple_divsubform(field, deletebtn=false) }}
-</div>
-
-{% elif field.type == 'BooleanField' %}
-
-<div class="form-check">
-    {{descr(field)}}
-    <label>
-        {{ field(class='form-check-input filled-in blue' + (' is-invalid' if field.errors else '')) }}
-        <span style="color:black">
-            {{field.label.text}}
-        </span>
-    </label>
-
-</div>
-
-{% elif field.type == "SelectField" or field.type == "SelectMultipleField" %}
-{{field.label(class='form-label'~is_required)}}
-{{descr(field)}}
-{{ field(class='form-select' + (' is-invalid' if field.errors else '')) }}
-
-{% else %}
-{{field.label(class='form-label'~is_required)}}
-{{descr(field)}}
-{{ field(class='form-control' + (' is-invalid' if field.errors else '')) }}
-{% endif %}
-
-{% if field.errors %}
-{% for error in field.errors %}
-<div class="invalid-feedback">{{ error }}</div>
-{% endfor %}
-{% endif %}
-
-{% endif %}
-{% endif %}
-{% endmacro %}
-
-{% macro simple_divsubform(form, deletebtn=false, message=false) %}
-<fieldset>
-    <div id="{{form.id}}" class="form-group subgroup">
-        {% if message %}
-        <span class="form-text text-muted fst-italic">{{icon("pen") | safe}} {{message}}</span>
-        {% endif %}
-
-        {% if deletebtn %}
-        <button class='btn btn-sm red btn-del' type="button" hx-delete='/delete' hx-target='closest fieldset'
-            hx-swap='outerHTML'>&#x2715;</button>
-        {% endif %}
-        {% if form.type != "FormField" and form.type != "HiddenField" %}
-        <div class="form-field">
-            {{render_field(form)}}
+        <div id="{{field.id}}" class="subform">
+            {{field.label(class='form-label'~is_required)}}
+            {{descr(field)}}
+            {{ field(class='form-control' + (' is-invalid' if field.errors else '')) }}
+            <img src="{{url_for('edit.render_smiles', smiles_string=field.data)}}" alt="SMILES render"
+                style="min-height: 100px;">
         </div>
-        {% else %}
 
-        {% if form.type == "HiddenField" %}
-        {{field}}
-        {% else %}
+        {% elif field.type == 'FormField' %}
+        {{field.label(class='form-label'~is_required)}}
+        <div id="{{field.id}}" class="subform">
+            {{descr(field)}}
+            {{ simple_divsubform(field, deletebtn=false) }}
+        </div>
 
-        {% for field in form %}
-        <div class="form-field">
-            {{render_field(field)}}
+        {% elif field.type == 'BooleanField' %}
+
+        <div class="form-check">
+            {{descr(field)}}
+            <label>
+                {{ field(class='form-check-input filled-in blue' + (' is-invalid' if field.errors else '')) }}
+                <span style="color:black">
+                    {{field.label.text}}
+                </span>
+            </label>
 
         </div>
+
+        {% elif field.type == "SelectField" or field.type == "SelectMultipleField" %}
+        {{field.label(class='form-label'~is_required)}}
+        {{descr(field)}}
+        {{ field(class='form-select' + (' is-invalid' if field.errors else '')) }}
+
+        {% else %}
+        {{field.label(class='form-label'~is_required)}}
+        {{descr(field)}}
+        {{ field(class='form-control' + (' is-invalid' if field.errors else '')) }}
+        {% endif %}
+
+        {% if field.errors %}
+        {% for error in field.errors %}
+        <div class="invalid-feedback">{{ error }}</div>
         {% endfor %}
         {% endif %}
+
         {% endif %}
+        {% endif %}
+        {% endmacro %}
 
-    </div>
+        {% macro simple_divsubform(form, deletebtn=false, message=false) %}
+        <fieldset>
+            <div id="{{form.id}}" class="form-group subgroup">
+                {% if message %}
+                <span class="form-text text-muted fst-italic">{{icon("pen") | safe}} {{message}}</span>
+                {% endif %}
+
+                {% if deletebtn %}
+                <button class='btn btn-sm red btn-del' type="button" hx-delete='/delete' hx-target='closest fieldset'
+                    hx-swap='outerHTML'>&#x2715;</button>
+                {% endif %}
+                {% if form.type != "FormField" and form.type != "HiddenField" %}
+                <div class="form-field">
+                    {{render_field(form)}}
+                </div>
+                {% else %}
+
+                {% if form.type == "HiddenField" %}
+                {{field}}
+                {% else %}
+
+                {% for field in form %}
+                <div class="form-field">
+                    {{render_field(field)}}
+
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endif %}
+
+            </div>
 
 
-</fieldset>
-{% endmacro %}
+        </fieldset>
+        {% endmacro %}
 
-{% macro list_user_actions(current_user) %}
-<div class="form-group subgroup">
-    <table class="table">
-        <thead class="table-header">
-            <th>Action</th>
-            <th>Description</th>
-        </thead>
-        {% if current_user.is_submitter() %}
-        <tr>
+        {% macro list_user_actions(current_user) %}
+        <div class="form-group subgroup">
+            <table class="table">
+                <thead class="table-header">
+                    <th>Action</th>
+                    <th>Description</th>
+                </thead>
+                {% if current_user.is_submitter() %}
+                <tr>
             <td><a href="{{url_for('new.new_entry')}}"><button class="btn btn-primary">New submission</button></a></td>
-            <td>Create a new draft submission</td>
-        </tr>
-        {% endif %}
-        {% if current_user.is_reviewer() %}
-        <tr>
+                    <td>Create a new draft submission</td>
+                </tr>
+                {% endif %}
+                {% if current_user.is_reviewer() %}
+                <tr>
             <td><a href="{{url_for('review.list_submissions')}}"><button class="btn btn-primary">Review</button></a>
-            </td>
-            <td>Review pending submissions and mutations</td>
-        </tr>
-        {% endif %}
-        {% if current_user.is_admin() %}
-        <tr>
+                    </td>
+                    <td>Review pending submissions and mutations</td>
+                </tr>
+                {% endif %}
+                {% if current_user.is_admin() %}
+                <tr>
             <td><a href="{{url_for('admin.list_users')}}"><button class="btn btn-primary">Users</button></a></td>
-            <td>Add, change and remove users</td>
-        </tr>
-        {% endif %}
-    </table>
-</div>
-{% endmacro %}
-
-{% macro list_user_submissions(user_submissions) %}
-
-<div class="form-group subgroup">
-    <div class="row">
-        {% if user_submissions | count == 0 %}
-        <div class="col 3"></div>
-        <div class="col 6">You have no (draft) submissions or mutations yet.</div>
-        {% else %}
-        <table class="table">
-            <thead class="table-header">
-                <th>Accession</th>
-                <th>Type</th>
-                <th>Source</th>
-                <th>Category</th>
-                <th>State</th>
-                <th></th>
-            </thead>
-            {% for submission in user_submissions %}
-            <tr>
-                <td>{{ submission.accession }}</td>
-                <td>{{ submission.type }}</td>
-                <td>{{ submission.source_accession }}</td>
-                <td>{{ submission.category or "N/A" }}</td>
-                <td>{{ submission.state }}</td>
-                <td>
-
-                    {% if submission.state == "draft" %}
-                    <a href="{{url_for('edit.edit_bgc_redirect', bgc_id=submission.accession)}}"><button
-                            class="btn btn-primary">Edit</button></a>
-                    {% endif %}
-                    {% if submission.state == "draft" %}
-                    <a href="{{url_for('edit.promote_bgc', bgc_id=submission.accession)}}"><button
-                            class="btn btn-danger green">Send to reviewer</button></a>
-                    {% endif %}
-                    {% if submission.state == "draft" %}
-                    <a href="{{url_for('edit.discard_bgc', bgc_id=submission.accession)}}"><button
-                            class="btn btn-danger red">Discard</button></a>
-                    {% endif %}
-
-                    {% if submission.state == "pending review" %}
-                    <a href="{{url_for('edit.redraft_bgc', bgc_id=submission.accession)}}"><button
-                            class="btn btn-danger red">Redraft</button></a>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-        {% endif %}
-    </div>
-</div>
-
-{% endmacro %}
-
-
-{% macro list_existing_entries(existing_entries, start, limit, search, record_count) %}
-
-<div id="existing-entry" class="form-group subgroup">
-    <div class="">
-        <div class="row">
-            <div class="col">
-                <input type="text" class="form-control" id="bgcSearch" placeholder="Search for BGC ID"
-                    value="{{search}}">
-            </div>
-            <div class="col">
-                <button id="searchBtn" class="btn btn-primary">Search</button>
-                <script type="application/javascript">
-                    const searchBtn = document.getElementById('searchBtn');
-                    const bgcSearch = document.getElementById('bgcSearch');
-                    searchBtn.addEventListener('click', () => {
-                        if (bgcSearch.value === "") {
-                            return;
-                        }
-                        document.location.href = "?search=" + bgcSearch.value + "#existing-entry";
-                    });
-                </script>
-            </div>
+                    <td>Add, change and remove users</td>
+                </tr>
+                {% endif %}
+            </table>
         </div>
-    </div>
-    <table class="table">
-        <thead class="table-header">
-            <th>Accession</th>
-            <th>Status</th>
-            <th>Completeness</th>
-            <th></th>
-        </thead>
-        {% for entry in existing_entries %}
-        <tr>
-            <td>{{ entry.accession }}</td>
-            <td>{{ entry.status }}</td>
-            <td>{{ entry.completeness }}</td>
-            <td><a href="{{url_for('new.create_bgc_mutation', bgc_id=entry.accession)}}"><button
-                        class="btn btn-primary">Edit</button></a></td>
-        </tr>
-        {% endfor %}
-    </table>
-    <div class="container">
-        <div class="row">
-            <div class="col s1 offset-s4">
-                {% if start | int > 0 %}
-                <a href="/?start={{[0, start | int - 10] | max}}#existing-entry"><button
-                        class="btn btn-primary">&lt;</button></a>
+        {% endmacro %}
+
+        {% macro list_user_submissions(user_submissions) %}
+
+        <div class="form-group subgroup">
+            <div class="row">
+                {% if user_submissions | count == 0 %}
+                <div class="col 3"></div>
+                <div class="col 6">There are no submissions or mutations to display.</div>
+                {% else %}
+                <table class="table">
+                    <thead class="table-header">
+                        <th>Accession</th>
+                        <th>Type</th>
+                        <th>Source</th>
+                        <th>Category</th>
+                        <th>State</th>
+                        <th></th>
+                    </thead>
+                    {% for submission in user_submissions %}
+                    <tr>
+                        <td>{{ submission.accession }}</td>
+                        <td>{{ submission.type }}</td>
+                        <td>{{ submission.source_accession }}</td>
+                        <td>{{ submission.category or "N/A" }}</td>
+                        <td>{{ submission.state }}</td>
+                        <td>
+
+                            {% if submission.state == "draft" %}
+                            <a href="{{url_for('edit.edit_bgc_redirect', bgc_id=submission.accession)}}"><button
+                                    class="btn btn-primary">Edit</button></a>
+                            {% endif %}
+                            {% if submission.state == "draft" %}
+                            <a href="{{url_for('edit.promote_bgc', bgc_id=submission.accession)}}"><button
+                                    class="btn btn-danger green">Send to reviewer</button></a>
+                            {% endif %}
+                            {% if submission.state == "draft" %}
+                            <a href="{{url_for('edit.discard_bgc', bgc_id=submission.accession)}}"><button
+                                    class="btn btn-danger red">Discard</button></a>
+                            {% endif %}
+
+                            {% if submission.state == "pending review" %}
+                            <a href="{{url_for('edit.redraft_bgc', bgc_id=submission.accession)}}"><button
+                                    class="btn btn-danger red">Redraft</button></a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
                 {% endif %}
             </div>
-            <div class="col s2 center-align">
-                {{start | int + 1}} - {{[record_count, start | int + 10 ] | min}}
+        </div>
+
+        {% endmacro %}
+
+
+        {% macro list_existing_entries(existing_entries, start, limit, search, record_count) %}
+
+        <div id="existing-entry" class="form-group subgroup">
+            <div class="">
+                <div class="row">
+                    <div class="col">
+                        <input type="text" class="form-control" id="bgcSearch" placeholder="Search for BGC ID"
+                            value="{{search}}">
+                    </div>
+                    <div class="col">
+                        <button id="searchBtn" class="btn btn-primary">Search</button>
+                        <script type="application/javascript">
+                            const searchBtn = document.getElementById('searchBtn');
+                            const bgcSearch = document.getElementById('bgcSearch');
+                            searchBtn.addEventListener('click', () => {
+                                if (bgcSearch.value === "") {
+                                    return;
+                                }
+                                document.location.href = "?search=" + bgcSearch.value + "#existing-entry";
+                            });
+                        </script>
+                    </div>
+                </div>
             </div>
-            <div class="col s1">
-                {% if start | int + 10 < record_count %} <a
-                    href="/?start={{[record_count, start | int + 10 ] | min}}#existing-entry"><button
-                        class="btn btn-primary">&gt;</button></a>
-                    {% endif %}
+            <table class="table">
+                <thead class="table-header">
+                    <th>Accession</th>
+                    <th>Status</th>
+                    <th>Completeness</th>
+                    <th></th>
+                </thead>
+                {% for entry in existing_entries %}
+                <tr>
+                    <td>{{ entry.accession }}</td>
+                    <td>{{ entry.status }}</td>
+                    <td>{{ entry.completeness }}</td>
+                    <td><a href="{{url_for('new.create_bgc_mutation', bgc_id=entry.accession)}}"><button
+                                class="btn btn-primary">Edit</button></a></td>
+                </tr>
+                {% endfor %}
+            </table>
+            <div class="container">
+                <div class="row">
+                    <div class="col s1 offset-s4">
+                        {% if start | int > 0 %}
+                        <a href="/?start={{[0, start | int - 10] | max}}#existing-entry"><button
+                                class="btn btn-primary">&lt;</button></a>
+                        {% endif %}
+                    </div>
+                    <div class="col s2 center-align">
+                        {{start | int + 1}} - {{[record_count, start | int + 10 ] | min}}
+                    </div>
+                    <div class="col s1">
+                        {% if start | int + 10 < record_count %} <a
+                            href="/?start={{[record_count, start | int + 10 ] | min}}#existing-entry"><button
+                                class="btn btn-primary">&gt;</button></a>
+                            {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
 
-{% endmacro %}
+        {% endmacro %}
 
-{% macro render_wizard_nav(show_nav, bgc_id, prev_form, next_form, show_save=True) %}
-{% if show_save %}
-<div class="row">
-    <div class="col s12">
-        <input type="submit" value="Save changes" class="btn btn-large btn-wide green" />
-    </div>
-</div>
-{% endif %}
-<div class="row">
-    <div class="col s4 center-align">
-        {% if show_nav and prev_form %}
-        <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=prev_form.id) }}">
-            <button id="back-btn" class="btn btn-secondary btn-large btn-nav" type="button">
-                Prev: {{ prev_form.description }}
-            </button>
-        </a>
-        {%- endif %}
-    </div>
-    <div class="col s4 center-align">
-        <a href="{{ url_for('edit.edit_bgc_redirect', bgc_id=bgc_id) }}">
-            <button id="back-btn" class="btn btn-secondary btn-large btn-nav" type="button">
-                Back to edit overview
-            </button>
-        </a>
-    </div>
-    <div class="col s4 center-align">
-        {% if show_nav and next_form %}
-        <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=next_form.id) }}">
-            <button id="back-btn" class="btn btn-secondary btn-large btn-nav" type="button">
-                Next: {{ next_form.description }}
-            </button>
-        </a>
-        {%- endif %}
-    </div>
+        {% macro render_wizard_nav(show_nav, bgc_id, prev_form, next_form, show_save=True) %}
+        {% if show_save %}
+        <div class="row">
+            <div class="col s12">
+                <input type="submit" value="Save changes" class="btn btn-large btn-wide green" />
+            </div>
+        </div>
+        {% endif %}
+        <div class="row">
+            <div class="col s4 center-align">
+                {% if show_nav and prev_form %}
+                <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=prev_form.id) }}">
+                    <button id="back-btn" class="btn btn-secondary btn-large btn-nav" type="button">
+                        Prev: {{ prev_form.description }}
+                    </button>
+                </a>
+                {%- endif %}
+            </div>
+            <div class="col s4 center-align">
+                <a href="{{ url_for('edit.edit_bgc_redirect', bgc_id=bgc_id) }}">
+                    <button id="back-btn" class="btn btn-secondary btn-large btn-nav" type="button">
+                        Back to edit overview
+                    </button>
+                </a>
+            </div>
+            <div class="col s4 center-align">
+                {% if show_nav and next_form %}
+                <a href="{{ url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=next_form.id) }}">
+                    <button id="back-btn" class="btn btn-secondary btn-large btn-nav" type="button">
+                        Next: {{ next_form.description }}
+                    </button>
+                </a>
+                {%- endif %}
+            </div>
 
-</div>
+        </div>
 
-{% endmacro %}
+        {% endmacro %}
 
-{% macro descr(field) %}
+        {% macro descr(field) %}
 
-{% if field.description %}
-<p class="form-text grey-text text-darken-1" style="margin-bottom:0">{{field.description}}</p>
-{% endif %}
+        {% if field.description %}
+        <p class="form-text grey-text text-darken-1" style="margin-bottom:0">{{field.description}}</p>
+        {% endif %}
 
-{% endmacro %}
+        {% endmacro %}
 
-{% macro icon(name) -%}
-<svg xmlns="http://www.w3.org/2000/svg" height="1em" width="1em" fill="currentColor">
-    <use xlink:href="/static/img/icons.svg#{{ name }}"></use>
-</svg>
-{%- endmacro %}
+        {% macro icon(name) -%}
+        <svg xmlns="http://www.w3.org/2000/svg" height="1em" width="1em" fill="currentColor">
+            <use xlink:href="/static/img/icons.svg#{{ name }}"></use>
+        </svg>
+        {%- endmacro %}
