@@ -105,8 +105,6 @@ func listEntries(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	slog.Info(q.Statement.SQL.String())
-
 	var recordCount int64
 
 	q = db.Table("entries")
