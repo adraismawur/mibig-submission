@@ -32,7 +32,7 @@ Editing {{ bgc_id }}
                     <td>{{class['subclass'].data}}</td>
                     <td>
                         <a
-                            href="{{ url_for('edit.edit_biosynth_class', bgc_id=bgc_id, class_id=class['db_id'].data, class_type=class['class_'].data) }}">
+                            href="{{ url_for('edit.edit_biosynth_class', bgc_id=bgc_id, class_id=class['db_id'].data, class_type='class_other' if class['class_'].data == 'other' else class['class_'].data) }}">
                             <button type="button" class="btn btn-primary" type="button">Edit</button>
                         </a>
                     </td>
