@@ -15,6 +15,7 @@ import requests
 from submission.main import bp_main
 from submission.main.forms import SelectExisting, UserDetailsEditForm
 from submission.auth import auth_role
+from submission.main.forms.user_details import UserInfoForm
 from submission.models.users import Role, User, UserInfo
 from submission.utils import Storage
 
@@ -159,3 +160,23 @@ def submitter():
 @auth_role(Role.REVIEWER)
 def reviewer():
     return render_template("main/reviewer.html.j2", name=current_user.info.name)
+
+@bp_main.route("/register", methods=["GET", "POST"])
+@login_required
+def register_first_time():
+
+    if request.form:
+        form = UserInfoForm(request.form)
+    else:
+        form = UserInfoForm()
+
+    if request.method == "POST":
+        response = requests.patch(
+            f"{current_app.config['API_BASE']}/user/register",
+            json=form.data,
+            headers={"Authorization": "Bearer " + session["token"]},
+        )
+
+        if response.status_code == 200:
+            return(redirect(url_for('main.index')))
+

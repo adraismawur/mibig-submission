@@ -3,6 +3,7 @@ package endpoints
 import (
 	"github.com/adraismawur/mibig-submission/middleware"
 	"github.com/adraismawur/mibig-submission/models"
+	"github.com/adraismawur/mibig-submission/util"
 	"github.com/gin-gonic/gin"
 	"github.com/sethvargo/go-password/password"
 	"gorm.io/gorm"
@@ -60,6 +61,27 @@ func UserEndpoint(db *gorm.DB) Endpoint {
 				Path:   UserPath + "/password/:id",
 				Handler: func(c *gin.Context) {
 					updateUserPassword(db, c)
+				},
+			},
+			{
+				Method: http.MethodPost,
+				Path:   UserPath + "/password/reset",
+				Handler: func(c *gin.Context) {
+					passwordResetRequest(db, c)
+				},
+			},
+			{
+				Method: http.MethodPost,
+				Path:   UserPath + "/password/challenge",
+				Handler: func(c *gin.Context) {
+					passwordResetChallenge(db, c)
+				},
+			},
+			{
+				Method: http.MethodPost,
+				Path:   UserPath + "/register",
+				Handler: func(c *gin.Context) {
+					registerFirstTimeUser(db, c)
 				},
 			},
 			{
@@ -295,6 +317,165 @@ func updateUserPassword(db *gorm.DB, c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Password updated"})
+}
+
+func passwordResetRequest(db *gorm.DB, c *gin.Context) {
+	var request struct {
+		Email string `json:"email"`
+	}
+
+	err := c.ShouldBindJSON(&request)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "could not bind password reset request challenge json: " + err.Error()})
+		return
+	}
+
+	err = db.Transaction(func(tx *gorm.DB) error {
+
+		exists, transactionErr := models.GetUserExistsByEmail(tx, request.Email)
+
+		// keep success vague for security reasons
+		if transactionErr != nil || !exists {
+			c.Status(http.StatusOK)
+			return transactionErr
+		}
+
+		// from here on we can create the challenge
+		randomString := util.RandomString(10)
+		newChallenge := models.PasswordChallenge{
+			Email:     request.Email,
+			Challenge: randomString,
+		}
+
+		transactionErr = tx.
+			Create(&newChallenge).
+			Error
+
+		if transactionErr != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate password challenge"})
+			return transactionErr
+		}
+
+		c.JSON(http.StatusOK, newChallenge)
+
+		return nil
+	})
+
+	if err != nil {
+		slog.Error("[endpoints] [user] handling password reset request threw an error: " + err.Error())
+	}
+
+	return
+}
+
+func passwordResetChallenge(db *gorm.DB, c *gin.Context) {
+	var request struct {
+		models.PasswordChallenge
+		NewPassword string `json:"new_password"`
+	}
+
+	err := c.ShouldBindJSON(&request)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "could not bind password request challenge json: " + err.Error()})
+		return
+	}
+
+	err = db.Transaction(func(tx *gorm.DB) error {
+		var matchingChallenge models.PasswordChallenge
+
+		transactionErr := tx.
+			Model(&models.PasswordChallenge{}).
+			Where("email = $1 AND challenge = $2", request.Email, request.Challenge).
+			Find(&matchingChallenge).
+			Error
+
+		if matchingChallenge.ID == 0 {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Challenge failed"})
+			return transactionErr
+		}
+
+		var userId int
+
+		transactionErr = tx.
+			Model(&models.User{}).
+			Select("id").
+			Where("email = $1", request.Email).
+			Find(&userId).
+			Error
+
+		if transactionErr != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "could not get user associated with email"})
+			return transactionErr
+		}
+
+		transactionErr = models.UpdateUserPassword(tx, userId, request.NewPassword)
+
+		if transactionErr != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "could not update user password"})
+			return transactionErr
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+func registerFirstTimeUser(db *gorm.DB, c *gin.Context) {
+	var userInfo models.UserInfo
+
+	err := db.Transaction(func(tx *gorm.DB) error {
+		transactionErr := c.ShouldBindJSON(&userInfo)
+
+		if transactionErr != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "could not bind user info json: " + transactionErr.Error()})
+			return transactionErr
+		}
+
+		user, transactionErr := models.GetUserFromContext(c)
+
+		if transactionErr != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "could not get user from request: " + transactionErr.Error()})
+			return transactionErr
+		}
+
+		transactionErr = tx.
+			Model(&user).
+			Update("Active", true).
+			Error
+
+		if transactionErr != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "could not update user: " + transactionErr.Error()})
+			return transactionErr
+		}
+
+		transactionErr = tx.
+			Model(&models.UserInfo{}).
+			Omit("id").
+			Omit("user_id").
+			Where("user_id = $1", user.ID).
+			Save(&userInfo).
+			Error
+
+		if transactionErr != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "could not update user info: " + transactionErr.Error()})
+			return transactionErr
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return
+	}
+
+	c.Status(http.StatusOK)
 }
 
 func deleteUser(db *gorm.DB, c *gin.Context) {

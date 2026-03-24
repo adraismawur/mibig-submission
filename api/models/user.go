@@ -21,7 +21,7 @@ const (
 // User model that represents a singular user
 type User struct {
 	ID        uint64     `json:"db_id"`
-	anonymous bool       `json:"anonymous"`
+	Anonymous bool       `json:"anonymous"`
 	Email     string     `json:"email" gorm:"unique"`
 	Password  string     `json:"password,omitempty"`
 	Active    bool       `json:"active"`
@@ -33,6 +33,12 @@ type User struct {
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type PasswordChallenge struct {
+	ID        uint64 `json:"-"`
+	Email     string `json:"email"`
+	Challenge string `json:"challenge"`
 }
 
 // UserRole model that represents a list of roles
@@ -60,6 +66,7 @@ func init() {
 	Models = append(Models, &User{})
 	Models = append(Models, &UserRole{})
 	Models = append(Models, &UserInfo{})
+	Models = append(Models, &PasswordChallenge{})
 
 	// password is 'changeme'
 	defaultPassword, err := bcrypt.GenerateFromPassword([]byte("changeme"), bcrypt.DefaultCost)
@@ -234,13 +241,14 @@ func GetUsers(db *gorm.DB, offset int, limit int, search string) ([]User, error)
 func GetUserExistsByEmail(db *gorm.DB, email string) (bool, error) {
 	var count int64
 
-	tx := db.Table("users").
+	err := db.Table("users").
 		Where("email = $1", email).
-		Count(&count)
+		Count(&count).
+		Error
 
-	if tx.Error != nil {
-		slog.Error("[user] Error getting user existence by email", "email", email, "error", tx.Error)
-		return false, tx.Error
+	if err != nil {
+		slog.Error("[user] Error getting user existence by email", "email", email, "error", err.Error())
+		return false, err
 	}
 
 	return count > 0, nil

@@ -1,4 +1,5 @@
 import base64
+import socket
 import requests
 
 from typing import Union
@@ -92,6 +93,7 @@ def login_post() -> response.Response:
 @login_required
 def logout() -> response.Response:
     """Logs out current user and redirects to the login page"""
+    session['token'] = None
     logout_user()
     return redirect(url_for("auth.login"))
 
@@ -102,19 +104,26 @@ def password_email() -> Union[str, response.Response]:
     form = UserEmailForm(request.form)
     if request.method == "POST" and form.validate():
         email = form.email.data
-        user = User.query.filter(User.email.ilike(email)).first()
+        
+        response = requests.post(
+            f"{current_app.config['API_BASE']}/user/password/reset",
+            json={"email": email},
+        )
 
-        if not user:
-            flash("Unknown email address", "warning")
-            return redirect(url_for("auth.password_email"))
+        if response.status_code != 200:
+            flash("could not request password reset email. Please try again later", "error")
+            return render_template("auth/pw_reset_request.html", form=form)
+        
+        data = response.json()
 
-        token_id = Token.generate_token(user.id, "password_reset")
+        socket.setdefaulttimeout(5)
+
         # TODO: send email
         mail.send(
             Message(
                 subject="Change your MIBiG password",
                 recipients=[email],
-                body=f"Hello, click this link {current_app.config['BASE_URL']}/auth/reset/{token_id}",
+                body=f"Hello, click this link {current_app.config['BASE_URL']}/auth/reset/{data['email']}/{data['challenge']}",
             )
         )
         flash("Please check your email")
@@ -123,27 +132,31 @@ def password_email() -> Union[str, response.Response]:
     return render_template("auth/pw_reset_request.html", form=form)
 
 
-@bp_auth.route("/reset/<token_id>", methods=["GET", "POST"])
-def reset_password(token_id: str) -> Union[str, response.Response]:
+@bp_auth.route("/reset/<email>/<token_id>", methods=["GET", "POST"])
+def reset_password(email: str, token_id: str) -> Union[str, response.Response]:
     """Allow a user to change their password via email provided link
 
     Arguments:
         token_id (str): uuid token
     """
-    token: Token = Token.query.filter_by(token_id=token_id).first()
-
-    if not token or token.purpose != "password_reset":
-        abort(403, "Invalid link for password reset")
-
-    if not token.is_created_within(hours=2):
-        abort(403, "Token has expired")
 
     form = PasswordResetForm(request.form)
-    if request.method == "POST" and form.validate():
-        user = User.query.filter_by(id=token.user_id).first()
-        user.password = form.password.data
 
-        token.cleanup_tokens()
+    form['email'].data = email
+    form['challenge'].data = token_id
+
+    if request.method == "POST" and form.validate():
+        response = requests.post(
+            f"{current_app.config['API_BASE']}/user/password/challenge",
+            json=form.data,
+        )
+
+        if response.status_code != 200:
+            flash("could not reset password", "error")
+            return render_template("auth/pw_reset.html", form=form)
+        
+        flash("Password reset successfully")
+        
 
         flash("Successfully changed password")
         return redirect(url_for("auth.login"))

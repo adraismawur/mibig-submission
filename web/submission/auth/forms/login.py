@@ -3,9 +3,11 @@ from wtforms import (
     PasswordField,
     EmailField,
     BooleanField,
+    StringField,
     SubmitField,
     validators,
 )
+from wtforms.widgets import HiddenInput
 
 
 class LoginForm(Form):
@@ -27,9 +29,11 @@ class UserEmailForm(Form):
 
 
 class PasswordResetForm(Form):
-    password = PasswordField("New password")
+    email = StringField(render_kw={"disabled": ""})
+    new_password = PasswordField("New password")
+    challenge = StringField(widget=HiddenInput())
     confirm = PasswordField(
         "Confirm password",
-        validators=[validators.EqualTo("password", "Password mismatch!")],
+        validators=[validators.EqualTo("new_password", "Password mismatch!")],
     )
     submit = SubmitField("Save password")
