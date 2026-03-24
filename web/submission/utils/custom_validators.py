@@ -3,7 +3,7 @@
 import re
 from pathlib import Path
 
-from flask import current_app, session
+from flask import current_app, request, session
 from rdkit import Chem
 from rdkit.Chem import AllChem
 import requests
@@ -95,7 +95,11 @@ def validate_genbank(form, field):
     if form.draft_genome.data:
         return
     
-    session["cached_genbank"] = None
+    if "cached_genbank" not in session:
+        session["cached_genbank"] = {}
+
+    if field.data in session["cached_genbank"]:
+        return
     
     response = requests.get(
         f"{current_app.config['API_BASE']}/validations/genbank/{field.data}",
@@ -108,11 +112,30 @@ def validate_genbank(form, field):
     if response.status_code == 404:
         raise ValidationError("Genbank Accession does not exist")
     
-    session['cached_genbank'] = response.json()['result']
+    session['cached_genbank'][field.data] = response.json()['result']
 
 def validate_loci(form, field):
-    if not session['cached_genbank']:
-        raise ValidationError("Cannot validate loci")
+    if "cached_genbank" not in session:
+        session['cached_genbank'] = {}
+
+    locus_idx = field.id.split('-')[1]
+
+    accession = request.form.get('loci-' + field.id.split('-')[1] + '-accession')
+
+    if accession not in session['cached_genbank']:
+        response = requests.get(
+            f"{current_app.config['API_BASE']}/validations/genbank/{field.data}",
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+
+        if response.status_code == 500:
+            raise ValidationError("Invalid GenBank")
+        
+        if response.status_code == 404:
+            raise ValidationError("Genbank Accession does not exist")
+        
+
+        session['cached_genbank'][field.data] = response.json()['result']
     
     if form.data['from'] == 0 and form.data['to'] == 0:
         return
@@ -120,7 +143,7 @@ def validate_loci(form, field):
     if form.data['from'] == -1 and form.data['to'] == -1:
         return
     
-    sequence_len = int(session['cached_genbank']["slen"])
+    sequence_len = int(session['cached_genbank'][accession]["slen"])
 
     if field == form['from'] and form['from'].data > sequence_len:
         raise ValidationError(f"Start of sequence cannot be greater than sequence length ({sequence_len})")
