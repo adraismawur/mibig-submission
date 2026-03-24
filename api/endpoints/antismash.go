@@ -2,6 +2,7 @@ package endpoints
 
 import (
 	"errors"
+	"fmt"
 	"github.com/adraismawur/mibig-submission/config"
 	"github.com/adraismawur/mibig-submission/middleware"
 	"github.com/adraismawur/mibig-submission/models"
@@ -276,7 +277,7 @@ func AntismashWorker(db *gorm.DB) {
 		request.State = models.Downloading
 		db.Save(&request)
 
-		gbkPath, err := util.GetGBK(request.LocusAccession)
+		gbkPath, err := util.GetGBK(request.LocusAccession, request.Start, request.Stop)
 
 		if err != nil {
 			slog.Error("[AntismashWorker] Could not get GBK", "LocusAccession", request.LocusAccession, "error", err)
@@ -297,9 +298,16 @@ func AntismashWorker(db *gorm.DB) {
 			panic("The antismash worker panicked: could not get env variable for data path")
 		}
 
-		outputDir := path2.Join(dataPath, "antismash", request.LocusAccession)
+		var coordinateFileName string
+		if request.Start != 0 || request.Stop != 0 {
+			coordinateFileName = fmt.Sprintf(request.LocusAccession+"-%d-%d", request.Start, request.Stop)
+		} else {
+			coordinateFileName = request.LocusAccession
+		}
 
-		_, err = RunAntismash(*gbkPath, request.LocusAccession, outputDir)
+		outputDir := path2.Join(dataPath, "antismash", coordinateFileName)
+
+		_, err = RunAntismash(*gbkPath, request.LocusAccession, request.Start, request.Stop, outputDir)
 
 		if err != nil {
 			slog.Error("[AntismashWorker] antismash worker error:", "err", err)
@@ -310,7 +318,7 @@ func AntismashWorker(db *gorm.DB) {
 			continue
 		}
 
-		jsonFile := path2.Join(outputDir, request.LocusAccession+".json")
+		jsonFile := path2.Join(outputDir, coordinateFileName+".json")
 
 		antismashOutput, err := ReadAntismashJson(jsonFile)
 
@@ -337,7 +345,7 @@ func AntismashWorker(db *gorm.DB) {
 }
 
 // RunAntismash is a helper function that runs antismash on a given GBK path
-func RunAntismash(gbkPath string, accession string, outputDir string) (string, error) {
+func RunAntismash(gbkPath string, accession string, start int, end int, outputDir string) (string, error) {
 
 	err := os.MkdirAll(outputDir, 0755)
 

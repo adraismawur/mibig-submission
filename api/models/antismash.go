@@ -16,6 +16,8 @@ type AntismashRun struct {
 	GUID           string            `json:"id" gorm:"primaryKey"`
 	EntryAccession string            `json:"entry_accession" gorm:"primaryKey"`
 	LocusAccession string            `json:"locus_accession"`
+	Start          int               `json:"start"`
+	Stop           int               `json:"stop"`
 	State          AntismashRunState `json:"state"`
 	SubmittedAt    time.Time         `json:"submitted_at"`
 }

@@ -2,6 +2,7 @@ package util
 
 import (
 	"errors"
+	"fmt"
 	"github.com/adraismawur/mibig-submission/config"
 	"github.com/goccy/go-json"
 	"io"
@@ -10,6 +11,7 @@ import (
 	"os"
 	path2 "path"
 	"path/filepath"
+	"strconv"
 )
 
 const entrezBase = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
@@ -19,6 +21,8 @@ const entrezIdParam = "id"
 const entrezDbParam = "db"
 const entrezRetmodeParam = "retmode"
 const entrezRettypeParam = "rettype"
+const entrezSeqStartParam = "seq_start"
+const entrezSeqStopParam = "seq_stop"
 const entrezApiKeyParam = "api_key"
 
 const entrezSummaryEndpoint = "esummary.fcgi"
@@ -148,7 +152,7 @@ func GetGenbankAccessionSummary(accession string) (*EntrezSummaryResult, error) 
 }
 
 // GetGBK downloads a gbk from entrez and returns the path it was saved at as a string
-func GetGBK(accession string) (*string, error) {
+func GetGBK(accession string, start int, stop int) (*string, error) {
 	envDataPath, err := config.GetConfig(config.EnvDataPath)
 
 	if err != nil {
@@ -164,7 +168,14 @@ func GetGBK(accession string) (*string, error) {
 		return nil, err
 	}
 
-	path := filepath.Join(basePath, accession+".gbk")
+	var filename string
+	if start != 0 || stop != 0 {
+		filename = fmt.Sprintf("%s-%d-%d.gbk", accession, start, stop)
+	} else {
+		filename = fmt.Sprintf("%s.gbk", accession)
+	}
+
+	path := filepath.Join(basePath, filename)
 
 	if _, err := os.Stat(path); err == nil {
 		slog.Info("[util] [genbank] File already exists", "path", path)
@@ -185,6 +196,11 @@ func GetGBK(accession string) (*string, error) {
 	query.Add(entrezIdParam, accession)
 	query.Add(entrezRetmodeParam, entrezFetchRetmode)
 	query.Add(entrezRettypeParam, entrezFetchRettype)
+
+	if start != 0 || stop != 0 {
+		query.Add(entrezSeqStartParam, strconv.Itoa(start))
+		query.Add(entrezSeqStopParam, strconv.Itoa(stop))
+	}
 
 	request.URL.RawQuery = query.Encode()
 

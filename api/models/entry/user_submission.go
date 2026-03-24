@@ -201,9 +201,25 @@ func CreateNewUserMutation(db *gorm.DB, accession string, user models.User) (*En
 }
 
 func CreateAntismashWorkerTask(db *gorm.DB, newEntry Entry) (*models.AntismashRun, error) {
+	var start, stop int
+
+	if newEntry.Loci[0].Location.Start == nil {
+		start = 0
+	} else {
+		start = int(*newEntry.Loci[0].Location.Start)
+	}
+
+	if newEntry.Loci[0].Location.End == nil {
+		stop = 0
+	} else {
+		stop = int(*newEntry.Loci[0].Location.End)
+	}
+
 	antismashTask := models.AntismashRun{
 		LocusAccession: newEntry.Loci[0].Accession,
 		EntryAccession: newEntry.Accession,
+		Start:          start,
+		Stop:           stop,
 		GUID:           guid.NewString(),
 		SubmittedAt:    time.Now(),
 	}
