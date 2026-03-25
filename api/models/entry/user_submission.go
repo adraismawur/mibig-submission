@@ -5,6 +5,8 @@ import (
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/models/entry/biosynthesis"
 	"github.com/adraismawur/mibig-submission/models/entry/export"
+	"github.com/adraismawur/mibig-submission/models/entry/gene"
+	"github.com/adraismawur/mibig-submission/models/entry/taxonomy"
 	"github.com/adraismawur/mibig-submission/util/constants"
 	"github.com/beevik/guid"
 	"github.com/mitchellh/mapstructure"
@@ -82,6 +84,17 @@ func CreateNewUserSubmission(db *gorm.DB, minimalEntry MinimalEntry, user models
 		newEntry.Biosynthesis = biosynthesis.Biosynthesis{
 			Classes: make([]biosynthesis.BiosyntheticClass, 0),
 			Paths:   make([]biosynthesis.BiosyntheticPathway, 0),
+		}
+
+		newEntry.Taxonomy = taxonomy.Taxonomy{
+			Name:  "unknown",
+			TaxID: 0,
+		}
+
+		newEntry.GeneInformation = &gene.GeneInformation{
+			Additions:   nil,
+			Deletions:   nil,
+			Annotations: nil,
 		}
 
 		// generate a new changelog
@@ -162,6 +175,24 @@ func CreateNewUserMutation(db *gorm.DB, accession string, user models.User) (*En
 
 		if transactionErr != nil {
 			return transactionErr
+		}
+
+		// ensure defaults
+
+		if newEntry.Biosynthesis.Classes == nil {
+			newEntry.Biosynthesis.Classes = make([]biosynthesis.BiosyntheticClass, 0)
+		}
+
+		if newEntry.Biosynthesis.Paths == nil {
+			newEntry.Biosynthesis.Paths = make([]biosynthesis.BiosyntheticPathway, 0)
+		}
+
+		if newEntry.GeneInformation == nil {
+			newEntry.GeneInformation = &gene.GeneInformation{
+				Additions:   nil,
+				Deletions:   nil,
+				Annotations: nil,
+			}
 		}
 
 		mutAccession, transactionErr := GeneratePlaceholderAccession(tx, "mut")
