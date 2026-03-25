@@ -16,6 +16,6 @@ type Entry struct {
 	Biosynthesis     Biosynthesis        `json:"biosynthesis" gorm:"foreignKey:EntryAccession"`
 	Compounds        []Compound          `json:"compounds" gorm:"ForeignKey:EntryAccession"`
 	Taxonomy         Taxonomy            `json:"taxonomy" gorm:"ForeignKey:EntryAccession"`
-	Genes            *Gene               `json:"genes,omitempty" gorm:"ForeignKey:EntryAccession"`
+	GeneInformation  *GeneInformation    `json:"genes,omitempty" gorm:"ForeignKey:EntryAccession"`
 	LegacyReferences pq.StringArray      `json:"legacy_references,omitempty" gorm:"type:text[]"`
 }

@@ -27,7 +27,7 @@ type GeneAnnotation struct {
 	Product   string `json:"product"`   // Product is the product of this gene, e.g. '3-oxoacyl-ACP synthase III'
 }
 
-type Gene struct {
+type GeneInformation struct {
 	Additions   []GeneAddition   `json:"to_add,omitempty" gorm:"ForeignKey:GeneID"`
 	Deletions   []GeneDeletion   `json:"to_delete,omitempty" gorm:"ForeignKey:GeneID"`
 	Annotations []GeneAnnotation `json:"annotations,omitempty" gorm:"ForeignKey:GeneID"`
