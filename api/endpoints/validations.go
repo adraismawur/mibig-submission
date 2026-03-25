@@ -34,10 +34,12 @@ func validateGenBank(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	if result == nil {
 		c.JSON(http.StatusNotFound, gin.H{"message": "LocusAccession not found"})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"result": result})

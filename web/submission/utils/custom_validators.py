@@ -120,7 +120,10 @@ def validate_loci(form, field):
 
     locus_idx = field.id.split('-')[1]
 
-    accession = request.form.get('loci-' + field.id.split('-')[1] + '-accession')
+    accession = request.form.get('loci-' + locus_idx + '-accession')
+
+    if accession is None:
+        raise ValidationError("Genbank Accession does not exist")
 
     if accession not in session['cached_genbank']:
         response = requests.get(
