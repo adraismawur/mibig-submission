@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/models/entry"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -58,6 +59,7 @@ func getEntryLociTax(db *gorm.DB, c *gin.Context) {
 }
 
 func updateEntryLociTax(db *gorm.DB, c *gin.Context) {
+	var accession = c.Param("accession")
 	var newLociTax entry.LociTax
 
 	err := c.ShouldBindJSON(&newLociTax)
@@ -67,7 +69,12 @@ func updateEntryLociTax(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	var accession = c.Param("accession")
+	user, err := models.GetUserFromContext(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	exists, err := entry.GetEntryExists(db, accession)
 
@@ -93,6 +100,8 @@ func updateEntryLociTax(db *gorm.DB, c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	entry.AddContributor(db, accession, user.ID)
 
 	c.Status(http.StatusOK)
 }

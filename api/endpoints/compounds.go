@@ -1,6 +1,8 @@
 package endpoints
 
 import (
+	"github.com/adraismawur/mibig-submission/models"
+	"github.com/adraismawur/mibig-submission/models/entry"
 	"github.com/adraismawur/mibig-submission/models/entry/compound"
 	"github.com/gin-gonic/gin"
 	"github.com/goccy/go-json"
@@ -105,6 +107,13 @@ func createEntryCompound(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	user, err := models.GetUserFromContext(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	newCompound.EntryAccession = accession
 
 	err = db.Create(&newCompound).Error
@@ -114,6 +123,8 @@ func createEntryCompound(db *gorm.DB, c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	entry.AddContributor(db, accession, user.ID)
 
 	c.JSON(http.StatusOK, gin.H{"compound": newCompound})
 }
@@ -127,6 +138,13 @@ func updateEntryCompound(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		slog.Error("[Endpoints] [Compound] Could not bind compound json", "error", err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	user, err := models.GetUserFromContext(c)
+
+	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -164,15 +182,25 @@ func updateEntryCompound(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	entry.AddContributor(db, accession, user.ID)
+
 	c.JSON(http.StatusOK, gin.H{"compound": newCompound})
 }
 
 func deleteEntryCompound(db *gorm.DB, c *gin.Context) {
+	accession := c.Param("accession")
 	compoundId := c.Param("compoundId")
+
+	user, err := models.GetUserFromContext(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	var compounds compound.Compound
 
-	err := db.
+	err = db.
 		Model(&compounds).
 		Delete("id = $1", compoundId).
 		Error
@@ -190,6 +218,8 @@ func deleteEntryCompound(db *gorm.DB, c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	entry.AddContributor(db, accession, user.ID)
 
 	c.Status(http.StatusOK)
 }

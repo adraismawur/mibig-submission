@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/models/entry"
 	"github.com/adraismawur/mibig-submission/models/entry/biosynthesis"
 	"github.com/gin-gonic/gin"
@@ -85,6 +86,13 @@ func createEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	user, err := models.GetUserFromContext(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	exists, err := entry.GetEntryExists(db, accession)
 
 	if err != nil {
@@ -111,6 +119,8 @@ func createEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	entry.AddContributor(db, accession, user.ID)
+
 	c.Status(http.StatusOK)
 }
 
@@ -127,6 +137,13 @@ func updateEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "could not parse parameter: id"})
+		return
+	}
+
+	user, err := models.GetUserFromContext(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -165,11 +182,14 @@ func updateEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	entry.AddContributor(db, accession, user.ID)
+
 	c.Status(http.StatusOK)
 
 }
 
 func deleteEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
+	accession := c.Param("accession")
 	id := c.Param("id")
 
 	if id == "" {
@@ -184,12 +204,21 @@ func deleteEntryBiosynthesisClass(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	user, err := models.GetUserFromContext(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	err = biosynthesis.DeleteEntryBiosynthesisClass(db, class_id)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	entry.AddContributor(db, accession, user.ID)
 
 	c.Status(http.StatusOK)
 }

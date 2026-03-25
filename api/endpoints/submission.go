@@ -616,6 +616,8 @@ func claimReview(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	entry.AddReviewer(db, reviewClaimRequest.Accession, user.ID)
+
 	c.Status(http.StatusOK)
 }
 

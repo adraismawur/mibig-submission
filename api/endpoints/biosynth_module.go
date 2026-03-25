@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/models/entry"
 	"github.com/adraismawur/mibig-submission/models/entry/biosynthesis"
 	"github.com/gin-gonic/gin"
@@ -61,17 +62,29 @@ func createEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 	accession := c.Param("accession")
 
 	var module biosynthesis.BiosyntheticModule
-	c.ShouldBindJSON(&module)
+	err := c.ShouldBindJSON(&module)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	user, err := models.GetUserFromContext(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	exists, err := entry.GetEntryExists(db, accession)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	if !exists {
-		c.JSON(http.StatusNotFound, gin.H{"message": "entry not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "entry not found"})
 		return
 	}
 
@@ -82,10 +95,13 @@ func createEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	entry.AddContributor(db, accession, user.ID)
+
 	c.Status(http.StatusOK)
 }
 
 func reorderBiosynthModules(db *gorm.DB, c *gin.Context) {
+	accession := c.Param("accession")
 	type ReorderRequest struct {
 		IDFrom uint64 `json:"id_from"`
 		IDTo   uint64 `json:"id_to"`
@@ -93,7 +109,14 @@ func reorderBiosynthModules(db *gorm.DB, c *gin.Context) {
 
 	var request ReorderRequest
 
-	err := c.ShouldBindJSON(&request)
+	user, err := models.GetUserFromContext(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = c.ShouldBindJSON(&request)
 
 	if err != nil {
 		slog.Error("[endpoints] [biosynth] Failed to unmarshal reorder request", "error", err)
@@ -109,6 +132,8 @@ func reorderBiosynthModules(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	entry.AddContributor(db, accession, user.ID)
+
 	c.Status(http.StatusOK)
 }
 
@@ -120,6 +145,13 @@ func updateEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	user, err := models.GetUserFromContext(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -157,6 +189,8 @@ func updateEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 		slog.Error("[endpoints] [biosynth] Failed to update biosynthesis module", "error", err.Error())
 		return
 	}
+
+	entry.AddContributor(db, accession, user.ID)
 
 	c.Status(http.StatusOK)
 }
@@ -224,6 +258,13 @@ func deleteEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	user, err := models.GetUserFromContext(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	exists, err := entry.GetEntryExists(db, accession)
 
 	if err != nil {
@@ -240,6 +281,8 @@ func deleteEntryBiosynthesisModule(db *gorm.DB, c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	entry.AddContributor(db, accession, user.ID)
 
 	c.Status(http.StatusOK)
 }

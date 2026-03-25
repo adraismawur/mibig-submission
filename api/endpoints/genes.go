@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/models/entry"
 	"github.com/adraismawur/mibig-submission/models/entry/gene"
 	"github.com/gin-gonic/gin"
@@ -273,6 +274,13 @@ func updateOrCreateEntryGeneAddition(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	user, err := models.GetUserFromContext(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	newAddition, err := gene.UpdateOrCreateGeneAddition(db, accession, &addition)
 
 	if err != nil {
@@ -280,6 +288,8 @@ func updateOrCreateEntryGeneAddition(db *gorm.DB, c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	entry.AddContributor(db, accession, user.ID)
 
 	c.JSON(http.StatusOK, newAddition)
 }
@@ -296,6 +306,13 @@ func updateOrCreateEntryGeneDeletion(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	user, err := models.GetUserFromContext(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	newDeletion, err := gene.UpdateOrCreateGeneDeletion(db, accession, &deletion)
 
 	if err != nil {
@@ -303,6 +320,8 @@ func updateOrCreateEntryGeneDeletion(db *gorm.DB, c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	entry.AddContributor(db, accession, user.ID)
 
 	c.JSON(http.StatusOK, newDeletion)
 }
@@ -319,6 +338,13 @@ func updateOrCreateEntryGeneAnnotation(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	user, err := models.GetUserFromContext(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	newDeletion, err := gene.UpdateOrCreateGeneAnnotation(db, accession, &annotation)
 
 	if err != nil {
@@ -327,11 +353,21 @@ func updateOrCreateEntryGeneAnnotation(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	entry.AddContributor(db, accession, user.ID)
+
 	c.JSON(http.StatusOK, newDeletion)
 }
 
 func deleteEntryGeneAddition(db *gorm.DB, c *gin.Context) {
+	accession := c.Param("accession")
 	additionId, err := strconv.Atoi(c.Param("addition_id"))
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	user, err := models.GetUserFromContext(c)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -345,11 +381,21 @@ func deleteEntryGeneAddition(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	entry.AddContributor(db, accession, user.ID)
+
 	c.Status(http.StatusOK)
 }
 
 func deleteEntryGeneDeletion(db *gorm.DB, c *gin.Context) {
+	accession := c.Param("accession")
 	deletionId, err := strconv.Atoi(c.Param("deletion_id"))
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	user, err := models.GetUserFromContext(c)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -363,11 +409,21 @@ func deleteEntryGeneDeletion(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	entry.AddContributor(db, accession, user.ID)
+
 	c.Status(http.StatusOK)
 }
 
 func deleteEntryGeneAnnotation(db *gorm.DB, c *gin.Context) {
+	accession := c.Param("accession")
 	annotationId, err := strconv.Atoi(c.Param("annotation_id"))
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	user, err := models.GetUserFromContext(c)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -380,6 +436,8 @@ func deleteEntryGeneAnnotation(db *gorm.DB, c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	entry.AddContributor(db, accession, user.ID)
 
 	c.Status(http.StatusOK)
 }
