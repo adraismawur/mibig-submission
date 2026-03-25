@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"errors"
 	"github.com/adraismawur/mibig-submission/middleware"
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/util"
@@ -398,7 +399,7 @@ func passwordResetChallenge(db *gorm.DB, c *gin.Context) {
 
 		if matchingChallenge.ID == 0 {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Challenge failed"})
-			return transactionErr
+			return errors.New("challenge failed")
 		}
 
 		var userId int
