@@ -33,17 +33,17 @@ type CleavageLocation struct {
 type RippPrecursorCrosslink struct {
 	ID              uint64 `json:"db_id"`
 	RippPrecursorID uint64 `json:"db_ripp_precursor_id"`
-	From            int    `json:"from"`
-	To              int    `json:"to"`
+	From            int    `json:"from_loc"`
+	To              int    `json:"to_loc"`
 	Type            string `json:"type"`
 	Details         string `json:"details"`
 }
 
 type RippPrecursor struct {
-	ID                  uint64 `json:"db_id"`
-	BiosyntheticClassID uint64 `json:"db_class_id"`
-	Gene                string `json:"gene""`
-	//CoreSequence             string                   `json:"core_sequence"`
+	ID                         uint64                   `json:"db_id"`
+	BiosyntheticClassID        uint64                   `json:"db_class_id"`
+	Gene                       string                   `json:"gene""`
+	CoreSequence               string                   `json:"core_sequence"`
 	LeaderCleavageLocationID   uint64                   `json:"db_leader_cleavage_location_id"`
 	LeaderCleavageLocation     *CleavageLocation        `json:"leader_cleavage_location,omitempty"`
 	FollowerCleavageLocationID uint64                   `json:"db_follower_cleavage_location_id"`
