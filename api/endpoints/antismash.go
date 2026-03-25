@@ -274,49 +274,67 @@ func AntismashWorker(db *gorm.DB) {
 			}
 
 			if result.RowsAffected == 0 {
-				//slog.Info("[AntismashWorker] Nothing to do")
-				return nil
+				return errors.New("nothing to do")
 			}
 
 			if err != nil {
 				slog.Error("[AntismashWorker] antismash worker error:", "err", err)
+				request.State = models.Failed
+				tx.Save(&request)
 				return err
 			}
 
 			request.State = models.Downloading
 			tx.Save(&request)
 
-			gbkPath, err := util.GetGBK(request.LocusAccession, request.Start, request.Stop)
+			return nil
+		})
 
+		if err != nil {
+			continue
+		}
+
+		gbkPath, err := util.GetGBK(request.LocusAccession, request.Start, request.Stop)
+
+		err = db.Transaction(func(tx *gorm.DB) error {
 			if err != nil {
 				slog.Error("[AntismashWorker] Could not get GBK", "LocusAccession", request.LocusAccession, "error", err)
 
 				request.State = models.Failed
-				tx.Save(&request)
+				db.Save(&request)
 
-				return nil
+				return err
 			}
 
 			request.State = models.Running
-			tx.Save(&request)
+			db.Save(&request)
 
-			dataPath, err := config.GetConfig(config.EnvDataPath)
+			return nil
+		})
 
-			if err != nil {
-				slog.Error("[AntismashWorker] Could not get env variable for data path")
-				panic("The antismash worker panicked: could not get env variable for data path")
-			}
+		dataPath, err := config.GetConfig(config.EnvDataPath)
 
-			var coordinateFileName string
-			if request.Start != 0 || request.Stop != 0 {
-				coordinateFileName = fmt.Sprintf(request.LocusAccession+"-%d-%d", request.Start, request.Stop)
-			} else {
-				coordinateFileName = request.LocusAccession
-			}
+		if err != nil {
+			slog.Error("[AntismashWorker] Could not get env variable for data path")
+			panic("The antismash worker panicked: could not get env variable for data path")
+		}
 
-			outputDir := path2.Join(dataPath, "antismash", coordinateFileName)
+		var coordinateFileName string
+		if request.Start != 0 || request.Stop != 0 {
+			coordinateFileName = fmt.Sprintf(request.LocusAccession+"-%d-%d", request.Start, request.Stop)
+		} else {
+			coordinateFileName = request.LocusAccession
+		}
 
-			_, err = RunAntismash(*gbkPath, request.LocusAccession, request.Start, request.Stop, outputDir)
+		outputDir := path2.Join(dataPath, "antismash", coordinateFileName)
+
+		if err != nil {
+			continue
+		}
+
+		_, err = RunAntismash(*gbkPath, request.LocusAccession, request.Start, request.Stop, outputDir)
+
+		err = db.Transaction(func(tx *gorm.DB) error {
 
 			if err != nil {
 				slog.Error("[AntismashWorker] antismash worker error:", "err", err)
@@ -324,7 +342,7 @@ func AntismashWorker(db *gorm.DB) {
 				request.State = models.Failed
 				tx.Save(&request)
 
-				return nil
+				return err
 			}
 
 			jsonFile := path2.Join(outputDir, coordinateFileName+".json")
@@ -335,6 +353,7 @@ func AntismashWorker(db *gorm.DB) {
 				slog.Error("[AntismashWorker] Failed to read antismash output", "err", err)
 				request.State = models.Failed
 				tx.Save(&request)
+				return err
 			}
 
 			activeEntry, err := entry.GetEntryFromAccession(tx, request.EntryAccession)
@@ -342,6 +361,7 @@ func AntismashWorker(db *gorm.DB) {
 				slog.Error("[AntismashWorker] Failed to get entry from accession", "err", err)
 				request.State = models.Failed
 				tx.Save(&request)
+				return err
 			}
 
 			PrefillAntismash(activeEntry, antismashOutput)
