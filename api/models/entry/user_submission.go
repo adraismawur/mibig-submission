@@ -3,6 +3,7 @@ package entry
 import (
 	"fmt"
 	"github.com/adraismawur/mibig-submission/models"
+	"github.com/adraismawur/mibig-submission/models/entry/biosynthesis"
 	"github.com/adraismawur/mibig-submission/models/entry/export"
 	"github.com/adraismawur/mibig-submission/util/constants"
 	"github.com/beevik/guid"
@@ -77,6 +78,11 @@ func CreateNewUserSubmission(db *gorm.DB, minimalEntry MinimalEntry, user models
 		// then we copy over the compounds
 		// TODO: validate these compounds
 		newEntry.Compounds = minimalEntry.Compounds
+
+		newEntry.Biosynthesis = biosynthesis.Biosynthesis{
+			Classes: make([]biosynthesis.BiosyntheticClass, 0),
+			Paths:   make([]biosynthesis.BiosyntheticPathway, 0),
+		}
 
 		// generate a new changelog
 		var currentDate = time.Now().Format(time.DateOnly)
