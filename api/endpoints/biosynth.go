@@ -37,12 +37,14 @@ func getEntryBiosynthesis(db *gorm.DB, c *gin.Context) {
 
 	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"message": "entry not found"})
+		return
 	}
 
 	entryBioSynth, err := biosynthesis.GetEntryBiosynthesis(db, accession)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
 	}
 
 	c.JSON(http.StatusOK, entryBioSynth)
