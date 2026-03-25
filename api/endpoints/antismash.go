@@ -217,14 +217,22 @@ func getRecordAntismashAccessions(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	var locusAccessions []string
+	var antismashRun models.AntismashRun
 
 	err := db.
 		Table("antismash_runs").
 		Where("entry_accession = $1", entryAccession).
-		Select("locus_accession").
-		Find(&locusAccessions).
+		Find(&antismashRun).
 		Error
+
+	var locusAccessions []string
+	if antismashRun.Start != 0 || antismashRun.Stop != 0 {
+		locusAccession := fmt.Sprintf("%s-%d-%d", antismashRun.LocusAccession, antismashRun.Start, antismashRun.Stop)
+		locusAccessions = append(locusAccessions, locusAccession)
+	} else {
+		locusAccession := antismashRun.LocusAccession
+		locusAccessions = append(locusAccessions, locusAccession)
+	}
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
