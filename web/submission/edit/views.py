@@ -153,7 +153,17 @@ def generate_wizard_page(bgc_id: str, form_id: str, show_nav: bool):
     if response.status_code == 200:
         antismash_accessions = response.json()
 
-    antismash_json_url = current_app.config["API_BASE"] + "/antismash/json/"
+    antismash_json_url = current_app.config["API_BASE"] + "/antismash/json"
+
+    antismash_json = {}
+
+    if antismash_accessions and len(antismash_accessions) > 0:
+        response = requests.get(
+            f"{antismash_json_url}/" + antismash_accessions[0],
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+        if response.status_code == 200:
+            antismash_json = response.text
 
     return render_template(
         wizard_page.template,
@@ -166,6 +176,7 @@ def generate_wizard_page(bgc_id: str, form_id: str, show_nav: bool):
         prev_form=prev_form,
         form_description=wizard_page.description,
         antismash_json_url=antismash_json_url,
+        antismash_json=antismash_json,
         antismash_accessions=antismash_accessions,
     )
 

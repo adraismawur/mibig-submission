@@ -9,9 +9,10 @@ Editing {{ bgc_id }}
 {% block body %}
 
 {% import 'bgc_viewer.html' as bgc_viewer %}
-{{ bgc_viewer.bgc_viewer(antismash_accessions, antismash_json_url) }}
+
 
 <div class="form-wrapper">
+    {{ bgc_viewer.bgc_viewer(antismash_accessions, antismash_json_url, antismash_json) }}
     <h4>Enter {{ form_description }}</h4>
 
     <form method="post">

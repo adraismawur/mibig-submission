@@ -1,4 +1,4 @@
-{% macro bgc_viewer(antismash_accessions, antismash_json_url) %}
+{% macro bgc_viewer(antismash_accessions, antismash_json_url, antismash_json) %}
 
 
 <div id="bgc-viewer-container" class="region-viewer-container">
@@ -25,11 +25,10 @@
         // });
 
         // Load your antiSMASH JSON data
-        const accessions = {{ antismash_accessions | tojson
-    }};
-    const antismashJsonUrl = '{{ antismash_json_url }}';
-    const response = await fetch(antismashJsonUrl + accessions[0]);
-    const data = await response.json();
+        const accessions = {{ antismash_accessions | tojson }};
+    // const antismashJsonUrl = '{{ antismash_json_url }}';
+    // const response = await fetch(antismashJsonUrl + accessions[0]);
+    const data = {{antismash_json | safe}};
 
     // Create a data provider
     const provider = new BGCViewerComponents.JSONFileProvider(data);
