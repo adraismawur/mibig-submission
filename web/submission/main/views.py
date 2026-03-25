@@ -15,7 +15,7 @@ import requests
 from submission.main import bp_main
 from submission.main.forms import SelectExisting, UserDetailsEditForm
 from submission.auth import auth_role
-from submission.main.forms.user_details import UserInfoForm
+from submission.main.forms.user_details import UserInfoForm, UserRegistrationForm
 from submission.models.users import Role, User, UserInfo
 from submission.utils import Storage
 
@@ -163,11 +163,12 @@ def reviewer():
 @bp_main.route("/register", methods=["GET", "POST"])
 @login_required
 def register_first_time():
+    data = User.get_user(current_user.id)
 
     if request.form:
-        form = UserInfoForm(request.form)
+        form = UserRegistrationForm(request.form)
     else:
-        form = UserInfoForm()
+        form = UserRegistrationForm(data=data.info.asdict())
 
     if request.method == "POST":
         response = requests.post(

@@ -9,13 +9,13 @@
         <div class="">
             <h5>Hello {{ current_user.info.name }}.</h5>
 
-            <p>This is the first time you are logging in. Please fill in the details below</p>
+            <p>This is the first time you are logging in. Please check and fill in the details below</p>
 
             <form method="post">
                 {{ macros.simple_divform_inner(form, is_reviewer=False) }}
                 <div class="container">
                     <div class="form-group row">
-                        <input type="submit" class="btn btn-primary btn-wide green" value="Save user infor changes">
+                        <input type="submit" class="btn btn-primary btn-wide green" value="Save user info changes">
                     </div>
                 </div>
             </form>

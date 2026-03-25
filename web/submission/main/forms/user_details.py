@@ -13,6 +13,41 @@ from wtforms.widgets import HiddenInput
 
 from submission.models.users import UserInfo
 
+class UserRegistrationForm(Form):
+    db_id = IntegerField(widget=HiddenInput())
+    db_user_id = IntegerField(widget=HiddenInput())
+
+    alias = StringField(widget=HiddenInput(), default=UserInfo.generate_alias())
+
+    name = StringField(
+        "Name",
+        validators=[
+            validators.InputRequired(message="Please provide a name")
+        ],
+    )
+
+    call_name = StringField(
+        "What should we call you?",
+        validators=[
+            validators.InputRequired(message="Please provide a way to address you")
+        ],
+    )
+    orc_id = StringField(
+        "ORCID",
+        validators=[
+            validators.InputRequired(message="Please provide an ORC ID")
+        ],
+    )
+    organisation_1 = StringField(
+        "First affiliation",
+        validators=[
+            validators.InputRequired(message="Please provide an affiliation")
+        ],
+    )
+    organisation_2 = StringField("Second affiliation (optional)")
+    organisation_3 = StringField("Third affiliation (optional)")
+    public = BooleanField(description="Uncheck this if you want to be listed as an anonymous contributor.", default=True)
+
 class UserInfoForm(Form):
     db_id = IntegerField(widget=HiddenInput())
     db_user_id = IntegerField(widget=HiddenInput())
