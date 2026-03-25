@@ -52,8 +52,10 @@
 
     {% for subfield in field %}
 
-    {% if field.min_entries and loop.index <= field.min_entries %}
+    {% if field.min_entries is not none and loop.index0 < field.min_entries %}
     {% set ns.delete=false %}
+    {% else %}
+    {% set ns.delete=true %}
     {% endif %}
 
     {{simple_divsubform(subfield, deletebtn=ns.delete)}}

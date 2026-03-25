@@ -31,13 +31,11 @@ func GetLociTax(db *gorm.DB, accession string) (*LociTax, error) {
 }
 
 func UpdateLociTax(db *gorm.DB, accession string, oldLociTax LociTax, newLociTax LociTax) error {
-	err := db.Transaction(func(tx *gorm.DB) error {
+	err := db.Session(&gorm.Session{FullSaveAssociations: true}).Transaction(func(tx *gorm.DB) error {
 		err := tx.
-			Table("entries").
-			Omit("accession").
-			Model(&oldLociTax).
-			Where("accession = $1", accession).
-			Save(&newLociTax).
+			Model(&oldLociTax.Taxonomy).
+			Where("entry_accession = $1", accession).
+			Save(&newLociTax.Taxonomy).
 			Error
 
 		if err != nil {
@@ -50,6 +48,17 @@ func UpdateLociTax(db *gorm.DB, accession string, oldLociTax LociTax, newLociTax
 
 		if err != nil {
 			return err
+		}
+
+		for _, loci := range oldLociTax.Loci {
+			err = tx.
+				Model(&loci).
+				Association("Evidence").
+				Replace(&loci.Evidence)
+
+			if err != nil {
+				return err
+			}
 		}
 
 		err = tx.Model(&oldLociTax).
