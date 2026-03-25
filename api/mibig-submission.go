@@ -11,13 +11,15 @@ import (
 type RunFunction string
 
 const (
-	StartApi     RunFunction = "start-api"
-	CheckExports RunFunction = "check-exports"
+	StartApi             RunFunction = "start-api"
+	CheckExports         RunFunction = "check-exports"
+	StartAntismashWorker             = "antismash-worker"
 )
 
 var functionDescriptions = map[RunFunction]string{
-	StartApi:     "StartApi MIBiG Submission Portal API",
-	CheckExports: "Check MIBiG entry exports",
+	StartApi:             "StartApi MIBiG Submission Portal API",
+	CheckExports:         "Check MIBiG entry exports",
+	StartAntismashWorker: "Start antismash worker",
 }
 
 type Args struct {
@@ -54,6 +56,9 @@ func main() {
 		break
 	case CheckExports:
 		functions.CheckExports()
+		break
+	case StartAntismashWorker:
+		functions.StartAntismashWorker()
 		break
 	default:
 		slog.Error(fmt.Sprintf("[main] Unknown function: %v", args.Function))

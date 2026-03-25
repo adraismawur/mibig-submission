@@ -74,9 +74,6 @@ func StartApi() {
 		panic("Panic in main function: Could not load mibiG entries into database")
 	}
 
-	slog.Info("Starting AntiSMASH runner goroutine")
-	go endpoints.AntismashWorker(dbConnection)
-
 	slog.Info("Starting server")
 
 	serverPort, err := config.GetConfig("SERVER_PORT")
