@@ -114,7 +114,10 @@ def password_email() -> Union[str, response.Response]:
         )
 
         if response.status_code != 200:
-            flash("could not request password reset email. Please try again later", "error")
+            if response.status_code == 500:
+                flash("could not request password reset email. Please try again later", "error")
+            else:
+                flash("If your email exists in the system, an email has been sent with a link to reset your password")
             return render_template("auth/pw_reset_request.html", form=form)
         
         data = response.json()
@@ -131,7 +134,7 @@ def password_email() -> Union[str, response.Response]:
                 body=f"Hello, click this link {current_app.config['BASE_URL']}/auth/reset/{data['email']}/{data['challenge']}",
             )
         )
-        flash("Please check your email")
+        flash("If your email exists in the system, an email has been sent with a link to reset your password")
         return redirect(url_for("auth.login"))
 
     return render_template("auth/pw_reset_request.html", form=form)

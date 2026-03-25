@@ -336,9 +336,14 @@ func passwordResetRequest(db *gorm.DB, c *gin.Context) {
 		exists, transactionErr := models.GetUserExistsByEmail(tx, request.Email)
 
 		// keep success vague for security reasons
-		if transactionErr != nil || !exists {
-			c.Status(http.StatusOK)
+		if transactionErr != nil {
+			c.Status(http.StatusInternalServerError)
 			return transactionErr
+		}
+
+		if !exists {
+			c.Status(http.StatusUnauthorized)
+			return nil
 		}
 
 		// from here on we can create the challenge

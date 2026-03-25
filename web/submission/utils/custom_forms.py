@@ -18,7 +18,7 @@ from .custom_widgets import FieldListAddBtn, TextInputWithSuggestions, SelectDef
 from .custom_validators import ValidateCitations, validate_loci
 
 
-def location_form_factory(required: bool = False, location_default=None):
+def location_form_factory(required: bool = False, location_default=None, validate_loci_enabled=False):
     """Create customized location form
 
     Args:
@@ -28,10 +28,15 @@ def location_form_factory(required: bool = False, location_default=None):
         LocationForm: customized location form
     """
 
+    valids = []
+
     if required:
-        valids = [validators.InputRequired(), validate_loci]
+        valids.append(validators.InputRequired())
     else:
-        valids = [validators.Optional(), validate_loci]
+        valids.append(validators.Optional())
+
+    if validate_loci_enabled:
+        valids.append(validate_loci)
 
     class LocationForm(Form):
         """Subform for location entry, use in combination with FormField"""

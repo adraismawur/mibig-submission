@@ -56,7 +56,7 @@ class LociTaxonomyForm(Form):
             description="Select if this accession is not yet publicised on GenBank",
         )
         location = FormField(
-            location_form_factory(),
+            location_form_factory(validate_loci_enabled=True),
             description="Start and end coordinates, may be left empty if gene cluster spans entire record.",
         )
         evidence = FieldList(
