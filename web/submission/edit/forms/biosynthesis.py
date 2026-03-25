@@ -141,7 +141,7 @@ class RibosomalForm(Form):
             to_loc = IntegerField(
                 "To", validators=[validators.Optional(), validators.NumberRange(min=2)]
             )
-            link_type = SelectField(
+            type = SelectField(
                 "Type",
                 choices=["ether", "thioether", "other"],
                 widget=SelectDefault(),
