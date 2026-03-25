@@ -86,7 +86,10 @@ def login_post() -> response.Response:
 
     login_user(user, remember=remember)
 
-    return redirect(url_for("main.index"))
+    if user.active:
+        return redirect(url_for("main.index"))
+    else:
+        return redirect(url_for("main.register_first_time"))
 
 
 @bp_auth.route("/logout")

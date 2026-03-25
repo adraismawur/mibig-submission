@@ -40,9 +40,12 @@ func login(db *gorm.DB, c *gin.Context) {
 
 	user := models.User{}
 
-	tx := db.Preload("Roles").First(&user, "email = ?", loginRequest.Email)
+	err = db.
+		Preload("Roles").
+		Find(&user, "email = $1", loginRequest.Email).
+		Error
 
-	if tx.RowsAffected == 0 {
+	if user.ID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		slog.Info(fmt.Sprintf("User %s not found", loginRequest.Email))
 		return

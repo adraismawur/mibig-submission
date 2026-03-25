@@ -10,7 +10,7 @@
 
         <p>This is your profile page. Here you can change your user details</p>
 
-        <p>Your unique ID used in MIBiG changelogs is {{ current_user.anonymous_id }}</p>
+        <p>Your unique ID used in MIBiG changelogs is {{ current_user.info.alias }}</p>
         {{ macros.simple_divform(form, is_reviewer=False) }}
     </div>
 

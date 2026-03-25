@@ -144,7 +144,6 @@ def profile():
         return redirect(url_for("main.profile"))
     
 
-
     return render_template("main/profile.html", form=form)
 
 
@@ -171,12 +170,21 @@ def register_first_time():
         form = UserInfoForm()
 
     if request.method == "POST":
-        response = requests.patch(
+        response = requests.post(
             f"{current_app.config['API_BASE']}/user/register",
             json=form.data,
             headers={"Authorization": "Bearer " + session["token"]},
         )
 
         if response.status_code == 200:
+        
+            current_user.info = UserInfo.from_json(form)
+
+            login_user(current_user)
+
             return(redirect(url_for('main.index')))
+        
+        flash("Error updating user details: " + response.json()['error'], "error")
+        
+    return render_template('main/register.html', form=form)
 

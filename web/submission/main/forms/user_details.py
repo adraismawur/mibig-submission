@@ -11,9 +11,13 @@ from wtforms import (
 )
 from wtforms.widgets import HiddenInput
 
+from submission.models.users import UserInfo
+
 class UserInfoForm(Form):
     db_id = IntegerField(widget=HiddenInput())
     db_user_id = IntegerField(widget=HiddenInput())
+
+    alias = StringField(widget=HiddenInput(), default=UserInfo.generate_alias())
 
     name = StringField(
         "Name",
@@ -37,6 +41,7 @@ class UserInfoForm(Form):
     )
     organisation_2 = StringField("Second affiliation (optional)")
     organisation_3 = StringField("Third affiliation (optional)")
+    public = BooleanField(widget=HiddenInput())
 
 
 class UserDetailsEditForm(Form):

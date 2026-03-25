@@ -447,7 +447,9 @@ func registerFirstTimeUser(db *gorm.DB, c *gin.Context) {
 
 		transactionErr = tx.
 			Model(&user).
-			Update("Active", true).
+			Select("active").
+			Where("id = $1", user.ID).
+			Update("active", true).
 			Error
 
 		if transactionErr != nil {
@@ -455,13 +457,13 @@ func registerFirstTimeUser(db *gorm.DB, c *gin.Context) {
 			return transactionErr
 		}
 
+		userInfo.ID = user.Info.ID
+		userInfo.UserID = user.Info.UserID
+
 		transactionErr = tx.
-			Model(&models.UserInfo{}).
-			Omit("id").
-			Omit("user_id").
-			Where("user_id = $1", user.ID).
-			Save(&userInfo).
-			Error
+			Model(&user).
+			Association("Info").
+			Replace(&userInfo)
 
 		if transactionErr != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "could not update user info: " + transactionErr.Error()})
