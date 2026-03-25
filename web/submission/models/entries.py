@@ -437,6 +437,7 @@ class Entry(db.Model):
         return None
 
     def update_compound(bgc_id: str, compound_data: dict[any]):
+        compound_data["mass"] = float(compound_data["mass"])
         request_url = f"{current_app.config['API_BASE']}/entry/{bgc_id}/compounds/{compound_data['db_id']}"
 
         response = requests.post(
