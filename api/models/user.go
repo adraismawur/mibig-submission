@@ -81,7 +81,7 @@ func init() {
 		Model: &User{
 			Email:    "admin@localhost",
 			Password: string(defaultPassword),
-			Active:   true,
+			Active:   false,
 			Roles: []UserRole{
 				{
 					Role: Admin,
@@ -110,7 +110,7 @@ func init() {
 		Model: &User{
 			Email:    "reviewer@localhost",
 			Password: string(defaultPassword),
-			Active:   true,
+			Active:   false,
 			Roles: []UserRole{
 				{
 					Role: Reviewer,
@@ -133,7 +133,7 @@ func init() {
 		Model: &User{
 			Email:    "submitter@localhost",
 			Password: string(defaultPassword),
-			Active:   true,
+			Active:   false,
 			Roles: []UserRole{
 				{
 					Role: Submitter,
@@ -165,7 +165,7 @@ func CreateUser(db *gorm.DB, email string, password string, roles []UserRole) er
 	user := User{
 		Email:    email,
 		Password: string(hashedPassword),
-		Active:   true,
+		Active:   false,
 		Roles:    roles,
 		Info:     UserInfo{},
 	}
