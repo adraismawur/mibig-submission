@@ -121,6 +121,8 @@ def password_email() -> Union[str, response.Response]:
 
         socket.setdefaulttimeout(5)
 
+        mail.connect()
+
         # TODO: send email
         mail.send(
             Message(
