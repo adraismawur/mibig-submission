@@ -17,10 +17,17 @@
             {{ status.error }}
         </div>
         {% else %}
-        <div class="text-center">
+        <div class="center-align">
             <h4>Your antismash job is: {{ readable_state }}</h4>
             <h5>Submitted at: {{ readable_date }}</h5>
             <h5>Time elapsed: {{ time_elapsed }}</h5>
+        </div>
+        {% endif %}
+        {% if status.state == 3 %}
+        <div class="center-align">
+            <a href="{{url_for('edit.edit_bgc_redirect', bgc_id=entry_accession)}}">
+                <h5>Click here to continue editing your entry without prefilled data</h5>
+            </a>
         </div>
         {% endif %}
     </div>

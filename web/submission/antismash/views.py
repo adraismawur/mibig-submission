@@ -56,9 +56,10 @@ def as_status(as_task_id: str) -> Union[str, response.Response]:
         # omit ms
         time_elapsed = str(time_span).split(".")[0]
 
+        entry_accession = response_data.get("entry_accession")
+
         if response_data.get("state") == 4:
             accession = response_data.get("accession")
-            entry_accession = response_data.get("entry_accession")
             # redirect using 303 to change POST to GET
             return redirect(
                 url_for("edit.edit_bgc", bgc_id=entry_accession, form_id="locitax"),
@@ -72,6 +73,7 @@ def as_status(as_task_id: str) -> Union[str, response.Response]:
         readable_state=readable_state,
         readable_date=readable_date,
         time_elapsed=time_elapsed,
+        entry_accession=entry_accession,
     )
 
 
