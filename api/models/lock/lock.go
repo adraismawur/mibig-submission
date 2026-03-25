@@ -23,7 +23,7 @@ type Lock struct {
 	ID             uint64          `json:"db_id"`
 	EntryAccession string          `json:"db_entry_accession" gorm:"uniqueIndex:compositeLockIndex"`
 	Category       LockingCategory `json:"category" gorm:"uniqueIndex:compositeLockIndex"`
-	UnlocksAt      time.Time       `json:"unlocks_at"`
+	UnlocksAt      int64           `json:"unlocks_at" gorm:"type:time"`
 	LockOwnerID    uint64          `json:"db_lock_owner_id"`
 	LockOwner      models.User     `json:"lock_owner"`
 }
@@ -49,7 +49,7 @@ func EntryCanCreateLock(db *gorm.DB, entryAccession string, category LockingCate
 		return true, nil
 	}
 
-	if lock.UnlocksAt.Before(time.Now()) {
+	if lock.UnlocksAt < time.Now().Unix() {
 		return true, nil
 	}
 
@@ -63,7 +63,7 @@ func GetEntryLocks(db *gorm.DB, entryAccession string) (*[]Lock, error) {
 
 	err := db.
 		Model(&Lock{}).
-		Where("entry_accession = $1 AND unlocks_at >= $2", entryAccession, now).
+		Where("entry_accession = $1 AND unlocks_at > $2", entryAccession, now.Unix()).
 		Find(&locks).
 		Error
 
@@ -104,7 +104,7 @@ func CreateOrGetLock(db *gorm.DB, entryAccession string, category LockingCategor
 		return nil, err
 	}
 
-	if activeLock.UnlocksAt.After(time.Now()) {
+	if activeLock.UnlocksAt > time.Now().Unix() {
 		return activeLock, nil
 	}
 
@@ -127,7 +127,7 @@ func CreateOrGetLock(db *gorm.DB, entryAccession string, category LockingCategor
 	}
 
 	parsedDuration, err := time.ParseDuration(lockDuration)
-	newTime := time.Now().Add(parsedDuration)
+	newTime := time.Now().Add(parsedDuration).Unix()
 
 	lock := Lock{
 		ID:             0,

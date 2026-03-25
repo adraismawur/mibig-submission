@@ -90,7 +90,7 @@ class CompoundsSubForm(Form):
             label="Add database",
         ),
     )
-    mass = DecimalField("Mass")
+    mass = DecimalField("Mass", default=0)
     formula = StringField("Formula")
 
 

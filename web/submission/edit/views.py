@@ -68,6 +68,7 @@ def edit_bgc_redirect(bgc_id: str):
     lock_info = {}
 
     for lock in entry_locks:
+        lock['unlocks_at'] = datetime.fromtimestamp(lock['unlocks_at'])
         lock_info[lock["category"]] = lock
 
     lock_keys = [
@@ -219,7 +220,7 @@ def request_lock(bgc_id: str, category: str):
             return redirect(url_for("edit.edit_bgc_redirect", bgc_id=bgc_id))
         else:
             flash(
-                f"Lock requested successfully. Your lock will be removed at {lock_response.json()['unlocks_at']}"
+                f"Lock requested successfully. Your lock will be removed at {datetime.fromtimestamp(lock_response.json()['unlocks_at'])}"
             )
             return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id=category))
 

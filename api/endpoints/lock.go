@@ -85,7 +85,7 @@ func getActiveEntryLocks(db *gorm.DB, c *gin.Context) {
 
 	type LockInfo struct {
 		Category  lock.LockingCategory `json:"category" gorm:"uniqueIndex:compositeLockIndex"`
-		UnlocksAt time.Time            `json:"unlocks_at"`
+		UnlocksAt int64                `json:"unlocks_at"`
 		IsOwner   bool                 `json:"is_owner"`
 	}
 
@@ -131,7 +131,7 @@ func checkEntryLocks(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	if activeLock.UnlocksAt.Before(time.Now()) {
+	if activeLock.UnlocksAt < time.Now().Unix() {
 		errorString := fmt.Sprintf("lock timed out on entry %s category %s", request.Accession, request.Category)
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": errorString})
 		return
@@ -143,7 +143,7 @@ func checkEntryLocks(db *gorm.DB, c *gin.Context) {
 	}
 
 	var response struct {
-		UnlocksAt time.Time            `json:"unlocks_at"`
+		UnlocksAt int64                `json:"unlocks_at"`
 		Category  lock.LockingCategory `json:"category"`
 		Full      bool                 `json:"full"`
 	}

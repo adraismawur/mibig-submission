@@ -36,7 +36,7 @@ class GeneLocationForm(Form):
     exons = FieldList(
         FormField(location_form_factory()),
         label="Exons *",
-        description="Location of coding sequences (CDS). Please also include the stop codon in the coordinates",
+        description="Coordinate ranges of the coding sequence (CDS). Use multiple if gene has multiple exons. Please also include the stop codon in the coordinates",
         min_entries=1,
         widget=FieldListAddBtn(
             label="Add CDS location",
