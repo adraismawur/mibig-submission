@@ -10,11 +10,22 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func init() {
 	RegisterEndpointGenerator(SubmissionEndpoint)
 }
+
+type ExistingSubmissionSubState string
+
+const (
+	Incomplete    ExistingSubmissionSubState = "incomplete"
+	Unlocked                                 = "unlocked"
+	Locked                                   = "locked"
+	PendingReview                            = "pending_review"
+	Reviewed                                 = "reviewed"
+)
 
 type SubmissionInfo struct {
 	Accession       string               `json:"accession"`
@@ -170,6 +181,10 @@ func getUserSubmissions(db *gorm.DB, c *gin.Context) {
 func getSubmissions(db *gorm.DB, c *gin.Context) {
 	user, err := models.GetUserFromContext(c)
 
+	if err != nil {
+		return
+	}
+
 	start, err := strconv.Atoi(c.Query("start"))
 
 	if err != nil {
@@ -184,6 +199,14 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 
 	search := c.Query("search")
 
+	type ExistingSubmissionSubStateSummary struct {
+		Locitax         ExistingSubmissionSubState `json:"locitax"`
+		Biosynth        ExistingSubmissionSubState `json:"biosynth"`
+		Compounds       ExistingSubmissionSubState `json:"compounds"`
+		GeneInformation ExistingSubmissionSubState `json:"gene_information"`
+		Finalize        ExistingSubmissionSubState `json:"finalize"`
+	}
+
 	type ExistingSubmissionSummary struct {
 		EntryAccession  string               `json:"accession"`
 		Type            entry.SubmissionType `json:"type"`
@@ -194,6 +217,11 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 
 	userID := c.Query("id")
 	state := c.Query("state")
+	//locitaxState := c.Query("locitax_state")
+	//biosynthState := c.Query("biosynth_state")
+	//compoundState := c.Query("compound_state")
+	//geneInformationState := c.Query("gene_information_state")
+	//finalizeState := c.Query("finalize_state")
 
 	q := db.Table("user_submissions")
 
@@ -218,40 +246,14 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 	q.Offset(start)
 	q.Limit(limit)
 
-	err = q.
+	q = q.
 		Table("user_submissions").
 		Select(fmt.Sprintf("user_submissions.entry_accession, user_submissions.type, user_submissions.source_accession, user_submissions.user_id = $%d as owner", clauseIdx), user.ID).
 		Order("owner desc").
-		Find(&submissions).Error
-
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	q = db.Table("user_submissions")
-
-	var recordCount int64
-
-	clauseIdx = 1
-	if userID != "" {
-		q.Where(fmt.Sprintf("user_submissions.user_id = $%d", clauseIdx), userID)
-		clauseIdx += 1
-	}
-
-	if state != "" {
-		q.Where(fmt.Sprintf("user_submissions.state = $%d", clauseIdx), state)
-		clauseIdx += 1
-	}
-
-	if search != "" {
-		q.Where(fmt.Sprintf("user_submissions.entry_accession LIKE $%d", clauseIdx), "%"+search+"%")
-		clauseIdx += 1
-	}
-
-	q.Count(&recordCount)
+		Find(&submissions)
 
 	err = q.Error
+	rows := q.RowsAffected
 
 	if err != nil {
 		slog.Error("[endpoints] [submission] Could not find submissions", "user_id", userID, "error", err)
@@ -259,13 +261,100 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	var response struct {
-		Submissions []ExistingSubmissionSummary `json:"submissions"`
-		RecordCount int64                       `json:"record_count"`
+	type ResponseSubmission struct {
+		ExistingSubmissionSummary
+		SubStates ExistingSubmissionSubStateSummary `json:"sub_states"`
 	}
 
-	response.Submissions = submissions
-	response.RecordCount = recordCount
+	var response struct {
+		Submissions []ResponseSubmission `json:"submissions"`
+		RecordCount int64                `json:"record_count"`
+	}
+
+	response.RecordCount = rows
+
+	accessions := make([]string, len(submissions))
+	submissionMap := make(map[string]int)
+
+	for i, submission := range submissions {
+		accessions = append(accessions, submission.EntryAccession)
+		submissionMap[submission.EntryAccession] = i
+		response.Submissions = append(response.Submissions, ResponseSubmission{
+			ExistingSubmissionSummary: submission,
+			SubStates: ExistingSubmissionSubStateSummary{
+				Locitax:         Unlocked,
+				Biosynth:        Unlocked,
+				Compounds:       Unlocked,
+				GeneInformation: Unlocked,
+				Finalize:        Unlocked,
+			},
+		})
+	}
+
+	q = db.Table("locks")
+
+	var locks []lock.Lock
+	err = q.Find(&locks).
+		Where("entry_accession IN ($1) AND unlocks_at > $2", accessions, time.Now().Unix()).
+		Error
+
+	for _, submissionLock := range locks {
+		submission := response.Submissions[submissionMap[submissionLock.EntryAccession]]
+		switch submissionLock.Category {
+		case lock.Full:
+			submission.SubStates.Locitax = Locked
+			submission.SubStates.Biosynth = Locked
+			submission.SubStates.Compounds = Locked
+			submission.SubStates.GeneInformation = Locked
+			submission.SubStates.Finalize = Locked
+			break
+		case lock.Locitax:
+			submission.SubStates.Locitax = Locked
+			break
+		case lock.Biosynth:
+			submission.SubStates.Biosynth = Locked
+			break
+		case lock.Compounds:
+			submission.SubStates.Compounds = Locked
+			break
+		case lock.GeneInformation:
+			submission.SubStates.GeneInformation = Locked
+			break
+		case lock.Final:
+			submission.SubStates.Finalize = Locked
+		}
+		response.Submissions[submissionMap[submissionLock.EntryAccession]] = submission
+	}
+
+	q = db.Table("submission_reviews")
+
+	var reviews []entry.SubmissionReview
+	err = q.Find(&reviews).
+		Where("entry_accession IN ($1)", accessions).
+		Error
+
+	for _, review := range reviews {
+		submission := response.Submissions[submissionMap[review.Accession]]
+
+		switch review.Category {
+		case entry.Locitax:
+			submission.SubStates.Locitax = ExistingSubmissionSubState(review.State)
+			break
+		case entry.Biosynth:
+			submission.SubStates.Biosynth = ExistingSubmissionSubState(review.State)
+			break
+		case entry.Compounds:
+			submission.SubStates.Compounds = ExistingSubmissionSubState(review.State)
+			break
+		case entry.Genes:
+			submission.SubStates.GeneInformation = ExistingSubmissionSubState(review.State)
+			break
+		case entry.Final:
+			submission.SubStates.Finalize = ExistingSubmissionSubState(review.State)
+		}
+
+		response.Submissions[submissionMap[review.Accession]] = submission
+	}
 
 	c.JSON(http.StatusOK, response)
 }
@@ -295,7 +384,7 @@ func getPendingReviews(db *gorm.DB, c *gin.Context) {
 	err = db.Table("submission_reviews").
 		Select("submission_reviews.*, user_submissions.type, user_submissions.source_accession").
 		Joins("JOIN user_submissions ON user_submissions.entry_accession = submission_reviews.accession").
-		Where("state = $1", entry.PendingReview, user.ID).
+		Where("submission_reviews.state = $1", entry.PendingReview, user.ID).
 		Find(&reviews).
 		Error
 
@@ -333,7 +422,7 @@ func getActiveReviews(db *gorm.DB, c *gin.Context) {
 	err = db.Table("submission_reviews").
 		Select("submission_reviews.*, user_submissions.type, user_submissions.source_accession").
 		Joins("JOIN user_submissions ON user_submissions.entry_accession = submission_reviews.accession").
-		Where("state = $1 AND submission_reviews.user_id = $2", entry.Reviewing, user.ID).
+		Where("submission_reviews.state = $1 AND submission_reviews.user_id = $2", entry.Reviewing, user.ID).
 		Find(&reviews).
 		Error
 
