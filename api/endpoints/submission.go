@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 )
@@ -23,8 +24,8 @@ const (
 	Incomplete    ExistingSubmissionSubState = "incomplete"
 	Unlocked                                 = "unlocked"
 	Locked                                   = "locked"
-	PendingReview                            = "pending_review"
-	Reviewed                                 = "reviewed"
+	PendingReview                            = "pending review"
+	Accepted                                 = "accepted"
 )
 
 type SubmissionInfo struct {
@@ -217,13 +218,39 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 
 	userID := c.Query("id")
 	state := c.Query("state")
-	//locitaxState := c.Query("locitax_state")
-	//biosynthState := c.Query("biosynth_state")
-	//compoundState := c.Query("compound_state")
-	//geneInformationState := c.Query("gene_information_state")
-	//finalizeState := c.Query("finalize_state")
 
-	q := db.Table("user_submissions")
+	var locitaxState string
+	var biosynthState string
+	var compoundState string
+	var geneInformationState string
+	var finalState string
+
+	if locitaxState, err = url.QueryUnescape(c.Query("locitax")); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "failed to unescape query param"})
+		return
+	}
+	if biosynthState, err = url.QueryUnescape(c.Query("biosynth")); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "failed to unescape query param"})
+		return
+	}
+	if compoundState, err = url.QueryUnescape(c.Query("compounds")); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "failed to unescape query param"})
+		return
+	}
+	if geneInformationState, err = url.QueryUnescape(c.Query("gene_information")); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "failed to unescape query param"})
+		return
+	}
+	if finalState, err = url.QueryUnescape(c.Query("finalize")); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "failed to unescape query param"})
+		return
+	}
+
+	now := time.Now().Unix()
+
+	q := db.Session(&gorm.Session{})
+
+	q = q.Table("user_submissions")
 
 	clauseIdx := 1
 
@@ -243,11 +270,95 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 		clauseIdx += 1
 	}
 
+	// this process is annoying, probably a result of flawed design of this entire system. the state of an entry/category
+	// should probably just be tracked in one table. inferring it through what locks/reviews are present is not a bad idea
+	// but it is much more complex and one ought to keep things simple
+	// TODO: keep things simple. rework this
+	type StateFilter struct {
+		Category entry.Category
+		State    ExistingSubmissionSubState
+	}
+
+	stateFilters := make([]StateFilter, 0)
+
+	if locitaxState != "" {
+		stateFilters = append(stateFilters, StateFilter{
+			Category: entry.Locitax,
+			State:    ExistingSubmissionSubState(locitaxState),
+		})
+	}
+
+	if biosynthState != "" {
+		stateFilters = append(stateFilters, StateFilter{
+			Category: entry.Biosynth,
+			State:    ExistingSubmissionSubState(biosynthState),
+		})
+	}
+	if compoundState != "" {
+		stateFilters = append(stateFilters, StateFilter{
+			Category: entry.Compounds,
+			State:    ExistingSubmissionSubState(compoundState),
+		})
+	}
+	if geneInformationState != "" {
+		stateFilters = append(stateFilters, StateFilter{
+			Category: entry.Genes,
+			State:    ExistingSubmissionSubState(geneInformationState),
+		})
+	}
+	if finalState != "" {
+		stateFilters = append(stateFilters, StateFilter{
+			Category: entry.Final,
+			State:    ExistingSubmissionSubState(finalState),
+		})
+	}
+
+	for _, stateFilter := range stateFilters {
+		switch stateFilter.State {
+		case Unlocked:
+			q.Where(
+				fmt.Sprintf(
+					"user_submissions.entry_accession NOT IN (SELECT entry_accession FROM locks WHERE (category = $%d OR category = 'full') OR unlocks_at <= $%d)",
+					clauseIdx,
+					clauseIdx+1,
+				),
+				stateFilter.Category,
+				now,
+			)
+			clauseIdx += 2
+			break
+		case Locked:
+			q.Where(
+				fmt.Sprintf(
+					"user_submissions.entry_accession IN (SELECT entry_accession FROM locks WHERE (category = $%d OR category = 'full') AND unlocks_at > $%d)",
+					clauseIdx,
+					clauseIdx+1,
+				),
+				stateFilter.Category,
+				now,
+			)
+			clauseIdx += 2
+			break
+		case PendingReview:
+		case Accepted:
+			q.Where(
+				fmt.Sprintf(
+					"user_submissions.entry_accession IN (SELECT accession FROM submission_reviews WHERE category = $%d AND state = $%d)",
+					clauseIdx,
+					clauseIdx+1,
+				),
+				stateFilter.Category,
+				stateFilter.State,
+			)
+			clauseIdx += 2
+			break
+		}
+	}
+
 	q.Offset(start)
 	q.Limit(limit)
 
-	q = q.
-		Table("user_submissions").
+	q.
 		Select(fmt.Sprintf("user_submissions.entry_accession, user_submissions.type, user_submissions.source_accession, user_submissions.user_id = $%d as owner", clauseIdx), user.ID).
 		Order("owner desc").
 		Find(&submissions)
@@ -273,7 +384,7 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 
 	response.RecordCount = rows
 
-	accessions := make([]string, len(submissions))
+	var accessions []string
 	submissionMap := make(map[string]int)
 
 	for i, submission := range submissions {
@@ -291,11 +402,10 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 		})
 	}
 
-	q = db.Table("locks")
-
 	var locks []lock.Lock
-	err = q.Find(&locks).
-		Where("entry_accession IN ($1) AND unlocks_at > $2", accessions, time.Now().Unix()).
+	err = db.Table("locks").
+		Where("entry_accession IN ? AND unlocks_at > ?", accessions, now).
+		Find(&locks).
 		Error
 
 	for _, submissionLock := range locks {
@@ -326,11 +436,10 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 		response.Submissions[submissionMap[submissionLock.EntryAccession]] = submission
 	}
 
-	q = db.Table("submission_reviews")
-
 	var reviews []entry.SubmissionReview
-	err = q.Find(&reviews).
-		Where("entry_accession IN ($1)", accessions).
+	err = db.Table("submission_reviews").
+		Where("accession IN ?", accessions).
+		Find(&reviews).
 		Error
 
 	for _, review := range reviews {
