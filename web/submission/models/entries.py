@@ -661,10 +661,7 @@ class Entry(db.Model):
             json=data,
         )
 
-        if response.status_code != 200:
-            return None
-
-        return response.json()
+        return response.json(), response.status_code
 
     def check_lock(bgc_id: str, category: str):
         lock_endpoint = "/lock/check/"

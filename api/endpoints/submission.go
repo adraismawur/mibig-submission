@@ -578,6 +578,40 @@ func createNewSubmission(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	var minimalEntryStart int
+	var minimalEntryEnd int
+
+	if minimalEntry.Locus.Location.Start == nil {
+		minimalEntryStart = -1
+	} else {
+		minimalEntryStart = int(*minimalEntry.Locus.Location.Start)
+	}
+
+	if minimalEntry.Locus.Location.End == nil {
+		minimalEntryEnd = -1
+	} else {
+		minimalEntryEnd = int(*minimalEntry.Locus.Location.End)
+	}
+
+	// check if there is an existing entry with the accession / range in the database
+	existingAccession, err := entry.GetEntryAccessionByLociAccession(
+		db,
+		minimalEntry.Locus.Accession,
+		minimalEntryStart,
+		minimalEntryEnd,
+	)
+
+	if err != nil {
+		slog.Error("[endpoints] [submission] Error getting existing submission from locus", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to create user submission record"})
+		return
+	}
+
+	if existingAccession != nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "locus matches existing entry", "accession": existingAccession})
+		return
+	}
+
 	newEntry, err := entry.CreateNewUserSubmission(db, minimalEntry, *user)
 
 	if err != nil {

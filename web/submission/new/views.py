@@ -24,7 +24,20 @@ def new_entry():
 
     if request.method == "POST" and form.validate():
 
-        response = Entry.submit(form.data)
+        response, status = Entry.submit(form.data)
+
+        if status == 400:  # bad request
+            flash("Could not process the request.", "error")
+            return render_template("new/new_submit.html", form=form)
+        if status == 409:  # conflict. entry already exists
+            existing_accession = response["accession"]
+            entry_url = url_for("edit.view_json", bgc_id=existing_accession)
+            flash(
+                f"An entry with a locus accession and coordinates that overlap already exists ({existing_accession})",
+                "error",
+            )
+            return render_template("new/new_submit.html", form=form)
+
         as_task_id = response.get("status").get("id")
 
         flash("New entry submitted successfully.", "success")
