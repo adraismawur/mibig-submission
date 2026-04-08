@@ -46,6 +46,7 @@ def new_entry():
 
     return render_template("new/new_submit.html", form=form)
 
+
 @bp_new.route("/new_mutation/<bgc_id>", methods=["GET", "POST"])
 @login_required
 def create_bgc_mutation(bgc_id: str):
@@ -57,10 +58,9 @@ def create_bgc_mutation(bgc_id: str):
             flash(f"Error creating new mutation: {response.json()['error']}", "error")
             return redirect(url_for("main.main"))
 
-        mutation_accession = response.json()['accession']
+        mutation_accession = response.json()["accession"]
 
         return redirect(url_for("edit.edit_bgc_redirect", bgc_id=mutation_accession))
-    
 
     return render_template(
         "edit/new_mutation.html",
