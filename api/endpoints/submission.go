@@ -383,6 +383,7 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 	}
 
 	response.RecordCount = rows
+	response.Submissions = make([]ResponseSubmission, 0)
 
 	var accessions []string
 	submissionMap := make(map[string]int)
