@@ -25,6 +25,7 @@ const (
 	Unlocked                                 = "unlocked"
 	Locked                                   = "locked"
 	PendingReview                            = "pending review"
+	BeingReviewed                            = "being reviewed"
 	Accepted                                 = "accepted"
 )
 
@@ -340,6 +341,8 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 			clauseIdx += 2
 			break
 		case PendingReview:
+			fallthrough
+		case BeingReviewed:
 			fallthrough
 		case Accepted:
 			q.Where(
