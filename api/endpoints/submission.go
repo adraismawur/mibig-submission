@@ -78,6 +78,13 @@ func SubmissionEndpoint(db *gorm.DB) Endpoint {
 				},
 			},
 			{
+				Method: "GET",
+				Path:   "/mutation/:accession",
+				Handler: func(c *gin.Context) {
+					getExistingMutations(db, c)
+				},
+			},
+			{
 				Method: "POST",
 				Path:   "/mutation",
 				Handler: func(c *gin.Context) {
@@ -636,6 +643,29 @@ func createNewSubmission(db *gorm.DB, c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": antismashTask})
+}
+
+func getExistingMutations(db *gorm.DB, c *gin.Context) {
+	accession := c.Param("accession")
+
+	existingMutations := make([]entry.UserSubmission, 0)
+
+	if accession == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Missing accession"})
+		return
+	}
+
+	err := db.Table("user_submissions").
+		Where("source_accession = $1", accession).
+		Find(&existingMutations).
+		Error
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "Failed to find existing user mutations"})
+		return
+	}
+
+	c.JSON(http.StatusOK, existingMutations)
 }
 
 func createNewMutation(db *gorm.DB, c *gin.Context) {

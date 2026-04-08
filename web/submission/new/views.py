@@ -51,6 +51,16 @@ def new_entry():
 @login_required
 def create_bgc_mutation(bgc_id: str):
 
+    response = requests.get(
+        f"{current_app.config['API_BASE']}/mutation/{bgc_id}",
+        headers={"Authorization": f"Bearer {session['token']}"},
+    )
+
+    if response.status_code != 200:
+        flash("Could not retrieve existing mutations for entry.", "warning")
+
+    existing_mutations = response.json()
+
     if request.method == "POST":
         response = Entry.mutate(bgc_id)
 
@@ -63,6 +73,5 @@ def create_bgc_mutation(bgc_id: str):
         return redirect(url_for("edit.edit_bgc_redirect", bgc_id=mutation_accession))
 
     return render_template(
-        "edit/new_mutation.html",
-        bgc_id=bgc_id,
+        "edit/new_mutation.html", bgc_id=bgc_id, existing_mutations=existing_mutations
     )
