@@ -319,7 +319,11 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 		case Unlocked:
 			q.Where(
 				fmt.Sprintf(
-					"user_submissions.entry_accession NOT IN (SELECT entry_accession FROM locks WHERE (category = $%d OR category = 'full') OR unlocks_at <= $%d)",
+					"user_submissions.entry_accession NOT IN ("+
+						"SELECT entry_accession FROM locks WHERE "+
+						"(category = $%d OR category = 'full') "+
+						"OR unlocks_at <= $%d"+
+						")",
 					clauseIdx,
 					clauseIdx+1,
 				),
@@ -331,7 +335,14 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 		case Locked:
 			q.Where(
 				fmt.Sprintf(
-					"user_submissions.entry_accession IN (SELECT entry_accession FROM locks WHERE (category = $%d OR category = 'full') AND unlocks_at > $%d)",
+					"user_submissions.entry_accession IN ("+
+						"SELECT entry_accession FROM locks WHERE "+
+						"(category = $%d OR category = 'full') "+
+						"AND unlocks_at > $%d"+
+						") AND user_submissions.entry_accession NOT IN ("+
+						"SELECT accession FROM submission_reviews WHERE "+
+						"state = 'being reviewed' OR state = 'accepted'"+
+						")",
 					clauseIdx,
 					clauseIdx+1,
 				),
