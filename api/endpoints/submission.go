@@ -340,6 +340,7 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 			clauseIdx += 2
 			break
 		case PendingReview:
+			fallthrough
 		case Accepted:
 			q.Where(
 				fmt.Sprintf(
