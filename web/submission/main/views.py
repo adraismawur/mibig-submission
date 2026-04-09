@@ -58,7 +58,7 @@ def index():
         if state_filter := request.args.get(section):
             active_filters[section] = state_filter
             submissions_api_path += f"&{section}={state_filter}"
-    print(active_filters)
+
     response = requests.get(
         submissions_api_path,
         headers={"Authorization": f"Bearer {session['token']}"},
