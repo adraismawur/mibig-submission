@@ -50,6 +50,15 @@ def index():
     submissions_api_path = (
         f"{current_app.config['API_BASE']}/submission?start={submission_start}&limit={submission_limit}&search={submission_search}"
     )
+
+    # apply any section status filters
+
+    active_filters: dict[str, str] = {}
+    for section in ["locitax","biosynth","compounds","gene_information","finalize"]:
+        if state_filter := request.args.get(section):
+            active_filters[section] = state_filter
+            submissions_api_path += f"&{section}={state_filter}"
+
     response = requests.get(
         submissions_api_path,
         headers={"Authorization": f"Bearer {session['token']}"},
@@ -84,6 +93,7 @@ def index():
         submission_search=submission_search,
         submission_count=submission_count,
         existing_entries=existing_entries,
+        active_filters=active_filters,
         entry_start=entry_start,
         entry_limit=entry_limit,
         entry_search=entry_search,

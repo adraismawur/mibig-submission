@@ -27,7 +27,7 @@
         {% if current_user.is_submitter() %}
         <h4>Edit an existing submission or mutation</h4>
         {{ macros.list_submissions(existing_submissions, submission_start, submission_limit, submission_search,
-        submission_count) }}
+        submission_count, active_filters) }}
 
         <h4>Create a mutation for an existing entry</h4>
         {{ macros.list_existing_entries(existing_entries, entry_start, entry_limit, entry_search, entry_count) }}

@@ -181,16 +181,16 @@
         {% endmacro %}
 
         {% macro list_submissions(existing_submissions, submission_start, submission_limit, submission_search,
-        submission_count) %}
+        submission_count, active_filters) %}
 
         <div id="submission-list" class="form-group subgroup">
             <div class="">
                 <div class="row">
-                    <div class="col s5">
+                    <div class="col s3">
                         <input type="text" class="form-control" id="submissionSearch"
                             placeholder="Search for submission or mutation" value="{{submission_search}}">
                     </div>
-                    <div class="col s2">
+                    <div class="col s1">
                         <button id="submissionSearchBtn" class="btn btn-primary">Search</button>
                         <script type="application/javascript">
                             const submissionSearchBtn = document.getElementById('submissionSearchBtn');
@@ -200,29 +200,116 @@
                             });
                         </script>
                     </div>
+                    <div class="status-legend col s7 right blue lighten-5">
+                        <span style="font-size: 120%;">Legend:</span>
+                        <span class="status unlocked"></span><span>Editable</span>
+                        <span class="status locked"></span><span>Locked</span>
+                        <span class="status pending review"></span><span>Pending review</span>
+                        <span class="status being reviewed"></span><span>Under review</span>
+                        <span class="status accepted"></span><span>Reviewed</span>
+                    </div>
+                    <!-- <div class="col s5 right valign-wrapper">
+                        <span class="status incomplete"></span><span>Incomplete</span>
+                        <span class="status complete"></span><span>Complete</span>
+                    </div> -->
                 </div>
             </div>
             <div class="row">
-                {% if existing_submissions | count == 0 %}
-                <div class="col 3"></div>
-                <div class="col 6">There are no submissions or mutations to display.</div>
-                {% else %}
                 <table class="table">
                     <thead class="table-header">
                         <th>Accession</th>
                         <th>Type</th>
-                        <th>Creator</th>
+                        <th>Biosynthetic class</th>
+                        <th>Organism</th>
+                        <th id="locitax" class="col-orderable {{active_filters.get('locitax', '')}} dropdown-trigger"
+                            data-target="dropdown1">Locus
+                            <ul id='dropdown1' class='dropdown-content'>
+                                <div>Filter Locus:</div>
+                                <li><a class="col-orderable unlocked"
+                                        href="?locitax=unlocked#submission-list">Editable</a></li>
+                                <li><a class="col-orderable locked" href="?locitax=locked#submission-list">Locked</a>
+                                </li>
+                                <li><a class="col-orderable pending review"
+                                        href="?locitax=pending review#submission-list">Pending review</a></li>
+                                <li><a class="col-orderable being reviewed"
+                                        href="?locitax=being reviewed#submission-list">Under Review</a></li>
+                                <li><a class="col-orderable accepted"
+                                        href="?locitax=accepted#submission-list">Reviewed</a></li>
+                            </ul>
+                        </th>
+                        <th id="biosynth" class="col-orderable {{active_filters.get('biosynth', '')}} dropdown-trigger"
+                            data-target="dropdown2">Biosynthesis
+                            <ul id='dropdown2' class='dropdown-content'>
+                                <div>Filter Biosynthesis:</div>
+                                <li><a class="col-orderable unlocked"
+                                        href="?biosynth=unlocked#submission-list">Editable</a></li>
+                                <li><a class="col-orderable locked" href="?biosynth=locked#submission-list">Locked</a>
+                                </li>
+                                <li><a class="col-orderable pending review"
+                                        href="?biosynth=pending review#submission-list">Pending review</a></li>
+                                <li><a class="col-orderable being reviewed"
+                                        href="?biosynth=being reviewed#submission-list">Under Review</a></li>
+                                <li><a class="col-orderable accepted"
+                                        href="?biosynth=accepted#submission-list">Reviewed</a></li>
+                            </ul>
+                        </th>
+                        <th id="compounds"
+                            class="col-orderable {{active_filters.get('compounds', '')}} dropdown-trigger"
+                            data-target="dropdown3">Compound
+                            <ul id='dropdown3' class='dropdown-content'>
+                                <div>Filter Compound:</div>
+                                <li><a class="col-orderable unlocked"
+                                        href="?compounds=unlocked#submission-list">Editable</a></li>
+                                <li><a class="col-orderable locked" href="?compounds=locked#submission-list">Locked</a>
+                                </li>
+                                <li><a class="col-orderable pending review"
+                                        href="?compounds=pending review#submission-list">Pending review</a></li>
+                                <li><a class="col-orderable being reviewed"
+                                        href="?compounds=being reviewed#submission-list">Under Review</a></li>
+                                <li><a class="col-orderable accepted"
+                                        href="?compounds=accepted#submission-list">Reviewed</a></li>
+                            </ul>
+                        </th>
+                        <th id="gene_information"
+                            class="col-orderable {{active_filters.get('gene_information', '')}} dropdown-trigger"
+                            data-target="dropdown4">
+                            Gene
+                            info
+                            <ul id='dropdown4' class='dropdown-content'>
+                                <div>Filter Gene info:</div>
+                                <li><a class="col-orderable unlocked"
+                                        href="?gene_information=unlocked#submission-list">Editable</a></li>
+                                <li><a class="col-orderable locked"
+                                        href="?gene_information=locked#submission-list">Locked</a>
+                                </li>
+                                <li><a class="col-orderable pending review"
+                                        href="?gene_information=pending review#submission-list">Pending review</a></li>
+                                <li><a class="col-orderable being reviewed"
+                                        href="?gene_information=being reviewed#submission-list">Under Review</a></li>
+                                <li><a class="col-orderable accepted"
+                                        href="?gene_information=accepted#submission-list">Reviewed</a></li>
+                            </ul>
+                        </th>
                         <th></th>
                     </thead>
+                    {% if existing_submissions | count == 0 %}
+                </table>
+                <div class="col 3"></div>
+                <div class="col 6">There are no submissions or mutations to display.</div>
+                {% else %}
                     {% for submission in existing_submissions %}
                     <tr class="{{ 'blue lighten-5' if submission.owner else '' }}">
                         <td>{{ submission.accession }}</td>
                         <td>{{ submission.type if submission.type == "new submission" else "mutation of " +
                             submission.source_accession }}</td>
-                        <td>{{ "You" if submission.owner else "Someone else" }}</td>
-                        <td></td>
+                    <td>{{"-".join(submission.class)}}</td>
+                    <td>{{submission.taxonomy}}</td>
+                    <td><span class="status {{submission.sub_states.locitax}}"></span></td>
+                    <td><span class="status {{submission.sub_states.biosynth}}"></span></td>
+                    <td><span class="status {{submission.sub_states.compounds}}"></span></td>
+                    <td><span class="status {{submission.sub_states.gene_information}}"></span>
+                    </td>
                         <td>
-
                             <a href="{{url_for('edit.edit_bgc_redirect', bgc_id=submission.accession)}}"><button
                                     class="btn btn-primary">Edit</button></a>
                         </td>
@@ -233,17 +320,33 @@
                     <div class="row">
                         <div class="col s1 offset-s4">
                             {% if submission_start | int > 0 %}
-                            <a href="/?submission_start={{[0, submission_start | int - 10] | max}}#submission-list"><button
-                                    class="btn btn-primary">&lt;</button></a>
+                            <a id="entry-prev-page"><button class="btn btn-primary">&lt;</button></a>
+                            <script>
+                                prevBtn = document.getElementById("entry-prev-page")
+                                var filterText = ""
+                                ac = {{ active_filters | tojson }}
+                                Object.keys(ac).forEach(function (key) {
+                                    filterText += `&${key}=${ac[key]}`
+                                })
+                                prevBtn.href = "/?submission_start={{[0, submission_start | int - 10] | max}}" + filterText + "#submission-list"
+                            </script>
                             {% endif %}
                         </div>
                         <div class="col s2 center-align">
                             {{submission_start | int + 1}} - {{[submission_count, submission_start | int + 10 ] | min}}
                         </div>
                         <div class="col s1">
-                            {% if submission_start | int + 10 < submission_count %} <a
-                                href="/?submission_start={{[submission_count, submission_start | int + 10 ] | min}}#submission-list">
+                            {% if submission_start | int + 10 < submission_count %} <a id="entry-next-page">
                                 <button class="btn btn-primary">&gt;</button></a>
+                                <script>
+                                    nextBtn = document.getElementById("entry-next-page")
+                                    var filterText = ""
+                                    ac = {{ active_filters | tojson }}
+                                    Object.keys(ac).forEach(function (key) {
+                                        filterText += `&${key}=${ac[key]}`
+                                    })
+                                    nextBtn.href = "/?submission_start={{[submission_count, submission_start | int + 10 ] | min}}" + filterText + "#submission-list"
+                                </script>
                                 {% endif %}
                         </div>
                     </div>

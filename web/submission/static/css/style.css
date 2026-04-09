@@ -2,7 +2,11 @@ body {
   --mibig-light: hsl(200, 60%, 90%);
   --mibig-blue: hsl(200, 100%, 32%);
   --mibig-dark: hsl(217, 19%, 27%);
-  /* background-color: var(--bs-gray-400); */
+  --unlocked: #88CCEE;
+  --locked: #CC6677;
+  --pending-review: #DDCC77;
+  --being-reviewed: #44AA99;
+  --accepted: #117733;
 }
 
 /* overwrite hidden select from materialize */
@@ -79,7 +83,7 @@ select {
 }
 
 .form-wrapper {
-  width: 80%;
+  width: 85%;
   padding: 20px 50px 20px 50px;
   margin: 20px auto;
   min-height: 500px;
@@ -107,6 +111,98 @@ select {
   font-weight: 600;
   color: black;
 
+}
+
+.col-orderable::before {
+  content: '';
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  -moz-border-radius: 50%;
+  -webkit-border-radius: 50%;
+  border-radius: 50%;
+  border: 1px solid black;
+  margin-right: 0.2rem
+}
+
+.col-orderable.unlocked::before {
+  background-color: var(--unlocked)
+}
+
+.col-orderable.locked::before {
+  background-color: var(--locked)
+}
+
+.col-orderable.pending.review::before {
+  background-color: var(--pending-review)
+}
+
+.col-orderable.being.reviewed::before {
+  background-color: var(--being-reviewed)
+}
+
+.col-orderable.accepted::before {
+  background-color: var(--accepted)
+}
+
+td:has(.status) {
+  text-align: center;
+}
+
+.status-legend {
+  padding: 0.9rem !important;
+  border-radius: 2px;
+}
+
+.status {
+  height: 25px;
+  width: 25px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 0.5rem;
+  margin-left: 0.5rem;
+  border: 1px solid black;
+}
+
+.status.unlocked {
+  background-color: var(--unlocked);
+}
+
+.status.locked {
+  background-color: var(--locked)
+}
+
+.status.pending.review {
+  background-color: var(--pending-review)
+}
+
+.status.being.reviewed {
+  background-color: var(--being-reviewed)
+}
+
+.status.accepted {
+  background-color: var(--accepted)
+}
+
+/* .status.incomplete {
+  background-color: #ff0000ae;
+}
+
+.status.for-review {
+  background-color: #ffc400ba;
+}
+
+.status.complete {
+  background-color: #00ff08c3;
+} */
+
+
+.status.incomplete {
+  border-color: black;
+}
+
+.status.complete {
+  background-color: black;
 }
 
 /* change checkbox color */
