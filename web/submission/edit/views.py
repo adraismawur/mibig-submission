@@ -299,14 +299,14 @@ def promote_bgc(bgc_id: str, category: str):
 
     if request.method == "POST":
         # clear locks first
-        response = requests.post(
-            f"{current_app.config['API_BASE']}/lock/clear/{bgc_id}",
-            headers={"Authorization": f"Bearer {session['token']}"},
-        )
+        # response = requests.post(
+        #     f"{current_app.config['API_BASE']}/lock/clear/{bgc_id}",
+        #     headers={"Authorization": f"Bearer {session['token']}"},
+        # )
 
-        if response.status_code != 200:
-            flash(response.json()["error"], "error")
-            return redirect(url_for("edit.edit_bgc_redirect", bgc_id=bgc_id))
+        # if response.status_code != 200:
+        #     flash(response.json()["error"], "error")
+        #     return redirect(url_for("edit.edit_bgc_redirect", bgc_id=bgc_id))
 
 
         submission_endpoint = "/submission/promote"
