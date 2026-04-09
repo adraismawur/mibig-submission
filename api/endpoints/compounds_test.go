@@ -36,7 +36,7 @@ var testEntry = entry.Entry{
 					CompoundID: 1,
 					Method:     "test",
 					References: []string{
-						"doi:test",
+						"doi:test1",
 					},
 				},
 			},
@@ -45,8 +45,34 @@ var testEntry = entry.Entry{
 					ID:         1,
 					CompoundID: 1,
 					Observed:   true,
+					Assays: []compound.BioActivityAssay{
+						{
+							ID:            1,
+							BioActivityID: 1,
+							MeasurementID: 1,
+							Measurement: compound.AssayMeasurement{
+								ID:            1,
+								Concentration: 1,
+								Unit:          "g",
+								Error:         2,
+								Replicates:    3,
+							},
+							Target:       "test",
+							Details:      "test",
+							TestSystemID: 1,
+							TestSystem: compound.AssayTestSystem{
+								ID:       1,
+								CellLine: "test",
+								Organism: 123,
+								Strain:   "test",
+							},
+							References: []string{
+								"doi:test2",
+							},
+						},
+					},
 					References: []string{
-						"doi:test",
+						"doi:test3",
 					},
 				},
 			},
