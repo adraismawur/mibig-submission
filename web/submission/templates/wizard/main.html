@@ -16,10 +16,10 @@ Editing {{ bgc_id }}
     <h4>Enter {{ form_description }}</h4>
 
     <form method="post">
-        {{ macros.simple_divform_inner(form, is_reviewer=is_reviewer, reviewed=reviewed) }}
+        {{ macros.simple_divform_inner(form) }}
 
         <div class=" form-group">
-            {{ macros.render_wizard_nav(show_nav, bgc_id, prev_form, next_form)}}
+            {{ macros.render_wizard_nav(show_nav, bgc_id, prev_form, next_form, is_reviewer=is_reviewer)}}
         </div>
     </form>
 </div>
