@@ -331,12 +331,13 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 						"category = $%d)",
 					clauseIdx,
 					clauseIdx+1,
-					clauseIdx,
+					clauseIdx+2,
 				),
 				stateFilter.Category,
 				now,
+				stateFilter.Category,
 			)
-			clauseIdx += 2
+			clauseIdx += 3
 			break
 		case Locked:
 			q.Where(
