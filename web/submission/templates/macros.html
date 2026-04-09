@@ -181,7 +181,7 @@
         {% endmacro %}
 
         {% macro list_submissions(existing_submissions, submission_start, submission_limit, submission_search,
-        submission_count) %}
+        submission_count, active_filters) %}
 
         <div id="submission-list" class="form-group subgroup">
             <div class="">
@@ -215,17 +215,44 @@
                 </div>
             </div>
             <div class="row">
-                {% if existing_submissions | count == 0 %}
-                <div class="col 3"></div>
-                <div class="col 6">There are no submissions or mutations to display.</div>
-                {% else %}
+
                 <table class="table">
                     <thead class="table-header">
                         <th>Accession</th>
                         <th>Type</th>
-                        <th>Creator</th>
+                        <th>Biosynthetic class</th>
+                        <th>Organism</th>
+                        <th id="locitax" class="col-orderable {{active_filters.get('locitax', '')}}">Locus</th>
+                        <th id="biosynth" class="col-orderable {{active_filters.get('biosynth', '')}}">Biosynthesis</th>
+                        <th id="compounds" class="col-orderable {{active_filters.get('compounds', '')}}">Compound</th>
+                        <th id="gene_information" class="col-orderable {{active_filters.get('gene_information', '')}}">
+                            Gene
+                            info</th>
                         <th></th>
                     </thead>
+                    <script>
+                        const orderableColumns = document.querySelectorAll(".col-orderable")
+                        orderableColumns.forEach(function (elem) {
+                            elem.addEventListener("click", () => {
+                                // cycle through allowed filters
+                                if (elem.classList.contains("unlocked")) {
+                                    document.location.href = `?#submission-list`;
+                                    //  document.location.href = `?${elem.id}=pending review#submission-list`;
+                                    //} else if (elem.classList.contains("pending")) {
+                                    //    document.location.href = `?#submission-list`;
+                                } else {
+                                    document.location.href = `?${elem.id}=unlocked#submission-list`;
+                                }
+
+                            })
+                        })
+
+                    </script>
+                    {% if existing_submissions | count == 0 %}
+                </table>
+                <div class="col 3"></div>
+                <div class="col 6">There are no submissions or mutations to display.</div>
+                {% else %}
                     {% for submission in existing_submissions %}
                     <tr class="{{ 'blue lighten-5' if submission.owner else '' }}">
                         <td>{{ submission.accession }}</td>
