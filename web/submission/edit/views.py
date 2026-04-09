@@ -170,7 +170,7 @@ def generate_wizard_page(bgc_id: str, form_id: str, show_nav: bool, active_revie
         wizard_page.template,
         form=form,
         bgc_id=bgc_id,
-        is_reviewer=active_review,
+        is_reviewer=current_user.has_role(Role.REVIEWER),
         reviewed=False,
         show_nav=show_nav,
         next_form=next_form,
@@ -179,6 +179,7 @@ def generate_wizard_page(bgc_id: str, form_id: str, show_nav: bool, active_revie
         antismash_json_url=antismash_json_url,
         antismash_json=antismash_json,
         antismash_accessions=antismash_accessions,
+        active_review=active_review,
     )
 
 

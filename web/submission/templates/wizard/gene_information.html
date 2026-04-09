@@ -129,7 +129,8 @@ Editing {{ bgc_id }}
 
 
     <div class="form-group">
-        {{ macros.render_wizard_nav(show_nav, bgc_id, prev_form, next_form, show_save=False, is_reviewer=is_reviewer)}}
+        {{ macros.render_wizard_nav(show_nav, bgc_id, prev_form, next_form, show_save=False,
+        active_review=active_review)}}
     </div>
 </div>
 
