@@ -2,16 +2,19 @@ package endpoints
 
 import (
 	"fmt"
-	"github.com/adraismawur/mibig-submission/models"
-	"github.com/adraismawur/mibig-submission/models/entry"
-	"github.com/adraismawur/mibig-submission/models/lock"
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"log/slog"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/adraismawur/mibig-submission/models"
+	"github.com/adraismawur/mibig-submission/models/entry"
+	"github.com/adraismawur/mibig-submission/models/entry/biosynthesis"
+	"github.com/adraismawur/mibig-submission/models/entry/taxonomy"
+	"github.com/adraismawur/mibig-submission/models/lock"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func init() {
@@ -389,6 +392,8 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 
 	type ResponseSubmission struct {
 		ExistingSubmissionSummary
+		Taxonomy  string                            `json:"taxonomy"`
+		Class     []string                          `json:"class"`
 		SubStates ExistingSubmissionSubStateSummary `json:"sub_states"`
 	}
 
@@ -408,6 +413,8 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 		submissionMap[submission.EntryAccession] = i
 		response.Submissions = append(response.Submissions, ResponseSubmission{
 			ExistingSubmissionSummary: submission,
+			Taxonomy:                  "",
+			Class:                     []string{""},
 			SubStates: ExistingSubmissionSubStateSummary{
 				Locitax:         Unlocked,
 				Biosynth:        Unlocked,
@@ -416,6 +423,31 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 				Finalize:        Unlocked,
 			},
 		})
+	}
+
+	var taxonomies []taxonomy.Taxonomy
+	err = db.Table("taxonomies").
+		Where("entry_accession IN ?", accessions).
+		Find(&taxonomies).
+		Error
+
+	for _, taxonomy := range taxonomies {
+		response.Submissions[submissionMap[taxonomy.EntryAccession]].Taxonomy = taxonomy.Name
+	}
+
+	var biosyntheses []biosynthesis.Biosynthesis
+	err = db.Table("biosyntheses").
+		Where("entry_accession IN ?", accessions).
+		Preload("Classes").
+		Find(&biosyntheses).
+		Error
+
+	for _, biosynth := range biosyntheses {
+		var classes []string = make([]string, 0)
+		for _, class := range biosynth.Classes {
+			classes = append(classes, class.Class)
+		}
+		response.Submissions[submissionMap[biosynth.EntryAccession]].Class = classes
 	}
 
 	var locks []lock.Lock

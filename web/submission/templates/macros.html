@@ -186,11 +186,11 @@
         <div id="submission-list" class="form-group subgroup">
             <div class="">
                 <div class="row">
-                    <div class="col s5">
+                    <div class="col s3">
                         <input type="text" class="form-control" id="submissionSearch"
                             placeholder="Search for submission or mutation" value="{{submission_search}}">
                     </div>
-                    <div class="col s2">
+                    <div class="col s1">
                         <button id="submissionSearchBtn" class="btn btn-primary">Search</button>
                         <script type="application/javascript">
                             const submissionSearchBtn = document.getElementById('submissionSearchBtn');
@@ -200,6 +200,18 @@
                             });
                         </script>
                     </div>
+                    <div class="status-legend col s7 right blue lighten-5">
+                        <span style="font-size: 120%;">Legend:</span>
+                        <span class="status unlocked"></span><span>Editable</span>
+                        <span class="status locked"></span><span>Locked</span>
+                        <span class="status pending review"></span><span>Pending review</span>
+                        <span class="status being reviewed"></span><span>Under review</span>
+                        <span class="status accepted"></span><span>Reviewed</span>
+                    </div>
+                    <!-- <div class="col s5 right valign-wrapper">
+                        <span class="status incomplete"></span><span>Incomplete</span>
+                        <span class="status complete"></span><span>Complete</span>
+                    </div> -->
                 </div>
             </div>
             <div class="row">
@@ -219,10 +231,14 @@
                         <td>{{ submission.accession }}</td>
                         <td>{{ submission.type if submission.type == "new submission" else "mutation of " +
                             submission.source_accession }}</td>
-                        <td>{{ "You" if submission.owner else "Someone else" }}</td>
-                        <td></td>
+                    <td>{{"-".join(submission.class)}}</td>
+                    <td>{{submission.taxonomy}}</td>
+                    <td><span class="status {{submission.sub_states.locitax}}"></span></td>
+                    <td><span class="status {{submission.sub_states.biosynth}}"></span></td>
+                    <td><span class="status {{submission.sub_states.compounds}}"></span></td>
+                    <td><span class="status {{submission.sub_states.gene_information}}"></span>
+                    </td>
                         <td>
-
                             <a href="{{url_for('edit.edit_bgc_redirect', bgc_id=submission.accession)}}"><button
                                     class="btn btn-primary">Edit</button></a>
                         </td>
