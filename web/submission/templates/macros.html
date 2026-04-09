@@ -320,17 +320,33 @@
                     <div class="row">
                         <div class="col s1 offset-s4">
                             {% if submission_start | int > 0 %}
-                            <a href="/?submission_start={{[0, submission_start | int - 10] | max}}#submission-list"><button
-                                    class="btn btn-primary">&lt;</button></a>
+                            <a id="entry-prev-page"><button class="btn btn-primary">&lt;</button></a>
+                            <script>
+                                prevBtn = document.getElementById("entry-prev-page")
+                                var filterText = ""
+                                ac = {{ active_filters | tojson }}
+                                Object.keys(ac).forEach(function (key) {
+                                    filterText += `&${key}=${ac[key]}`
+                                })
+                                prevBtn.href = "/?submission_start={{[0, submission_start | int - 10] | max}}" + filterText + "#submission-list"
+                            </script>
                             {% endif %}
                         </div>
                         <div class="col s2 center-align">
                             {{submission_start | int + 1}} - {{[submission_count, submission_start | int + 10 ] | min}}
                         </div>
                         <div class="col s1">
-                            {% if submission_start | int + 10 < submission_count %} <a
-                                href="/?submission_start={{[submission_count, submission_start | int + 10 ] | min}}#submission-list">
+                            {% if submission_start | int + 10 < submission_count %} <a id="entry-next-page">
                                 <button class="btn btn-primary">&gt;</button></a>
+                                <script>
+                                    nextBtn = document.getElementById("entry-next-page")
+                                    var filterText = ""
+                                    ac = {{ active_filters | tojson }}
+                                    Object.keys(ac).forEach(function (key) {
+                                        filterText += `&${key}=${ac[key]}`
+                                    })
+                                    nextBtn.href = "/?submission_start={{[submission_count, submission_start | int + 10 ] | min}}" + filterText + "#submission-list"
+                                </script>
                                 {% endif %}
                         </div>
                     </div>

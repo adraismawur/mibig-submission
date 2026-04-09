@@ -376,16 +376,16 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 		}
 	}
 
-	q.Offset(start)
-	q.Limit(limit)
-
+	var recordCount int64
 	q.
 		Select(fmt.Sprintf("user_submissions.entry_accession, user_submissions.type, user_submissions.source_accession, user_submissions.user_id = $%d as owner", clauseIdx), user.ID).
+		Count(&recordCount).
+		Offset(start).
+		Limit(limit).
 		Order("owner desc").
 		Find(&submissions)
 
 	err = q.Error
-	rows := q.RowsAffected
 
 	if err != nil {
 		slog.Error("[endpoints] [submission] Could not find submissions", "user_id", userID, "error", err)
@@ -405,7 +405,7 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 		RecordCount int64                `json:"record_count"`
 	}
 
-	response.RecordCount = rows
+	response.RecordCount = recordCount
 	response.Submissions = make([]ResponseSubmission, 0)
 
 	var accessions []string
