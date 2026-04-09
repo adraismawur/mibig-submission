@@ -326,9 +326,12 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 						"SELECT entry_accession FROM locks WHERE "+
 						"(category = $%d OR category = 'full') "+
 						"OR unlocks_at <= $%d"+
-						")",
+						") AND user_submissions.entry_accession NOT IN ("+
+						"SELECT accession FROM submission_reviews WHERE "+
+						"category = $%d)",
 					clauseIdx,
 					clauseIdx+1,
+					clauseIdx,
 				),
 				stateFilter.Category,
 				now,
