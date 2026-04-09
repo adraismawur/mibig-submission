@@ -2,11 +2,11 @@ body {
   --mibig-light: hsl(200, 60%, 90%);
   --mibig-blue: hsl(200, 100%, 32%);
   --mibig-dark: hsl(217, 19%, 27%);
-  /* background-color: var(--bs-gray-400); */
-  --locked: rgb(213, 094, 000);
-  --pending-review: rgb(240, 228, 066);
-  --being-reviewed: rgb(80, 240, 66);
-  --accepted: rgb(0, 158, 115);
+  --unlocked: #88CCEE;
+  --locked: #CC6677;
+  --pending-review: #DDCC77;
+  --being-reviewed: #44AA99;
+  --accepted: #117733;
 }
 
 /* overwrite hidden select from materialize */
@@ -126,7 +126,7 @@ select {
 }
 
 .col-orderable.unlocked::before {
-  background-color: var(--mibig-blue)
+  background-color: var(--unlocked)
 }
 
 .col-orderable.locked::before {
@@ -165,7 +165,7 @@ td:has(.status) {
 }
 
 .status.unlocked {
-  background-color: var(--mibig-blue);
+  background-color: var(--unlocked);
 }
 
 .status.locked {
