@@ -11,10 +11,30 @@ Creating edit for {{ bgc_id }}
 <div class="form-wrapper">
     <h4>Confirm edit creation</h4>
 
-    <form method="post" class="container center-align">
+    <form method="post" class=" center-align">
         <div class="form-group row">
             <div class="row">
                 <h5>Are you sure you want to create a mutation for {{ bgc_id }}?</h5>
+
+                {% if existing_mutations | length == 0 %}
+                    <h6>No existing mutations for this entry were found.</h6>
+                {% else %}
+                    <h6>Found the following mutations for this entry:</h6>
+                    <table class="table">
+                        <thead>
+                            <td>Accession</td>
+                            <td>Go to edit page</td>
+                        </thead>
+                        <tbody>
+                            {% for mutation in existing_mutations %}
+                            <tr>
+                                <td>{{mutation['db_submission_accession']}}</td>
+                                <td><a href="{{url_for('edit.edit_bgc_redirect', bgc_id=mutation['db_submission_accession'])}}"><button type="button" class="btn btn-primary">Edit</button></a></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
 
                 <h6>Pressing confirm will copy the existing entry and allow you to make edits for eventual review and
                     submission</h6>

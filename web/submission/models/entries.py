@@ -34,14 +34,12 @@ class Entry(db.Model):
         db.session.add(entry)
         db.session.commit()
         return entry
-    
+
     def mutate(from_accession: str):
         return requests.post(
             f"{current_app.config['API_BASE']}/mutation",
             headers={"Authorization": f"Bearer {session['token']}"},
-            json={
-                "from_accession": from_accession
-            }
+            json={"from_accession": from_accession},
         )
 
     def add_references(self, refs: list["Reference"]):
@@ -185,8 +183,6 @@ class Entry(db.Model):
                     else:
                         data[wrap_array] = [data[wrap_array]]
 
-
-
             return data
         return None
 
@@ -257,7 +253,7 @@ class Entry(db.Model):
         # or replace the array with the first element if there is an element
         #
         # additionally, we need to remove the association ids if they're gone
-        # lots of special treatment for this data. TODO: fix this 
+        # lots of special treatment for this data. TODO: fix this
         unwrap_arrays = ["a_domain", "c_domain", "at_domain", "ks_domain"]
         for unwrap_array in unwrap_arrays:
             if unwrap_array in data:
@@ -274,7 +270,7 @@ class Entry(db.Model):
         if response.status_code == 200:
             return (True, None)
 
-        return (False, response.json()['error'])
+        return (False, response.json()["error"])
 
     def delete_module(bgc_id: str, module_id: str):
         response = requests.delete(
@@ -285,7 +281,6 @@ class Entry(db.Model):
             return True
 
         return False
-    
 
     def get_modification_domain_list(bgc_id: str, module_id: int):
         response = requests.get(
@@ -300,9 +295,8 @@ class Entry(db.Model):
                 domain["domain_type"] = domain["type"]
 
             return (data, None)
-        
-        return (None, response.json()['error'])
-    
+
+        return (None, response.json()["error"])
 
     def get_modification_domain(bgc_id: str, modification_domain_id: int, pretty=False):
         url = f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/modification_domain/{modification_domain_id}"
@@ -322,33 +316,33 @@ class Entry(db.Model):
                 data = response.json()
                 data["domain_type"] = data["type"]
                 return (response.json(), None)
-        
-        return (None, response.json()['error'])
-    
+
+        return (None, response.json()["error"])
+
     def create_modification_domain(bgc_id: str, module_id: int, data):
         response = requests.post(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/modification_domain/add/{module_id}",
             headers={"Authorization": f"Bearer {session['token']}"},
-            json=data
+            json=data,
         )
 
         if response.status_code == 200:
             return (True, None)
-        
-        return (False, response.json()['error'])
+
+        return (False, response.json()["error"])
 
     def update_modification_domain(bgc_id: str, modification_domain_id: int, data):
         response = requests.post(
             f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/modification_domain/{modification_domain_id}",
             headers={"Authorization": f"Bearer {session['token']}"},
-            json=data
+            json=data,
         )
 
         if response.status_code == 200:
             data = response.json()
             return (data, None)
-        
-        return (None, response.json()['error'])
+
+        return (None, response.json()["error"])
 
     def remove_modification_domain(bgc_id: str, modification_domain_id: int):
         response = requests.delete(
@@ -358,11 +352,8 @@ class Entry(db.Model):
 
         if response.status_code == 200:
             return (True, None)
-        
-        return (False, response.json()['error'])
-        
 
-
+        return (False, response.json()["error"])
 
     def get_path(bgc_id: str, path_id: int):
         response = requests.get(
@@ -661,10 +652,7 @@ class Entry(db.Model):
             json=data,
         )
 
-        if response.status_code != 200:
-            return None
-
-        return response.json()
+        return response.json(), response.status_code
 
     def check_lock(bgc_id: str, category: str):
         lock_endpoint = "/lock/check/"

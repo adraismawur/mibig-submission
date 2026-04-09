@@ -1,6 +1,7 @@
 package entry
 
 import (
+	"errors"
 	"fmt"
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/models/entry/biosynthesis"
@@ -151,6 +152,66 @@ func CreateNewUserSubmission(db *gorm.DB, minimalEntry MinimalEntry, user models
 	}
 
 	return &newEntry, err
+}
+
+func GetEntryAccessionByLociAccession(db *gorm.DB, locusAccession string, start int, end int) (*string, error) {
+	var existingSubmissionsWithLocusAccession []struct {
+		EntryAccession string
+		LocusAccession string
+		Start          int
+		End            int
+	}
+
+	err := db.Table("locus").
+		Select("entry_accession, accession as locus_accession, start, end").
+		Joins("inner join locations on locus.id = locations.locus_id").
+		Where("locus.accession = ?", locusAccession).
+		Find(&existingSubmissionsWithLocusAccession).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(existingSubmissionsWithLocusAccession) == 0 {
+		return nil, nil
+	}
+
+	for _, existingSubmission := range existingSubmissionsWithLocusAccession {
+		if existingSubmission.LocusAccession != locusAccession {
+			return nil, errors.New("unexpected error in existing submission check: locus accession does not match")
+		}
+
+		existingSubmissionAccession := existingSubmission.EntryAccession
+
+		if existingSubmission.Start == -1 && existingSubmission.End == -1 {
+			return &existingSubmissionAccession, nil
+		}
+
+		if start == -1 && end == -1 {
+			return &existingSubmissionAccession, nil
+		}
+
+		if end < existingSubmission.Start {
+			continue
+		}
+
+		if start >= existingSubmission.End {
+			continue
+		}
+
+		if existingSubmission.End < start {
+			continue
+		}
+
+		if existingSubmission.Start >= end {
+			continue
+		}
+
+		return &existingSubmissionAccession, nil
+	}
+
+	return nil, nil
 }
 
 func CreateNewUserMutation(db *gorm.DB, accession string, user models.User) (*Entry, error) {

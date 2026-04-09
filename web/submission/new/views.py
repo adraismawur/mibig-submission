@@ -24,7 +24,20 @@ def new_entry():
 
     if request.method == "POST" and form.validate():
 
-        response = Entry.submit(form.data)
+        response, status = Entry.submit(form.data)
+
+        if status == 400:  # bad request
+            flash("Could not process the request.", "error")
+            return render_template("new/new_submit.html", form=form)
+        if status == 409:  # conflict. entry already exists
+            existing_accession = response["accession"]
+            entry_url = url_for("edit.view_json", bgc_id=existing_accession)
+            flash(
+                f"An entry with a locus accession and coordinates that overlap already exists ({existing_accession})",
+                "error",
+            )
+            return render_template("new/new_submit.html", form=form)
+
         as_task_id = response.get("status").get("id")
 
         flash("New entry submitted successfully.", "success")
@@ -33,9 +46,20 @@ def new_entry():
 
     return render_template("new/new_submit.html", form=form)
 
+
 @bp_new.route("/new_mutation/<bgc_id>", methods=["GET", "POST"])
 @login_required
 def create_bgc_mutation(bgc_id: str):
+
+    response = requests.get(
+        f"{current_app.config['API_BASE']}/mutation/{bgc_id}",
+        headers={"Authorization": f"Bearer {session['token']}"},
+    )
+
+    if response.status_code != 200:
+        flash("Could not retrieve existing mutations for entry.", "warning")
+
+    existing_mutations = response.json()
 
     if request.method == "POST":
         response = Entry.mutate(bgc_id)
@@ -44,12 +68,10 @@ def create_bgc_mutation(bgc_id: str):
             flash(f"Error creating new mutation: {response.json()['error']}", "error")
             return redirect(url_for("main.main"))
 
-        mutation_accession = response.json()['accession']
+        mutation_accession = response.json()["accession"]
 
         return redirect(url_for("edit.edit_bgc_redirect", bgc_id=mutation_accession))
-    
 
     return render_template(
-        "edit/new_mutation.html",
-        bgc_id=bgc_id,
+        "edit/new_mutation.html", bgc_id=bgc_id, existing_mutations=existing_mutations
     )
