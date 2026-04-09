@@ -431,6 +431,12 @@ class Entry(db.Model):
         compound_data["mass"] = float(compound_data["mass"])
         request_url = f"{current_app.config['API_BASE']}/entry/{bgc_id}/compounds/{compound_data['db_id']}"
 
+        for bioactivity in compound_data['bioactivities']:
+            for assay in bioactivity['assays']:
+                assay['measurement']['concentration'] = float(assay['measurement']['concentration'])
+                assay['measurement']['error'] = float(assay['measurement']['error'])
+                assay['measurement']['replicates'] = float(assay['measurement']['replicates'])
+
         response = requests.post(
             request_url,
             headers={"Authorization": f"Bearer {session['token']}"},
@@ -441,6 +447,12 @@ class Entry(db.Model):
 
     def create_compound(bgc_id: str, compound_data: dict[any]):
         compound_data["mass"] = float(compound_data["mass"])
+
+        for bioactivity in compound_data['bioactivities']:
+            for assay in bioactivity['assays']:
+                assay['measurement']['concentration'] = float(assay['measurement']['concentration'])
+                assay['measurement']['error'] = float(assay['measurement']['error'])
+                assay['measurement']['replicates'] = float(assay['measurement']['replicates'])
 
         request_url = f"{current_app.config['API_BASE']}/entry/{bgc_id}/compounds"
 

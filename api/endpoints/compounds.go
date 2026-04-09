@@ -62,7 +62,8 @@ func getEntryCompounds(db *gorm.DB, c *gin.Context) {
 
 	q := db.Table("compounds").
 		Preload("Evidence").
-		Preload("BioActivities").
+		Preload("BioActivities.Assays.Measurement").
+		Preload("BioActivities.Assays.TestSystem").
 		Where("entry_accession = $1", accession)
 
 	if id != "" {

@@ -43,7 +43,7 @@ func TestEntryCanCreateLockTrueOtherEntryLock(t *testing.T) {
 		ID:             1,
 		EntryAccession: "test2",
 		Category:       Locitax,
-		UnlocksAt:      time.Now().Add(time.Minute * 5),
+		UnlocksAt:      time.Now().Add(time.Minute * 5).Unix(),
 	}
 
 	err = db.Create(&testLock).Error
@@ -70,7 +70,7 @@ func TestEntryCanCreateLockFalseLockExists(t *testing.T) {
 		ID:             1,
 		EntryAccession: testEntry.Accession,
 		Category:       Locitax,
-		UnlocksAt:      time.Now().Add(time.Minute * 5),
+		UnlocksAt:      time.Now().Add(time.Minute * 5).Unix(),
 	}
 
 	err = db.Create(&testLock).Error
@@ -99,7 +99,7 @@ func TestEntryCanCreateLockTrueOtherCategory(t *testing.T) {
 		ID:             1,
 		EntryAccession: testEntry.Accession,
 		Category:       Locitax,
-		UnlocksAt:      time.Now().Add(time.Minute * 5),
+		UnlocksAt:      time.Now().Add(time.Minute * 5).Unix(),
 	}
 
 	err = db.Create(&testLock).Error
@@ -128,7 +128,7 @@ func TestEntryCanCreateLockTrueExpired(t *testing.T) {
 		ID:             1,
 		EntryAccession: testEntry.Accession,
 		Category:       Locitax,
-		UnlocksAt:      time.Now().Add(-time.Minute * 5),
+		UnlocksAt:      time.Now().Add(-time.Minute * 5).Unix(),
 	}
 
 	err = db.Create(&testLock).Error
@@ -197,7 +197,7 @@ func TestCreateAlreadyExists(t *testing.T) {
 		ID:             0,
 		EntryAccession: testEntry.Accession,
 		Category:       expectedCategory,
-		UnlocksAt:      time.Now().Add(time.Minute * 5),
+		UnlocksAt:      time.Now().Add(time.Minute * 5).Unix(),
 	}
 
 	err = db.Create(&expectedLock).Error
@@ -236,7 +236,7 @@ func TestCreateAlreadyExistsExpired(t *testing.T) {
 		ID:             0,
 		EntryAccession: testEntry.Accession,
 		Category:       expectedCategory,
-		UnlocksAt:      time.Now().Add(-time.Minute * 5),
+		UnlocksAt:      time.Now().Add(-time.Minute * 5).Unix(),
 	}
 
 	err = db.Create(&existingLock).Error
@@ -275,7 +275,7 @@ func TestDeleteLock(t *testing.T) {
 		ID:             0,
 		EntryAccession: testEntry.Accession,
 		Category:       expectedCategory,
-		UnlocksAt:      time.Now().Add(time.Minute * 5),
+		UnlocksAt:      time.Now().Add(time.Minute * 5).Unix(),
 		LockOwnerID:    testUser.ID,
 		LockOwner:      testUser,
 	}
