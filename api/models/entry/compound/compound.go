@@ -25,6 +25,7 @@ type BioActivityAssay struct {
 	BioActivityID uint64           `json:"db_bio_activity_id"`
 	MeasurementID uint64           `json:"db_measurement_id"`
 	Measurement   AssayMeasurement `json:"measurement"`
+	Type          string           `json:"type"`
 	Target        string           `json:"target"`
 	Details       string           `json:"details"`
 	TestSystemID  uint64           `json:"db_test_system_id"`

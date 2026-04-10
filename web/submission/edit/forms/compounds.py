@@ -33,26 +33,14 @@ from submission.utils.custom_validators import (
     validate_loci,
 )
 
+
 class BioActivityAssayMeasurementSubForm(Form):
     db_id = IntegerField(widget=HiddenInput())
     concentration = DecimalField(places=None)
-    unit = SelectField(choices=[
-        "IC50",
-        "EC50",
-        "GI50",
-        "CC50",
-        "MIC",
-        "MBC",
-        "Ki",
-        "Kd",
-        "Km",
-        "% inhibition at concentration",
-        "Zone of inhibition",
-        "Fold change",
-        "Other",
-    ])
+    unit = StringField()
     error = DecimalField(places=None)
     replicates = DecimalField(places=None)
+
 
 class BioActivityAssayTestSystemSubForm(Form):
     db_id = IntegerField(widget=HiddenInput())
@@ -64,19 +52,38 @@ class BioActivityAssayTestSystemSubForm(Form):
 class BioActivityAssaySubForm(Form):
     db_id = IntegerField(widget=HiddenInput())
     db_bio_activity_id = IntegerField(widget=HiddenInput())
+    type = SelectField(
+        choices=[
+            "IC50",
+            "EC50",
+            "GI50",
+            "CC50",
+            "MIC",
+            "MBC",
+            "Ki",
+            "Kd",
+            "Km",
+            "% inhibition at concentration",
+            "Zone of inhibition",
+            "Fold change",
+            "Other",
+        ]
+    )
     db_measurement_id = IntegerField(widget=HiddenInput())
     measurement = FormField(BioActivityAssayMeasurementSubForm)
-    target = SelectField(choices=[
-        "Molecular target",
-        "Enzyme",
-        "Receptor",
-        "Whole organism",
-        "Cell line",
-        "Primary cells",
-        "Tissue",
-        "Organoid",
-        "In vivo model",
-    ])
+    target = SelectField(
+        choices=[
+            "Molecular target",
+            "Enzyme",
+            "Receptor",
+            "Whole organism",
+            "Cell line",
+            "Primary cells",
+            "Tissue",
+            "Organoid",
+            "In vivo model",
+        ]
+    )
     details = StringField()
     db_test_system_id = IntegerField(widget=HiddenInput())
     test_system = FormField(BioActivityAssayTestSystemSubForm)
@@ -95,23 +102,25 @@ class BioActivityAssaySubForm(Form):
 class BioactivitySubForm(Form):
     db_id = IntegerField(widget=HiddenInput())
     compound_id = IntegerField(widget=HiddenInput())
-    name = SelectField(choices=[
-        "Cytotoxicity",
-        "Antiproliferative",
-        "Antibiotic (antibacterial)",
-        "Antifungal",
-        "Antiviral",
-        "Antiparasitic",
-        "Anti-inflammatory",
-        "Enzyme inhibition",
-        "Receptor agonist",
-        "Receptor antagonist",
-        "Ion channel modulator",
-        "Neuroprotective",
-        "Antioxidant",
-        "Immunomodulatory",
-        "Other",
-    ])
+    name = SelectField(
+        choices=[
+            "Cytotoxicity",
+            "Antiproliferative",
+            "Antibiotic (antibacterial)",
+            "Antifungal",
+            "Antiviral",
+            "Antiparasitic",
+            "Anti-inflammatory",
+            "Enzyme inhibition",
+            "Receptor agonist",
+            "Receptor antagonist",
+            "Ion channel modulator",
+            "Neuroprotective",
+            "Antioxidant",
+            "Immunomodulatory",
+            "Other",
+        ]
+    )
     details = StringField()
     observed = BooleanField()
     assays = FieldList(
@@ -156,7 +165,7 @@ class CompoundsSubForm(Form):
         widget=FieldListAddBtn(
             label="Add evidence",
         ),
-        min_entries=1
+        min_entries=1,
     )
     bioactivities = FieldList(
         FormField(BioactivitySubForm),
