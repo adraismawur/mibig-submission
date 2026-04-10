@@ -217,14 +217,16 @@
             <div class="row">
                 <table class="table">
                     <thead class="table-header">
-                        <th>Accession</th>
-                        <th>Type</th>
-                        <th>Biosynthetic class</th>
-                        <th>Organism</th>
+                        <th style="min-width:8%">Accession</th>
+                        <th style="min-width:15%">Type</th>
+                        <th style="min-width:13%">Biosynthetic class</th>
+                        <th style="min-width:20%">Organism</th>
                         <th id="locitax" class="col-orderable {{active_filters.get('locitax', '')}} dropdown-trigger"
                             data-target="dropdown1">Locus
                             <ul id='dropdown1' class='dropdown-content'>
-                                <div>Filter Locus:</div>
+                                <div class="dropdown-header">Filter Locus:</div>
+                                <li class="divider" tabindex="-1"></li>
+                                <li><a class="col-orderable" href="?#submission-list">No filters</a></li>
                                 <li><a class="col-orderable unlocked"
                                         href="?locitax=unlocked#submission-list">Editable</a></li>
                                 <li><a class="col-orderable locked" href="?locitax=locked#submission-list">Locked</a>
@@ -240,7 +242,9 @@
                         <th id="biosynth" class="col-orderable {{active_filters.get('biosynth', '')}} dropdown-trigger"
                             data-target="dropdown2">Biosynthesis
                             <ul id='dropdown2' class='dropdown-content'>
-                                <div>Filter Biosynthesis:</div>
+                                <div class="dropdown-header">Filter Biosynthesis:</div>
+                                <li class="divider" tabindex="-1"></li>
+                                <li><a class="col-orderable" href="?#submission-list">No filters</a></li>
                                 <li><a class="col-orderable unlocked"
                                         href="?biosynth=unlocked#submission-list">Editable</a></li>
                                 <li><a class="col-orderable locked" href="?biosynth=locked#submission-list">Locked</a>
@@ -257,7 +261,9 @@
                             class="col-orderable {{active_filters.get('compounds', '')}} dropdown-trigger"
                             data-target="dropdown3">Compound
                             <ul id='dropdown3' class='dropdown-content'>
-                                <div>Filter Compound:</div>
+                                <div class="dropdown-header">Filter Compound:</div>
+                                <li class="divider" tabindex="-1"></li>
+                                <li><a class="col-orderable" href="?#submission-list">No filters</a></li>
                                 <li><a class="col-orderable unlocked"
                                         href="?compounds=unlocked#submission-list">Editable</a></li>
                                 <li><a class="col-orderable locked" href="?compounds=locked#submission-list">Locked</a>
@@ -276,7 +282,9 @@
                             Gene
                             info
                             <ul id='dropdown4' class='dropdown-content'>
-                                <div>Filter Gene info:</div>
+                                <div class="dropdown-header">Filter Gene info:</div>
+                                <li class="divider" tabindex="-1"></li>
+                                <li><a class="col-orderable" href="?#submission-list">No filters</a></li>
                                 <li><a class="col-orderable unlocked"
                                         href="?gene_information=unlocked#submission-list">Editable</a></li>
                                 <li><a class="col-orderable locked"

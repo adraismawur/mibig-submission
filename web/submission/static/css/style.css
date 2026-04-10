@@ -93,6 +93,24 @@ select {
   border: 15px inset var(--mibig-blue);
 }
 
+@media only screen and (max-width: 1400px) {
+  .form-wrapper {
+    width: 90%;
+  }
+}
+
+@media only screen and (max-width: 1350px) {
+  .form-wrapper {
+    width: 95%;
+  }
+}
+
+@media only screen and (max-width: 1300px) {
+  .form-wrapper {
+    width: 100%;
+  }
+}
+
 .form-group {
   background-color: white;
   /* border-radius: 10px; */
@@ -111,6 +129,11 @@ select {
   font-weight: 600;
   color: black;
 
+}
+
+.dropdown-header {
+  margin: 0.5rem;
+  font-size: 115%;
 }
 
 .col-orderable::before {
