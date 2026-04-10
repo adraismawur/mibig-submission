@@ -108,4 +108,8 @@ def approve(bgc_id: str, category: str):
 
         return redirect(url_for("review.list_submissions"))
 
-    return render_template("review/approve.html", bgc_id=bgc_id)
+    return render_template(
+        "review/approve.html",
+        bgc_id=bgc_id,
+        readable_category=readable_category_map[category],
+    )
