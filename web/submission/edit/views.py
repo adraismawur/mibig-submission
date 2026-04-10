@@ -247,6 +247,10 @@ def release_lock(bgc_id: str, category: str):
                 "error",
             )
         else:
+            if request.form.get("promote"):
+                # pass on the POST request to mark for review
+                return redirect(url_for("edit.promote_bgc", bgc_id=bgc_id, category=category), code=307)
+            
             flash("Lock released successfully")
 
         return redirect(url_for("edit.edit_bgc_redirect", bgc_id=bgc_id))

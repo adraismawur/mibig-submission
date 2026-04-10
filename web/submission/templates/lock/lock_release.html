@@ -30,8 +30,14 @@ Editing {{ bgc_id }}
 
             <div class="row">
                 <div class="col">
-                    <input type="submit" class="btn btn-danger" value="Release lock" data-method="post" />
+                    <input type="submit" class="btn btn-danger" value="Release lock" name="unlock" data-method="post" />
                 </div>
+                {% if category != "full" %}
+                <div class="col">
+                    <input type="submit" class="btn btn-danger" name="promote" value="Release lock and request review"
+                        data-method="post" />
+                </div>
+                {% endif %}
                 <div class="col col-auto">
                     <a href="{{ url_for('edit.edit_bgc_redirect', bgc_id=bgc_id) }}"><button class="btn btn-primary"
                             type="button">Cancel</button></a>
