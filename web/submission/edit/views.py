@@ -108,7 +108,7 @@ def edit_bgc_redirect(bgc_id: str):
     )
 
 
-def generate_wizard_page(bgc_id: str, form_id: str, show_nav: bool, active_review: bool):
+def generate_wizard_page(bgc_id: str, form_id: str, show_nav: bool, active_review: bool=False):
     # instantiate associated form
     wizard_page = get_wizard_page(form_id)
 
@@ -205,11 +205,12 @@ def edit_bgc(bgc_id: str, form_id: str) -> Union[str, response.Response]:
 
     # we already know the user owns the lock on this section so we can just check if 
     # this entry is currently being reviewed by the user
-    review_response = Entry.check_review(bgc_id, form_id)
-    active_review = review_response.json()["state"] == "being reviewed"
+    if current_user.has_role(Role.REVIEWER):
+        review_response = Entry.check_review(bgc_id, form_id)
+        active_review = review_response.json()["state"] == "being reviewed"
+        return generate_wizard_page(bgc_id, form_id, show_nav, active_review)
 
-    return generate_wizard_page(bgc_id, form_id, show_nav, active_review)
-
+    return generate_wizard_page(bgc_id, form_id, show_nav)
 
 @bp_edit.route("/<bgc_id>/lock/request/<category>", methods=["GET", "POST"])
 @login_required
