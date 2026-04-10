@@ -679,6 +679,19 @@ class Entry(db.Model):
 
         return response
 
+    def check_review(bgc_id, category):
+        review_endpoint = "/review/check/"
+        response = requests.post(
+            f"{current_app.config['API_BASE']}" + review_endpoint,
+            headers={"Authorization": f"Bearer {session['token']}"},
+            json={
+                "accession": bgc_id,
+                "category": category,
+            },
+        )
+        return response
+
+
     def request_lock(bgc_id: str, category: str):
         lock_endpoint = "/lock/request/"
         response = requests.post(

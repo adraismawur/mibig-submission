@@ -419,7 +419,7 @@
 
         {% endmacro %}
 
-        {% macro render_wizard_nav(show_nav, bgc_id, prev_form, next_form, show_save=True) %}
+        {% macro render_wizard_nav(show_nav, bgc_id, prev_form, next_form, show_save=True, active_review=False) %}
         {% if show_save %}
         <div class="row">
             <div class="col s12">
@@ -438,11 +438,19 @@
                 {%- endif %}
             </div>
             <div class="col s4 center-align">
+                {% if active_review %}
+                <a href="{{ url_for('review.list_submissions') }}">
+                    <button id="back-btn" class="btn btn-secondary btn-large btn-nav" type="button">
+                        Back to review overview
+                    </button>
+                </a>
+                {% else %}
                 <a href="{{ url_for('edit.edit_bgc_redirect', bgc_id=bgc_id) }}">
                     <button id="back-btn" class="btn btn-secondary btn-large btn-nav" type="button">
                         Back to edit overview
                     </button>
                 </a>
+                {% endif %}
             </div>
             <div class="col s4 center-align">
                 {% if show_nav and next_form %}
