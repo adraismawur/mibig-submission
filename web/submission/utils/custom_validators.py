@@ -111,6 +111,9 @@ def validate_genbank(form, field):
     
     if response.status_code == 404:
         raise ValidationError("Genbank Accession does not exist")
+        
+    if response.status_code == 400:
+        raise ValidationError(response.json()['error'])
     
     session['cached_genbank'][field.data] = response.json()['result']
 
@@ -136,6 +139,9 @@ def validate_loci(form, field):
         
         if response.status_code == 404:
             raise ValidationError("Genbank Accession does not exist")
+        
+        if response.status_code == 400:
+            raise ValidationError(response.json()['error'])
         
 
         session['cached_genbank'][field.data] = response.json()['result']

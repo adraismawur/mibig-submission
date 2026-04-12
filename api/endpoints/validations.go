@@ -42,5 +42,10 @@ func validateGenBank(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	if result.MolType == "aa" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Accession is a protein. Please only use genomic sequences"})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"result": result})
 }
