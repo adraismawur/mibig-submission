@@ -19,6 +19,7 @@ type AntismashRun struct {
 	Start          int               `json:"start"`
 	Stop           int               `json:"stop"`
 	State          AntismashRunState `json:"state"`
+	Details        string            `json:"details"`
 	SubmittedAt    time.Time         `json:"submitted_at"`
 }
 

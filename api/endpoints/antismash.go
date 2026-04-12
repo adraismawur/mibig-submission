@@ -264,53 +264,40 @@ func AntismashWorker(db *gorm.DB) {
 
 		request := models.AntismashRun{}
 
-		err := db.Transaction(func(tx *gorm.DB) error {
-			result := tx.Where("state = $1", models.Pending).Find(&request)
-			err := result.Error
+		result := db.Where("state = $1", models.Pending).Find(&request)
+		err := result.Error
 
-			if err != nil {
-				slog.Error("[AntismashWorker] antismash worker error:", "err", err)
-				return err
-			}
+		if err != nil {
+			slog.Error("[AntismashWorker] antismash worker error:", "err", err)
+			request.State = models.Failed
+			db.Save(&request)
+			continue
+		}
 
-			if result.RowsAffected == 0 {
-				return errors.New("nothing to do")
-			}
+		if result.RowsAffected == 0 {
+			continue
+		}
 
-			if err != nil {
-				slog.Error("[AntismashWorker] antismash worker error:", "err", err)
-				request.State = models.Failed
-				tx.Save(&request)
-				return err
-			}
+		request.State = models.Downloading
+		db.Save(&request)
 
-			request.State = models.Downloading
-			tx.Save(&request)
+		gbkPath, err := util.GetGBK(request.LocusAccession, request.Start, request.Stop)
 
-			return nil
-		})
+		if err != nil {
+			slog.Error("[AntismashWorker] Could not get GBK", "LocusAccession", request.LocusAccession, "error", err)
+			request.State = models.Failed
+			request.Details = fmt.Sprintf("Retrieving GBK failed: %s", err.Error())
+			db.Save(&request)
+
+			continue
+		}
+
+		request.State = models.Running
+		db.Save(&request)
 
 		if err != nil {
 			continue
 		}
-
-		gbkPath, err := util.GetGBK(request.LocusAccession, request.Start, request.Stop)
-
-		err = db.Transaction(func(tx *gorm.DB) error {
-			if err != nil {
-				slog.Error("[AntismashWorker] Could not get GBK", "LocusAccession", request.LocusAccession, "error", err)
-
-				request.State = models.Failed
-				db.Save(&request)
-
-				return err
-			}
-
-			request.State = models.Running
-			db.Save(&request)
-
-			return nil
-		})
 
 		dataPath, err := config.GetConfig(config.EnvDataPath)
 
@@ -328,22 +315,19 @@ func AntismashWorker(db *gorm.DB) {
 
 		outputDir := path2.Join(dataPath, "antismash", coordinateFileName)
 
+		_, err = RunAntismash(*gbkPath, request.LocusAccession, request.Start, request.Stop, outputDir)
+
 		if err != nil {
+			slog.Error("[AntismashWorker] antismash worker error:", "err", err)
+
+			request.State = models.Failed
+			request.Details = err.Error()
+			db.Save(&request)
+
 			continue
 		}
 
-		_, err = RunAntismash(*gbkPath, request.LocusAccession, request.Start, request.Stop, outputDir)
-
 		err = db.Transaction(func(tx *gorm.DB) error {
-
-			if err != nil {
-				slog.Error("[AntismashWorker] antismash worker error:", "err", err)
-
-				request.State = models.Failed
-				tx.Save(&request)
-
-				return err
-			}
 
 			jsonFile := path2.Join(outputDir, coordinateFileName+".json")
 
@@ -401,12 +385,13 @@ func RunAntismash(gbkPath string, accession string, start int, end int, outputDi
 
 	slog.Info("[Antismash] Running Antismash Command", "gbk", gbkPath, "cmd", ASCmd)
 
-	ASOut, err := ASCmd.Output()
+	ASOut, err := ASCmd.CombinedOutput()
 
 	if err != nil {
 		slog.Error("[Antismash] Error executing antismash", "gbkPath", gbkPath, "error", err)
 		slog.Error("[Antismash] Output:", "output", string(ASOut))
-		return "", err
+
+		return "", errors.New(fmt.Sprintf("AntiSMASH encountered an error. Here is the log: %s", string(ASOut)))
 	}
 
 	return string(ASOut), nil
