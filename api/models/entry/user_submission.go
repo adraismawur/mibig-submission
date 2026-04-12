@@ -51,6 +51,7 @@ type UserSubmission struct {
 	SourceAccession string         `json:"source_accession"`
 	UserID          uint64         `json:"user_id"`
 	Type            SubmissionType `json:"type"`
+	Active          bool           `json:"active" gorm:"default:true"`
 }
 
 type SubmissionReview struct {

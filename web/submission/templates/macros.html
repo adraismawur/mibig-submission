@@ -299,6 +299,7 @@
                             </ul>
                         </th>
                         <th></th>
+                        <th></th>
                     </thead>
                     {% if existing_submissions | count == 0 %}
                 </table>
@@ -317,10 +318,14 @@
                     <td><span class="status {{submission.sub_states.compounds}}"></span></td>
                     <td><span class="status {{submission.sub_states.gene_information}}"></span>
                     </td>
-                        <td>
-                            <a href="{{url_for('edit.edit_bgc_redirect', bgc_id=submission.accession)}}"><button
-                                    class="btn btn-primary">Edit</button></a>
-                        </td>
+                    <td>
+                        <a href="{{url_for('edit.edit_bgc_redirect', bgc_id=submission.accession)}}"><button
+                                class="btn btn-primary">Edit</button></a>
+                    </td>
+                    <td>
+                        <a href="{{url_for('edit.discard_bgc', bgc_id=submission.accession)}}"><button
+                                class="btn btn-primary red">Discard</button></a>
+                    </td>
                     </tr>
                     {% endfor %}
                 </table>

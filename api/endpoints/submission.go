@@ -136,13 +136,13 @@ func SubmissionEndpoint(db *gorm.DB) Endpoint {
 					redraftSubmission(db, c)
 				},
 			},
-			//{
-			//	Method: "POST",
-			//	Path:   "/submission/discard/:accession",
-			//	Handler: func(c *gin.Context) {
-			//		discardSubmission(db, c)
-			//	},
-			//},
+			{
+				Method: "POST",
+				Path:   "/submission/discard/:accession",
+				Handler: func(c *gin.Context) {
+					discardSubmission(db, c)
+				},
+			},
 		},
 	}
 }
@@ -263,7 +263,12 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 
 	q = q.Table("user_submissions")
 
+	// keep track of the clause number. we would use '?' as a token for clause injection, but psql doesn't support it
 	clauseIdx := 1
+
+	q.Where("user_Submissions.active = true")
+
+	clauseIdx += 1
 
 	// optional clause
 	if userID != "" {
@@ -1154,50 +1159,43 @@ func redraftSubmission(db *gorm.DB, c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-//
-//func discardSubmission(db *gorm.DB, c *gin.Context) {
-//	accession := c.Param("accession")
-//
-//	exists, err := entry.GetEntryExists(db, accession)
-//
-//	if err != nil {
-//		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-//		return
-//	}
-//
-//	if !exists {
-//		c.JSON(http.StatusNotFound, gin.H{"error": "entry not found"})
-//		return
-//	}
-//
-//	var userSubmission entry.UserSubmission
-//
-//	err = db.
-//		Joins("JOIN entries ON entries.accession = user_submissions.entry_accession").
-//		Where("entries.accession = $1", accession).
-//		First(&userSubmission).Error
-//
-//	if err != nil {
-//		slog.Error("[endpoints] [submission] Failed to find user submission", "error", err.Error())
-//		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find user submission"})
-//		return
-//	}
-//
-//	if userSubmission.State != entry.Draft {
-//		slog.Error("[endpoints] [submission] User Submission is not a draft")
-//		c.JSON(http.StatusBadRequest, gin.H{"error": "User Submission is not a draft"})
-//		return
-//	}
-//
-//	userSubmission.State = entry.Discarded
-//
-//	err = db.Save(&userSubmission).Error
-//
-//	if err != nil {
-//		slog.Error("[endpoints] [submission] Failed to update user submission", "error", err.Error())
-//		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user submission"})
-//		return
-//	}
-//
-//	c.Status(http.StatusOK)
-//}
+func discardSubmission(db *gorm.DB, c *gin.Context) {
+	accession := c.Param("accession")
+
+	exists, err := entry.GetEntryExists(db, accession)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "entry not found"})
+		return
+	}
+
+	var userSubmission entry.UserSubmission
+
+	err = db.
+		Joins("JOIN entries ON entries.accession = user_submissions.entry_accession").
+		Where("entries.accession = $1", accession).
+		First(&userSubmission).Error
+
+	if err != nil {
+		slog.Error("[endpoints] [submission] Failed to find user submission", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find user submission"})
+		return
+	}
+
+	userSubmission.Active = false
+
+	err = db.Save(&userSubmission).Error
+
+	if err != nil {
+		slog.Error("[endpoints] [submission] Failed to update user submission", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user submission"})
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
