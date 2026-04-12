@@ -176,12 +176,13 @@ class CompoundsSubForm(Form):
     structure = StringField()
     databaseIds = FieldList(
         StringField(),
+        label="Database IDs",
         widget=FieldListAddBtn(
             label="Add database",
         ),
     )
-    mass = DecimalField("Mass", default=0, places=None)
-    formula = StringField("Formula")
+    mass = DecimalField("Exact Mass", default=0, places=None)
+    formula = StringField("Molecular Formula")
 
 
 class CompoundsForm(Form):
