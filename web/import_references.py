@@ -64,6 +64,8 @@ def load_references(filename):
                 ref = "patent:" + ref[33:]
             elif ref.lower().startswith("pubmed:"):
                 ref = "pubmed:" + ref[7:]
+            elif ref.lower().startswith("patent:"):
+                ref = "patent:" + ref[7:]
             elif ref.startswith("https://"):
                 ref = "url:" + ref
 
