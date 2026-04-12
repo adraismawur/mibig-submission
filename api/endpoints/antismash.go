@@ -647,7 +647,9 @@ func GenerateAnnotation(feature AntismashResultFeature) (*gene.GeneAnnotation, e
 		annotation.Accession = feature.Qualifiers.ProteinID[0]
 	}
 
-	annotation.Product = feature.Qualifiers.Product[0]
+	if len(feature.Qualifiers.Product) > 0 {
+		annotation.Product = feature.Qualifiers.Product[0]
+	}
 
 	return &annotation, nil
 }
