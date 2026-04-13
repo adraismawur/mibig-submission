@@ -63,8 +63,8 @@ class PathForm(Form):
         widget=TextInputWithSuggestions(post_url="/edit/get_db_references"),
         validators=[validators.InputRequired(), ValidateCitations()],
     )
-    isSubcluster = BooleanField("Is this path carried out by a subcluster?")
-    producesPrecursor = BooleanField("Does this path produce a precursor?")
+    is_sub_cluster = BooleanField("Is this path carried out by a subcluster?")
+    produces_precursor = BooleanField("Does this path produce a precursor?")
 
 
 class PathMultipleForm(Form):
