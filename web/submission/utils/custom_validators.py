@@ -130,7 +130,7 @@ def validate_loci(form, field):
 
     if accession not in session['cached_genbank']:
         response = requests.get(
-            f"{current_app.config['API_BASE']}/validations/genbank/{field.data}",
+            f"{current_app.config['API_BASE']}/validations/genbank/{accession}",
             headers={"Authorization": f"Bearer {session['token']}"},
         )
 
@@ -144,7 +144,7 @@ def validate_loci(form, field):
             raise ValidationError(response.json()['error'])
         
 
-        session['cached_genbank'][field.data] = response.json()['result']
+        session['cached_genbank'][accession] = response.json()['result']
     
     if form.data['from'] == 0 and form.data['to'] == 0:
         return
