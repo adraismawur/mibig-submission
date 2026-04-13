@@ -30,7 +30,7 @@ const entrezSummaryRetmode = "json"
 
 const entrezFetchEndpoint = "efetch.fcgi"
 const entrezFetchRetmode = "txt"
-const entrezFetchRettype = "gb"
+const entrezFetchRettype = "gbwithparts"
 
 const GBKSubPath = "/gbk"
 
