@@ -194,7 +194,7 @@ class PKSModularForm(Form):
 class PKSTransForm(Form):
     db_id = IntegerField(widget=HiddenInput(), default=0)
     db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
-    type = HiddenField(default="pks-trans")
+    type = HiddenField(default="pks-trans-at")
     name = StringField()
     genes = TagListField(
         "Gene(s) *",
