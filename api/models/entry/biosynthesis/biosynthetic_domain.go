@@ -82,10 +82,11 @@ type ModificationDomain struct {
 }
 
 type DomainSubstrate struct {
-	ID        uint64 `json:"db_id"`
-	Name      string `json:"name"`
-	Details   string `json:"details,omitempty"`
-	Structure string `json:"structure,omitempty"`
+	ID            uint64 `json:"db_id"`
+	Name          string `json:"name"`
+	Details       string `json:"details,omitempty"`
+	Proteinogenic *bool  `json:"proteinogenic,omitempty"`
+	Structure     string `json:"structure,omitempty"`
 }
 
 type DomainSubstrateEvidence struct {
