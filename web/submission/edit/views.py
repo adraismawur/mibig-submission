@@ -53,6 +53,31 @@ readable_category_map = {
     "full": "Full entry",
 }
 
+def get_antismash_json(bgc_id: str):
+
+    # get list of antismash accessions associated with this entry
+    antismash_list_endpoint = "/antismash/list/"
+    response = requests.get(
+        f"{current_app.config['API_BASE']}" + antismash_list_endpoint + bgc_id,
+        headers={"Authorization": f"Bearer {session['token']}"},
+    )
+    if response.status_code == 200:
+        antismash_accessions = response.json()
+
+    antismash_json_url = current_app.config["API_BASE"] + "/antismash/json"
+
+    antismash_json = {}
+
+    if antismash_accessions and len(antismash_accessions) > 0:
+        response = requests.get(
+            f"{antismash_json_url}/" + antismash_accessions[0],
+            headers={"Authorization": f"Bearer {session['token']}"},
+        )
+        if response.status_code == 200:
+            antismash_json = response.text
+
+    return antismash_json
+
 
 @bp_edit.route("/<bgc_id>")
 @login_required
@@ -145,26 +170,7 @@ def generate_wizard_page(bgc_id: str, form_id: str, show_nav: bool, active_revie
         else:
             form = wizard_page.create_form(None, data)
 
-    # get list of antismash accessions associated with this entry
-    antismash_list_endpoint = "/antismash/list/"
-    response = requests.get(
-        f"{current_app.config['API_BASE']}" + antismash_list_endpoint + bgc_id,
-        headers={"Authorization": f"Bearer {session['token']}"},
-    )
-    if response.status_code == 200:
-        antismash_accessions = response.json()
-
-    antismash_json_url = current_app.config["API_BASE"] + "/antismash/json"
-
-    antismash_json = {}
-
-    if antismash_accessions and len(antismash_accessions) > 0:
-        response = requests.get(
-            f"{antismash_json_url}/" + antismash_accessions[0],
-            headers={"Authorization": f"Bearer {session['token']}"},
-        )
-        if response.status_code == 200:
-            antismash_json = response.text
+    antismash_json = get_antismash_json(bgc_id)
 
     return render_template(
         wizard_page.template,
@@ -176,9 +182,7 @@ def generate_wizard_page(bgc_id: str, form_id: str, show_nav: bool, active_revie
         next_form=next_form,
         prev_form=prev_form,
         form_description=wizard_page.description,
-        antismash_json_url=antismash_json_url,
         antismash_json=antismash_json,
-        antismash_accessions=antismash_accessions,
         active_review=active_review,
     )
 
@@ -476,12 +480,15 @@ def create_biosynth_class(
                 )
             )
 
+    antismash_json = get_antismash_json(bgc_id)
+
     return render_template(
         "wizard/biosynth_class_new.html",
         bgc_id=bgc_id,
         form=form,
         choices=choices,
         class_type=class_type,
+        antismash_json=antismash_json,
     )
 
 
@@ -528,6 +535,8 @@ def edit_biosynth_class(
             )
         )
 
+    antismash_json = get_antismash_json(bgc_id)
+
     return render_template(
         "wizard/biosynth_class_edit.html",
         bgc_id=bgc_id,
@@ -535,6 +544,7 @@ def edit_biosynth_class(
         form=form,
         is_reviewer=current_user.has_role(Role.REVIEWER),
         reviewed=reviewed,
+        antismash_json=antismash_json,
     )
 
 
@@ -587,12 +597,15 @@ def create_biosynth_module(bgc_id: str, module: str) -> Union[str, response.Resp
                 url_for("edit.create_biosynth_module", bgc_id=bgc_id, module=module)
             )
 
+    antismash_json = get_antismash_json(bgc_id)
+
     return render_template(
         "wizard/biosynth_module_new.html",
         bgc_id=bgc_id,
         form=form,
         choices=choices,
         module=module,
+        antismash_json=antismash_json,
     )
 
 
@@ -636,6 +649,8 @@ def edit_biosynth_module(
             )
         )
 
+    antismash_json = get_antismash_json(bgc_id)
+
     return render_template(
         "wizard/biosynth_module_edit.html",
         bgc_id=bgc_id,
@@ -643,6 +658,7 @@ def edit_biosynth_module(
         form=form,
         is_reviewer=current_user.has_role(Role.REVIEWER),
         reviewed=reviewed,
+        antismash_json=antismash_json,
     )
 
 
@@ -702,10 +718,13 @@ def create_biosynth_path(
                 )
             )
 
+    antismash_json = get_antismash_json(bgc_id)
+
     return render_template(
         "wizard/biosynth_path_new.html",
         bgc_id=bgc_id,
         form=form,
+        antismash_json=antismash_json,
     )
 
 @bp_edit.route("/<bgc_id>/biosynth/modification_domains/<module_id>")
@@ -715,12 +734,15 @@ def list_modification_domains(bgc_id: str, module_id: int):
 
     if error is not None:
         flash(f"Failed to get modification domain list: {error}", "error")
+
+    antismash_json = get_antismash_json(bgc_id)
     
     return render_template(
         "wizard/biosynth_mod_domain_list.html", 
         bgc_id=bgc_id,
         module_id=module_id,
         modification_domains=modification_domains,
+        antismash_json=antismash_json,
     )
 
 @bp_edit.route("/<bgc_id>/biosynth/modification_domains/<module_id>/new/<domain_type>", methods=["GET", "POST"])
@@ -759,6 +781,8 @@ def create_modification_domain(bgc_id: str, module_id: int, domain_type: str):
         else:
             flash(f"Error creating modification domain: {error}", "error")
 
+    antismash_json = get_antismash_json(bgc_id)
+
 
     return render_template(
         "wizard/biosynth_mod_domain_new.html",
@@ -766,7 +790,8 @@ def create_modification_domain(bgc_id: str, module_id: int, domain_type: str):
         module_id=module_id,
         choices=choices,
         domain_type=domain_type,
-        form=form
+        form=form,
+        antismash_json=antismash_json,
     )
 
 @bp_edit.route("/<bgc_id>/biosynth/modification_domains/<module_id>/edit/<modification_domain_id>/<domain_type>", methods=["GET", "POST"])
@@ -797,12 +822,15 @@ def edit_modification_domain(bgc_id: str, module_id: int, modification_domain_id
             flash("Successfully edited modification domain")
             form = getattr(FormCollection, domain_type)(data=data)
 
+    antismash_json = get_antismash_json(bgc_id)
+
 
     return render_template(
         "wizard/biosynth_mod_domain_edit.html",
         bgc_id=bgc_id,
         module_id=module_id,
         form=form,
+        antismash_json=antismash_json,
     )
 
 @bp_edit.route("/<bgc_id>/biosynth/modification_domains/<module_id>/remove/<modification_domain_id>", methods=["GET", "POST"])
@@ -866,12 +894,15 @@ def edit_biosynth_path(bgc_id: str, path_id: int) -> Union[str, response.Respons
             )
         )
 
+    antismash_json = get_antismash_json(bgc_id)
+
     return render_template(
         "wizard/biosynth_path_edit.html",
         bgc_id=bgc_id,
         form=form,
         is_reviewer=current_user.has_role(Role.REVIEWER),
         reviewed=reviewed,
+        antismash_json=antismash_json,
     )
 
 
@@ -906,8 +937,14 @@ def create_compound(bgc_id: str):
         flash("Compound created")
         return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="compounds"))
 
+    antismash_json = get_antismash_json(bgc_id)
+
     return render_template(
-        "wizard/compound_edit.html", bgc_id=bgc_id, form=form, new=True
+        "wizard/compound_edit.html",
+        bgc_id=bgc_id,
+        form=form,
+        new=True,
+        antismash_json=antismash_json,
     )
 
 
@@ -934,8 +971,14 @@ def edit_compound(bgc_id: str, compound_id: int):
         else:
             flash("Failed to update compound: " + response.json()["error"], "error")
 
+    antismash_json = get_antismash_json(bgc_id)
+
     return render_template(
-        "wizard/compound_edit.html", bgc_id=bgc_id, form=form, new=False
+        "wizard/compound_edit.html",
+        bgc_id=bgc_id,
+        form=form,
+        new=False,
+        antismash_json=antismash_json,
     )
 
 

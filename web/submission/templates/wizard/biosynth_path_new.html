@@ -8,8 +8,11 @@ Editing {{ bgc_id }}
 
 {% block body %}
 
+{% import 'bgc_viewer.html' as bgc_viewer %}
+
 
 <div class="form-wrapper container">
+    {{ bgc_viewer.bgc_viewer(antismash_json) }}
     <h4>Add a new biosynthetic pathway</h4>
 
     {% if form %}

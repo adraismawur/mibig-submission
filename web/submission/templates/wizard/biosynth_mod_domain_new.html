@@ -8,6 +8,8 @@ Editing {{ bgc_id }}
 
 {% block body %}
 
+{% import 'bgc_viewer.html' as bgc_viewer %}
+
 <script type="application/javascript">
     const createNewModuleDomain = () => {
         const domainSelect = document.getElementById('domain-type-select');
@@ -22,6 +24,7 @@ Editing {{ bgc_id }}
 </script>
 
 <div class="form-wrapper container">
+    {{ bgc_viewer.bgc_viewer(antismash_json) }}
     <h4>Add a new modification domain</h4>
 
     <div class="">

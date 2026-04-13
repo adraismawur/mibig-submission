@@ -8,7 +8,10 @@ Editing {{ bgc_id }}
 
 {% block body %}
 
+{% import 'bgc_viewer.html' as bgc_viewer %}
+
 <div class="form-wrapper container">
+    {{ bgc_viewer.bgc_viewer(antismash_json) }}
     <h4>Editing biosynthetic pathway</h4>
 
     <form method="post" class="">

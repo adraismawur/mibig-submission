@@ -11,6 +11,7 @@ Editing {{ bgc_id }}
 {% import 'bgc_viewer.html' as bgc_viewer %}
 
 <div class="form-wrapper">
+    {{ bgc_viewer.bgc_viewer(antismash_json) }}
     <div class="form-group">
         <p class="form-label fw-bold">Modification domains</p>
         {% if modification_domains | length > 0 %}

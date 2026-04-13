@@ -1,4 +1,4 @@
-{% macro bgc_viewer(antismash_accessions, antismash_json_url, antismash_json) %}
+{% macro bgc_viewer(antismash_json) %}
 
 
 <div id="bgc-viewer-container" class="region-viewer-container">
@@ -14,66 +14,52 @@
 
 <script type="module">
     import('/static/js/bgc-viewer-components.umd.js').then(async () => {
-        // const viewer = new BGCViewerComponents.TrackViewer({
-        //     container: '#viewer-container',
-        //     domain: [0, 100],
-        //     trackHeight: 30
-        // });
+        const data = {{ antismash_json | safe }};
 
-        // viewer.setData({
+        // Create a data provider
+        const provider = new BGCViewerComponents.JSONFileProvider(data);
 
-        // });
+        // Get the viewer element and configure it
+        const viewer = document.getElementById('viewer');
 
-        // Load your antiSMASH JSON data
-        const accessions = {{ antismash_accessions | tojson }};
-    // const antismashJsonUrl = '{{ antismash_json_url }}';
-    // const response = await fetch(antismashJsonUrl + accessions[0]);
-    const data = {{antismash_json | safe}};
+        // CSS shenanigans
+        const styleSheet = await fetch('/static/css/bgc-viewer.css')
+        const styleSheetText = await styleSheet.text()
+        const bgcStyleSheet = new CSSStyleSheet()
+        bgcStyleSheet.replace(styleSheetText)
+        viewer.shadowRoot.adoptedStyleSheets = [bgcStyleSheet]
 
-    // Create a data provider
-    const provider = new BGCViewerComponents.JSONFileProvider(data);
+        viewer.addEventListener('error', (err) => {
+            console.error(err);
+        })
 
-    // Get the viewer element and configure it
-    const viewer = document.getElementById('viewer');
+        viewer.recordInfo = { recordId: data.records[0].id, filename: data.records[0].id + '.json', recordInfo: { description: '' } };
+        viewer.regions = [{ id: data.records[0].id, region_number: 1, product: [''] }];
 
-    // CSS shenanigans
-    const styleSheet = await fetch('/static/css/bgc-viewer.css')
-    const styleSheetText = await styleSheet.text()
-    const bgcStyleSheet = new CSSStyleSheet()
-    bgcStyleSheet.replace(styleSheetText)
-    viewer.shadowRoot.adoptedStyleSheets = [bgcStyleSheet]
+        // viewer.features = data.records[0].features;
+        const features = [];
 
-    viewer.addEventListener('error', (err) => {
-        console.error(err);
-    })
+        const includeFeatures = [
+            'region',
+            // 'cand_cluster',
+            // 'protocluster',
+            // 'proto_core',
+            'gene',
+            'CDS',
+        ]
 
-    viewer.recordInfo = { recordId: data.records[0].id, filename: data.records[0].id + '.json', recordInfo: { description: '' } };
-    viewer.regions = [{ id: data.records[0].id, region_number: 1, product: [''] }];
-
-    // viewer.features = data.records[0].features;
-    const features = [];
-
-    const includeFeatures = [
-        'region',
-        // 'cand_cluster',
-        // 'protocluster',
-        // 'proto_core',
-        'gene',
-        'CDS',
-    ]
-
-    for (let i = 0; i < data.records[0].features.length; i++) {
-        let feature = data.records[0].features[i];
-        if (includeFeatures.indexOf(feature.type) == -1) {
-            continue;
+        for (let i = 0; i < data.records[0].features.length; i++) {
+            let feature = data.records[0].features[i];
+            if (includeFeatures.indexOf(feature.type) == -1) {
+                continue;
+            }
+            features.push(feature);
         }
-        features.push(feature);
-    }
 
-    viewer.features = features;
+        viewer.features = features;
 
-    viewer.pfamColorMap = {};
-    viewer.setAttribute('record-id', data.records[0].id);
+        viewer.pfamColorMap = {};
+        viewer.setAttribute('record-id', data.records[0].id);
 
         // viewer.recordInfo = { recordId: data['records[0]']['id'], filename: data['records[0]']['id'] + '.json' };
         // viewer.regions = []
