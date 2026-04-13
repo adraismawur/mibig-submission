@@ -282,8 +282,8 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 	}
 
 	if search != "" {
-		q.Where(fmt.Sprintf("user_submissions.entry_accession LIKE $%d", clauseIdx), "%"+search+"%")
-		clauseIdx += 1
+		q.Where(fmt.Sprintf("user_submissions.entry_accession LIKE $%d OR user_submissions.source_accession LIKE $%d OR user_submissions.entry_accession IN (SELECT entry_accession FROM taxonomies WHERE name LIKE $%d) OR user_submissions.entry_accession IN (SELECT entry_accession FROM biosyntheses WHERE biosyntheses.id IN (SELECT biosynthesis_id FROM biosynthetic_classes WHERE class LIKE $%d))", clauseIdx, clauseIdx+1, clauseIdx+2, clauseIdx+3), "%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%")
+		clauseIdx += 4
 	}
 
 	// this process is annoying, probably a result of flawed design of this entire system. the state of an entry/category
