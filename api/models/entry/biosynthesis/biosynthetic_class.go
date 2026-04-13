@@ -49,6 +49,7 @@ type RippPrecursor struct {
 	FollowerCleavageLocationID uint64                   `json:"db_follower_cleavage_location_id"`
 	FollowerCleavageLocation   *CleavageLocation        `json:"follower_cleavage_location,omitempty"`
 	Crosslinks                 []RippPrecursorCrosslink `json:"crosslinks,omitempty" gorm:"foreignKey:RippPrecursorID"`
+	RecognitionMotifs          string                   `json:"recognition_motif"`
 }
 
 type GlycosylTransferase struct {
