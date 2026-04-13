@@ -22,6 +22,7 @@ type BiosyntheticModule struct {
 	BiosynthesisID      uint64                   `json:"db_biosynth_id"`
 	Type                string                   `json:"type"`
 	Name                string                   `json:"name"`
+	Comments            string                   `json:"comments"`
 	Genes               pq.StringArray           `json:"genes" gorm:"type:text[]"`
 	Iterations          *uint64                  `json:"iterations,omitempty"`
 	Active              bool                     `json:"active"`
