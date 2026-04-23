@@ -554,10 +554,27 @@ func getPendingReviews(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	err = db.Table("submission_reviews").
-		Select("submission_reviews.*, user_submissions.type, user_submissions.source_accession").
+	search := c.Query("search")
+	category := c.Query("category")
+
+	q := db.Session(&gorm.Session{})
+	q = db.Table("submission_reviews")
+
+	clauseIdx := 1
+
+	if search != "" {
+		q.Where(fmt.Sprintf("user_submissions.entry_accession LIKE $%d OR user_submissions.source_accession LIKE $%d OR user_submissions.entry_accession IN (SELECT entry_accession FROM taxonomies WHERE name LIKE $%d) OR user_submissions.entry_accession IN (SELECT entry_accession FROM biosyntheses WHERE biosyntheses.id IN (SELECT biosynthesis_id FROM biosynthetic_classes WHERE class LIKE $%d))", clauseIdx, clauseIdx+1, clauseIdx+2, clauseIdx+3), "%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%")
+		clauseIdx += 4
+	}
+
+	if category != "" {
+		q.Where(fmt.Sprintf("submission_reviews.category = $%d", clauseIdx), category)
+		clauseIdx += 1
+	}
+
+	err = q.Select("submission_reviews.*, user_submissions.type, user_submissions.source_accession").
 		Joins("JOIN user_submissions ON user_submissions.entry_accession = submission_reviews.accession").
-		Where("submission_reviews.state = $1", entry.PendingReview, user.ID).
+		Where(fmt.Sprintf("submission_reviews.state = $%d", clauseIdx), entry.PendingReview).
 		Find(&reviews).
 		Error
 

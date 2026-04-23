@@ -77,8 +77,32 @@
 
 
         <h3>Pending review:</h3>
-        <div class="form-group subgroup">
-            {% if pending_submissions | length > 0 %}
+        <div id="review-list" class="form-group subgroup">
+            <div class="row">
+                <div class="col s3">
+                    <input type="text" class="form-control" id="reviewSearch" placeholder="Search for review"
+                        value="{{search}}">
+                </div>
+                <div class="col s1">
+                    <button id="reviewSearchBtn" class="btn btn-primary">Search</button>
+                    <script type="application/javascript">
+                        const reviewSearchBtn = document.getElementById('reviewSearchBtn');
+                        const reviewSearch = document.getElementById('reviewSearch');
+                        reviewSearchBtn.addEventListener('click', () => {
+                            document.location.href = "?search=" + reviewSearch.value + "&category={{category}}#review-list";
+                        });
+                    </script>
+                </div>
+                <div class="col s1">
+                    <button id="clearSearchBtn" class="btn btn-primary">Clear</button>
+                    <script type="application/javascript">
+                        const clearSearchBtn = document.getElementById('clearSearchBtn');
+                        clearSearchBtn.addEventListener('click', () => {
+                            document.location.href = "?category={{category}}#review-list";
+                        });
+                    </script>
+                </div>
+            </div>
             <table class="table">
                 <thead class="table-header">
                     <th>
@@ -87,8 +111,28 @@
                     <th>
                         Type
                     </th>
-                    <th>
+                    <th class="col-orderable {{'fill' if category else ''}} dropdown-trigger" data-target="dropdown1">
                         Category
+                        <ul id='dropdown1' class='dropdown-content'>
+                            <div class="dropdown-header">Filter category:</div>
+                            <li class="divider" tabindex="-1"></li>
+                            <li><a class="col-orderable" href="?search={{search}}#review-list">No filters</a></li>
+                            <li><a class="col-orderable fill"
+                                    href="?search={{search}}&category=locitax#review-list">locitax</a>
+                            </li>
+                            <li><a class="col-orderable fill"
+                                    href="?search={{search}}&category=biosynth#review-list">biosynth</a>
+                            </li>
+                            <li><a class="col-orderable fill"
+                                    href="?search={{search}}&category=compounds#review-list">compounds</a>
+                            </li>
+                            <li><a class="col-orderable fill"
+                                    href="?search={{search}}&category=gene_information#review-list">gene info</a>
+                            </li>
+                            <li><a class="col-orderable fill"
+                                    href="?search={{search}}&category=finalize#review-list">finalize</a>
+                            </li>
+                        </ul>
                     </th>
                     <th>
                         State
@@ -100,13 +144,15 @@
 
                     </th>
                 </thead>
+                {% if pending_submissions | length > 0 %}
                 {% for submission in pending_submissions %}
                 <tr>
                     <td>
                         {{ submission.accession }}
                     </td>
                     <td>
-                        {{ submission.type }}
+                        {{ submission.type if submission.type == "new submission" else "mutation of " +
+                        submission.source_accession }}
                     </td>
                     <td>
                         {{ submission.category }}
@@ -123,6 +169,7 @@
                 {% endfor %}
             </table>
             {% else %}
+            </table>
             <h5>There are no submissions or mutations pending review</h5>
             {% endif %}
         </div>
