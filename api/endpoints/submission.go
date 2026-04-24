@@ -532,6 +532,35 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+func fetch_maps(db *gorm.DB, accessions []string) (taxMap map[string]string, classMap map[string][]string) {
+
+	var taxonomies []taxonomy.Taxonomy
+	db.Table("taxonomies").
+		Where("entry_accession IN ?", accessions).
+		Find(&taxonomies)
+
+	taxMap = make(map[string]string)
+	for _, taxonomy := range taxonomies {
+		taxMap[taxonomy.EntryAccession] = taxonomy.Name
+	}
+
+	var biosyntheses []biosynthesis.Biosynthesis
+	db.Table("biosyntheses").
+		Where("entry_accession IN ?", accessions).
+		Preload("Classes").
+		Find(&biosyntheses)
+
+	classMap = make(map[string][]string)
+	for _, biosynth := range biosyntheses {
+		var classes []string = make([]string, 0)
+		for _, class := range biosynth.Classes {
+			classes = append(classes, class.Class)
+		}
+		classMap[biosynth.EntryAccession] = classes
+	}
+	return
+}
+
 func getPendingReviews(db *gorm.DB, c *gin.Context) {
 
 	type ReviewInfo struct {
@@ -584,7 +613,29 @@ func getPendingReviews(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, reviews)
+	type ResponseReview struct {
+		ReviewInfo
+		Taxonomy string   `json:"taxonomy"`
+		Class    []string `json:"class"`
+	}
+
+	var accessions []string
+	for _, review := range reviews {
+		accessions = append(accessions, review.Accession)
+	}
+
+	taxMap, classMap := fetch_maps(db, accessions)
+
+	response := make([]ResponseReview, 0)
+	for _, review := range reviews {
+		response = append(response, ResponseReview{
+			ReviewInfo: review,
+			Taxonomy:   taxMap[review.Accession],
+			Class:      classMap[review.Accession],
+		})
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 func getActiveReviews(db *gorm.DB, c *gin.Context) {
@@ -622,7 +673,29 @@ func getActiveReviews(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, reviews)
+	type ResponseReview struct {
+		ReviewInfo
+		Taxonomy string   `json:"taxonomy"`
+		Class    []string `json:"class"`
+	}
+
+	var accessions []string
+	for _, review := range reviews {
+		accessions = append(accessions, review.Accession)
+	}
+
+	taxMap, classMap := fetch_maps(db, accessions)
+
+	response := make([]ResponseReview, 0)
+	for _, review := range reviews {
+		response = append(response, ResponseReview{
+			ReviewInfo: review,
+			Taxonomy:   taxMap[review.Accession],
+			Class:      classMap[review.Accession],
+		})
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 // createNewSubmission creates a minimal draft submission from a request

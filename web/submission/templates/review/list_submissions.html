@@ -18,10 +18,13 @@
                         Type
                     </th>
                     <th>
-                        Category
+                        Biosynthetic class
                     </th>
                     <th>
-                        State
+                        Organism
+                    </th>
+                    <th>
+                        Category
                     </th>
                     <th>
                         Edit
@@ -39,10 +42,13 @@
                         {{ submission.type }}
                     </td>
                     <td>
-                        {{ submission.category }}
+                        {{"-".join(submission.class)}}
                     </td>
                     <td>
-                        {{ submission.state }}
+                        {{submission.taxonomy}}
+                    </td>
+                    <td>
+                        {{ submission.category }}
                     </td>
                     <td>
                         <a href="{{ url_for('edit.edit_bgc', bgc_id=submission.accession, form_id=submission.category )}}">
@@ -111,6 +117,12 @@
                     <th>
                         Type
                     </th>
+                    <th>
+                        Biosynthetic class
+                    </th>
+                    <th>
+                        Organism
+                    </th>
                     <th class="col-orderable {{'fill' if category else ''}} dropdown-trigger" data-target="dropdown1">
                         Category
                         <ul id='dropdown1' class='dropdown-content'>
@@ -135,9 +147,6 @@
                         </ul>
                     </th>
                     <th>
-                        State
-                    </th>
-                    <th>
                         Edit
                     </th>
                     <th>
@@ -155,10 +164,13 @@
                         submission.source_accession }}
                     </td>
                     <td>
-                        {{ submission.category }}
+                        {{"-".join(submission.class)}}
                     </td>
                     <td>
-                        {{ submission.state }}
+                        {{submission.taxonomy}}
+                    </td>
+                    <td>
+                        {{ submission.category }}
                     </td>
                     <td>
                         <a href="{{ url_for('review.claim_review', bgc_id=submission.accession, category=submission.category )}}">
