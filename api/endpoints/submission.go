@@ -583,6 +583,18 @@ func getPendingReviews(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	start, err := strconv.Atoi(c.Query("start"))
+
+	if err != nil {
+		start = 0
+	}
+
+	limit, err := strconv.Atoi(c.Query("limit"))
+
+	if err != nil {
+		limit = 10
+	}
+
 	search := c.Query("search")
 	category := c.Query("category")
 
@@ -601,9 +613,13 @@ func getPendingReviews(db *gorm.DB, c *gin.Context) {
 		clauseIdx += 1
 	}
 
+	var reviewCount int64
 	err = q.Select("submission_reviews.*, user_submissions.type, user_submissions.source_accession").
 		Joins("JOIN user_submissions ON user_submissions.entry_accession = submission_reviews.accession").
 		Where(fmt.Sprintf("submission_reviews.state = $%d", clauseIdx), entry.PendingReview).
+		Count(&reviewCount).
+		Offset(start).
+		Limit(limit).
 		Find(&reviews).
 		Error
 
@@ -619,6 +635,11 @@ func getPendingReviews(db *gorm.DB, c *gin.Context) {
 		Class    []string `json:"class"`
 	}
 
+	var response struct {
+		Reviews     []ResponseReview `json:"reviews"`
+		ReviewCount int64            `json:"review_count"`
+	}
+
 	var accessions []string
 	for _, review := range reviews {
 		accessions = append(accessions, review.Accession)
@@ -626,9 +647,10 @@ func getPendingReviews(db *gorm.DB, c *gin.Context) {
 
 	taxMap, classMap := fetch_maps(db, accessions)
 
-	response := make([]ResponseReview, 0)
+	response.ReviewCount = reviewCount
+	response.Reviews = make([]ResponseReview, 0)
 	for _, review := range reviews {
-		response = append(response, ResponseReview{
+		response.Reviews = append(response.Reviews, ResponseReview{
 			ReviewInfo: review,
 			Taxonomy:   taxMap[review.Accession],
 			Class:      classMap[review.Accession],

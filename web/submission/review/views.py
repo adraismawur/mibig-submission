@@ -41,17 +41,31 @@ def list_submissions():
     # get the list of submissions that are marked ready for review
     search = request.args.get("search") or ""
     category = request.args.get("category") or ""
+    start = request.args.get("start") or 0
+    limit = request.args.get("limit") or 10
 
     reviewing = requests.get(
         f"{current_app.config['API_BASE']}/reviews/active",
         headers={"Authorization": f"Bearer {session['token']}"},
     ).json()
-    pending_submissions = requests.get(
-        f"{current_app.config['API_BASE']}/reviews/pending?search={search}&category={category}",
+    pending_response = requests.get(
+        f"{current_app.config['API_BASE']}/reviews/pending?start={start}&limit={limit}&search={search}&category={category}",
         headers={"Authorization": f"Bearer {session['token']}"},
     ).json()
 
-    return render_template("review/list_submissions.html", pending_submissions=pending_submissions, reviewing=reviewing, search=search, category=category)
+    pending_count = pending_response["review_count"]
+    pending_submissions = pending_response["reviews"]
+
+    return render_template(
+        "review/list_submissions.html",
+        pending_submissions=pending_submissions,
+        pending_count=pending_count,
+        reviewing=reviewing,
+        start=start,
+        limit=limit,
+        search=search,
+        category=category,
+    )
 
 @bp_review.route("/claim_review/<bgc_id>/<category>", methods=["GET", "POST"])
 @login_required

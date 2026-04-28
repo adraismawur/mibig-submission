@@ -153,7 +153,7 @@
 
                     </th>
                 </thead>
-                {% if pending_submissions | length > 0 %}
+                {% if pending_count > 0 %}
                 {% for submission in pending_submissions %}
                 <tr>
                     <td>
@@ -180,6 +180,25 @@
                 </tr>
                 {% endfor %}
             </table>
+            <div class="container">
+                <div class="row">
+                    <div class="col s1 offset-s4">
+                        {% if start | int > 0 %}
+                        <a href="/review/?start={{[0, start | int - limit | int] | max}}&limit={{limit}}&search={{search}}&category={{category}}#review-list">
+                            <button class="btn btn-primary">&lt;</button></a>
+                        {% endif %}
+                    </div>
+                    <div class="col s2 center-align">
+                        {{start | int + 1}} - {{[pending_count, start | int + limit | int ] | min}}
+                    </div>
+                    <div class="col s1">
+                        {% if start | int + limit | int < pending_count %} 
+                        <a href="/review/?start={{[pending_count, start | int + limit | int ] | min}}&limit={{limit}}&search={{search}}&category={{category}}#review-list">
+                            <button class="btn btn-primary">&gt;</button></a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
             {% else %}
             </table>
             <h5>There are no submissions or mutations pending review</h5>
