@@ -18,10 +18,13 @@
                         Type
                     </th>
                     <th>
-                        Category
+                        Biosynthetic class
                     </th>
                     <th>
-                        State
+                        Organism
+                    </th>
+                    <th>
+                        Category
                     </th>
                     <th>
                         Edit
@@ -39,10 +42,13 @@
                         {{ submission.type }}
                     </td>
                     <td>
-                        {{ submission.category }}
+                        {{"-".join(submission.class)}}
                     </td>
                     <td>
-                        {{ submission.state }}
+                        {{submission.taxonomy}}
+                    </td>
+                    <td>
+                        {{ submission.category }}
                     </td>
                     <td>
                         <a href="{{ url_for('edit.edit_bgc', bgc_id=submission.accession, form_id=submission.category )}}">
@@ -77,8 +83,32 @@
 
 
         <h3>Pending review:</h3>
-        <div class="form-group subgroup">
-            {% if pending_submissions | length > 0 %}
+        <div id="review-list" class="form-group subgroup">
+            <div class="row">
+                <div class="col s3">
+                    <input type="text" class="form-control" id="reviewSearch" placeholder="Search for review"
+                        value="{{search}}">
+                </div>
+                <div class="col s1">
+                    <button id="reviewSearchBtn" class="btn btn-primary">Search</button>
+                    <script type="application/javascript">
+                        const reviewSearchBtn = document.getElementById('reviewSearchBtn');
+                        const reviewSearch = document.getElementById('reviewSearch');
+                        reviewSearchBtn.addEventListener('click', () => {
+                            document.location.href = "?search=" + reviewSearch.value + "&category={{category}}#review-list";
+                        });
+                    </script>
+                </div>
+                <div class="col s1">
+                    <button id="clearSearchBtn" class="btn btn-primary">Clear</button>
+                    <script type="application/javascript">
+                        const clearSearchBtn = document.getElementById('clearSearchBtn');
+                        clearSearchBtn.addEventListener('click', () => {
+                            document.location.href = "?category={{category}}#review-list";
+                        });
+                    </script>
+                </div>
+            </div>
             <table class="table">
                 <thead class="table-header">
                     <th>
@@ -88,10 +118,33 @@
                         Type
                     </th>
                     <th>
-                        Category
+                        Biosynthetic class
                     </th>
                     <th>
-                        State
+                        Organism
+                    </th>
+                    <th class="col-orderable {{'fill' if category else ''}} dropdown-trigger" data-target="dropdown1">
+                        Category
+                        <ul id='dropdown1' class='dropdown-content'>
+                            <div class="dropdown-header">Filter category:</div>
+                            <li class="divider" tabindex="-1"></li>
+                            <li><a class="col-orderable" href="?search={{search}}#review-list">No filters</a></li>
+                            <li><a class="col-orderable fill"
+                                    href="?search={{search}}&category=locitax#review-list">locitax</a>
+                            </li>
+                            <li><a class="col-orderable fill"
+                                    href="?search={{search}}&category=biosynth#review-list">biosynth</a>
+                            </li>
+                            <li><a class="col-orderable fill"
+                                    href="?search={{search}}&category=compounds#review-list">compounds</a>
+                            </li>
+                            <li><a class="col-orderable fill"
+                                    href="?search={{search}}&category=gene_information#review-list">gene info</a>
+                            </li>
+                            <li><a class="col-orderable fill"
+                                    href="?search={{search}}&category=finalize#review-list">finalize</a>
+                            </li>
+                        </ul>
                     </th>
                     <th>
                         Edit
@@ -100,19 +153,24 @@
 
                     </th>
                 </thead>
+                {% if pending_count > 0 %}
                 {% for submission in pending_submissions %}
                 <tr>
                     <td>
                         {{ submission.accession }}
                     </td>
                     <td>
-                        {{ submission.type }}
+                        {{ submission.type if submission.type == "new submission" else "mutation of " +
+                        submission.source_accession }}
+                    </td>
+                    <td>
+                        {{"-".join(submission.class)}}
+                    </td>
+                    <td>
+                        {{submission.taxonomy}}
                     </td>
                     <td>
                         {{ submission.category }}
-                    </td>
-                    <td>
-                        {{ submission.state }}
                     </td>
                     <td>
                         <a href="{{ url_for('review.claim_review', bgc_id=submission.accession, category=submission.category )}}">
@@ -122,7 +180,27 @@
                 </tr>
                 {% endfor %}
             </table>
+            <div class="container">
+                <div class="row">
+                    <div class="col s1 offset-s4">
+                        {% if start | int > 0 %}
+                        <a href="/review/?start={{[0, start | int - limit | int] | max}}&limit={{limit}}&search={{search}}&category={{category}}#review-list">
+                            <button class="btn btn-primary">&lt;</button></a>
+                        {% endif %}
+                    </div>
+                    <div class="col s2 center-align">
+                        {{start | int + 1}} - {{[pending_count, start | int + limit | int ] | min}}
+                    </div>
+                    <div class="col s1">
+                        {% if start | int + limit | int < pending_count %} 
+                        <a href="/review/?start={{[pending_count, start | int + limit | int ] | min}}&limit={{limit}}&search={{search}}&category={{category}}#review-list">
+                            <button class="btn btn-primary">&gt;</button></a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
             {% else %}
+            </table>
             <h5>There are no submissions or mutations pending review</h5>
             {% endif %}
         </div>

@@ -532,6 +532,35 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+func fetch_maps(db *gorm.DB, accessions []string) (taxMap map[string]string, classMap map[string][]string) {
+
+	var taxonomies []taxonomy.Taxonomy
+	db.Table("taxonomies").
+		Where("entry_accession IN ?", accessions).
+		Find(&taxonomies)
+
+	taxMap = make(map[string]string)
+	for _, taxonomy := range taxonomies {
+		taxMap[taxonomy.EntryAccession] = taxonomy.Name
+	}
+
+	var biosyntheses []biosynthesis.Biosynthesis
+	db.Table("biosyntheses").
+		Where("entry_accession IN ?", accessions).
+		Preload("Classes").
+		Find(&biosyntheses)
+
+	classMap = make(map[string][]string)
+	for _, biosynth := range biosyntheses {
+		var classes []string = make([]string, 0)
+		for _, class := range biosynth.Classes {
+			classes = append(classes, class.Class)
+		}
+		classMap[biosynth.EntryAccession] = classes
+	}
+	return
+}
+
 func getPendingReviews(db *gorm.DB, c *gin.Context) {
 
 	type ReviewInfo struct {
@@ -554,10 +583,43 @@ func getPendingReviews(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	err = db.Table("submission_reviews").
-		Select("submission_reviews.*, user_submissions.type, user_submissions.source_accession").
+	start, err := strconv.Atoi(c.Query("start"))
+
+	if err != nil {
+		start = 0
+	}
+
+	limit, err := strconv.Atoi(c.Query("limit"))
+
+	if err != nil {
+		limit = 10
+	}
+
+	search := c.Query("search")
+	category := c.Query("category")
+
+	q := db.Session(&gorm.Session{})
+	q = db.Table("submission_reviews")
+
+	clauseIdx := 1
+
+	if search != "" {
+		q.Where(fmt.Sprintf("user_submissions.entry_accession LIKE $%d OR user_submissions.source_accession LIKE $%d OR user_submissions.entry_accession IN (SELECT entry_accession FROM taxonomies WHERE name LIKE $%d) OR user_submissions.entry_accession IN (SELECT entry_accession FROM biosyntheses WHERE biosyntheses.id IN (SELECT biosynthesis_id FROM biosynthetic_classes WHERE class LIKE $%d))", clauseIdx, clauseIdx+1, clauseIdx+2, clauseIdx+3), "%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%")
+		clauseIdx += 4
+	}
+
+	if category != "" {
+		q.Where(fmt.Sprintf("submission_reviews.category = $%d", clauseIdx), category)
+		clauseIdx += 1
+	}
+
+	var reviewCount int64
+	err = q.Select("submission_reviews.*, user_submissions.type, user_submissions.source_accession").
 		Joins("JOIN user_submissions ON user_submissions.entry_accession = submission_reviews.accession").
-		Where("submission_reviews.state = $1", entry.PendingReview, user.ID).
+		Where(fmt.Sprintf("submission_reviews.state = $%d", clauseIdx), entry.PendingReview).
+		Count(&reviewCount).
+		Offset(start).
+		Limit(limit).
 		Find(&reviews).
 		Error
 
@@ -567,7 +629,35 @@ func getPendingReviews(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, reviews)
+	type ResponseReview struct {
+		ReviewInfo
+		Taxonomy string   `json:"taxonomy"`
+		Class    []string `json:"class"`
+	}
+
+	var response struct {
+		Reviews     []ResponseReview `json:"reviews"`
+		ReviewCount int64            `json:"review_count"`
+	}
+
+	var accessions []string
+	for _, review := range reviews {
+		accessions = append(accessions, review.Accession)
+	}
+
+	taxMap, classMap := fetch_maps(db, accessions)
+
+	response.ReviewCount = reviewCount
+	response.Reviews = make([]ResponseReview, 0)
+	for _, review := range reviews {
+		response.Reviews = append(response.Reviews, ResponseReview{
+			ReviewInfo: review,
+			Taxonomy:   taxMap[review.Accession],
+			Class:      classMap[review.Accession],
+		})
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 func getActiveReviews(db *gorm.DB, c *gin.Context) {
@@ -605,7 +695,29 @@ func getActiveReviews(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, reviews)
+	type ResponseReview struct {
+		ReviewInfo
+		Taxonomy string   `json:"taxonomy"`
+		Class    []string `json:"class"`
+	}
+
+	var accessions []string
+	for _, review := range reviews {
+		accessions = append(accessions, review.Accession)
+	}
+
+	taxMap, classMap := fetch_maps(db, accessions)
+
+	response := make([]ResponseReview, 0)
+	for _, review := range reviews {
+		response = append(response, ResponseReview{
+			ReviewInfo: review,
+			Taxonomy:   taxMap[review.Accession],
+			Class:      classMap[review.Accession],
+		})
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 // createNewSubmission creates a minimal draft submission from a request

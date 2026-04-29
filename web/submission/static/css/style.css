@@ -7,6 +7,7 @@ body {
   --pending-review: #DDCC77;
   --being-reviewed: #44AA99;
   --accepted: #117733;
+  --mat-teal: #2bbbad;
 }
 
 /* overwrite hidden select from materialize */
@@ -166,6 +167,10 @@ select {
 
 .col-orderable.accepted::before {
   background-color: var(--accepted)
+}
+
+.col-orderable.fill::before {
+  background-color: var(--mat-teal)
 }
 
 td:has(.status) {
