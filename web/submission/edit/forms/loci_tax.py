@@ -40,7 +40,7 @@ class LociTaxonomyForm(Form):
     class LocusForm(Form):
         accession = StringField(
             "Genome identifier *",
-            [validators.InputRequired(), ValidateSingleInput(), validate_genbank],
+            [validators.InputRequired(), ValidateSingleInput()],
             widget=TextInputIndicator(),
             description="E.g., AL645882. Only use GenBank accessions, not RefSeq accessions or GI numbers.",
             # render_kw={
@@ -56,7 +56,7 @@ class LociTaxonomyForm(Form):
             description="Select if this accession is not yet publicised on GenBank",
         )
         location = FormField(
-            location_form_factory(validate_loci_enabled=True),
+            location_form_factory(validate_loci_enabled=False),
             description="Start and end coordinates, may be left empty if gene cluster spans entire record.",
         )
         evidence = FieldList(
