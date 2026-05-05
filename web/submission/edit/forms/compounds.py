@@ -36,10 +36,10 @@ from submission.utils.custom_validators import (
 
 class BioActivityAssayMeasurementSubForm(Form):
     db_id = IntegerField(widget=HiddenInput())
-    concentration = DecimalField(places=None)
+    concentration = DecimalField(places=None, validators=[validators.InputRequired()])
     unit = StringField()
-    error = DecimalField(places=None)
-    replicates = DecimalField(places=None)
+    error = DecimalField(places=None, validators=[validators.InputRequired()])
+    replicates = DecimalField(places=None, validators=[validators.InputRequired()])
 
 
 class BioActivityAssayTestSystemSubForm(Form):
