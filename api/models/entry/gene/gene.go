@@ -227,6 +227,7 @@ func UpdateOrCreateGeneAddition(db *gorm.DB, entryAccession string, addition *Ge
 
 		err = tx.
 			Model(&returnAddition).
+			Where("id = ?", returnAddition.ID).
 			Save(&addition).
 			Error
 

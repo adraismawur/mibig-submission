@@ -3,6 +3,7 @@ package endpoints
 import (
 	"github.com/adraismawur/mibig-submission/models"
 	"github.com/adraismawur/mibig-submission/models/entry"
+	"github.com/adraismawur/mibig-submission/models/entry/taxonomy"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"net/http"
@@ -92,6 +93,15 @@ func updateEntryLociTax(db *gorm.DB, c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Could not get locus and taxonomy information"})
 		return
+	}
+
+	if oldLociTax.Taxonomy.ID == 0 {
+		oldLociTax.Taxonomy = taxonomy.Taxonomy{
+			ID:             0,
+			EntryAccession: "",
+			Name:           "",
+			TaxID:          0,
+		}
 	}
 
 	err = entry.UpdateLociTax(db, accession, *oldLociTax, newLociTax)
