@@ -132,7 +132,16 @@ Editing {{ bgc_id }}
         </a>
     </div>
 
-    {{ macros.simple_divsubform(form.operons) }}
+    <form method="post" class="">
+        <fieldset>
+            <div id="{{form.id}}" class="form-group subgroup">
+                {{ macros.render_field(form.operons) }}
+                <br>
+                <input type="submit" class="btn btn-primary" value="Save operons">
+            </div>
+        </fieldset>
+    </form>
+
 
     <div class="form-group">
         <p class="form-label fw-bold">Pathways</p>

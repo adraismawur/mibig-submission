@@ -8,7 +8,7 @@ import (
 type BiosyntheticOperon struct {
 	ID             uint64         `json:"db_id"`
 	BiosynthesisID uint64         `json:"db_biosynth_id"`
-	Items          pq.StringArray `json:"items" gorm:"type:text[]"`
+	Genes          pq.StringArray `json:"genes" gorm:"type:text[]"`
 }
 
 func init() {
