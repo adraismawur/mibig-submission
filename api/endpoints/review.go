@@ -37,8 +37,70 @@ func ReviewEndpoint(db *gorm.DB) Endpoint {
 					checkReview(db, c)
 				},
 			},
+			{
+				Method: "GET",
+				Path:   "/review/:accession/references",
+				Handler: func(c *gin.Context) {
+					getEntryReferences(db, c)
+				},
+			},
 		},
 	}
+}
+
+func getEntryReferences(db *gorm.DB, c *gin.Context) {
+	accession := c.Param("accession")
+
+	entry, err := entry.GetEntryFromAccession(db, accession)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if entry == nil {
+		c.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+
+	var referenceResponse struct {
+		LociTaxReferences  []string
+		CompoundReferences []string
+	}
+
+	var referencesRecorded map[string]bool
+
+	referencesRecorded = make(map[string]bool)
+
+	for _, evidence := range entry.Loci[0].Evidence {
+		for _, reference := range evidence.References {
+			if _, ok := referencesRecorded[reference]; ok {
+				continue
+			}
+
+			referencesRecorded[reference] = true
+			referenceResponse.LociTaxReferences = append(referenceResponse.LociTaxReferences, reference)
+		}
+	}
+
+	referencesRecorded = make(map[string]bool)
+
+	for _, compound := range entry.Compounds {
+		for _, evidence := range compound.Evidence {
+			for _, reference := range evidence.References {
+				if _, ok := referencesRecorded[reference]; ok {
+					continue
+				}
+
+				referencesRecorded[reference] = true
+				referenceResponse.CompoundReferences = append(referenceResponse.CompoundReferences, evidence.References...)
+			}
+		}
+	}
+
+	referencesRecorded = make(map[string]bool)
+
+	c.JSON(http.StatusOK, referenceResponse)
 }
 
 func getReview(db *gorm.DB, c *gin.Context) {

@@ -130,3 +130,20 @@ def approve(bgc_id: str, category: str):
         bgc_id=bgc_id,
         readable_category=readable_category_map[category],
     )
+
+@bp_review.route("/review/references/<bgc_id>", methods=["GET"])
+def view_references(bgc_id: str):
+    response = requests.get(
+        f"{current_app.config['API_BASE']}/review/{bgc_id}/references/",
+        headers={"Authorization": f"Bearer {session['token']}"}
+    )
+
+    references = {}
+
+    if response.status_code != 200:
+        flash('Error getting references: ' + response.json()['error'])
+    else:
+        references = response.json()
+
+    return render_template("review/list_references.html", references=references)
+

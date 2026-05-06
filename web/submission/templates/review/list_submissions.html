@@ -51,11 +51,15 @@
                         {{ submission.category }}
                     </td>
                     <td>
-                        <a href="{{ url_for('edit.edit_bgc', bgc_id=submission.accession, form_id=submission.category )}}">
+                        <a
+                            href="{{ url_for('edit.edit_bgc', bgc_id=submission.accession, form_id=submission.category )}}">
                             <button class="btn btn-primary">Edit</button>
                         </a>
                     </td>
                     <td>
+                        <a href="{{ url_for('review.view_references', bgc_id=submission.accession )}}">
+                            <button class="btn btn-primary">View references</button>
+                        </a>
                         {% if submission.type == "new submission" %}
                         <a href="{{ url_for('edit.view_json', bgc_id=submission.accession )}}">
                             <button class="btn btn-primary">View as JSON</button>
@@ -66,10 +70,12 @@
                             <button class="btn btn-primary">View diff with original</button>
                         </a>
                         {% endif %}
-                        <a href="{{ url_for('review.cancel_review', bgc_id=submission.accession, category=submission.category )}}">
+                        <a
+                            href="{{ url_for('review.cancel_review', bgc_id=submission.accession, category=submission.category )}}">
                             <button class="btn btn-primary red">Cancel review</button>
                         </a>
-                        <a href="{{ url_for('review.approve', bgc_id=submission.accession, category=submission.category )}}">
+                        <a
+                            href="{{ url_for('review.approve', bgc_id=submission.accession, category=submission.category )}}">
                             <button class="btn btn-primary green">Approve</button>
                         </a>
                     </td>
@@ -173,7 +179,8 @@
                         {{ submission.category }}
                     </td>
                     <td>
-                        <a href="{{ url_for('review.claim_review', bgc_id=submission.accession, category=submission.category )}}">
+                        <a
+                            href="{{ url_for('review.claim_review', bgc_id=submission.accession, category=submission.category )}}">
                             <button class="btn btn-primary">Claim for review</button>
                         </a>
                     </td>
@@ -184,7 +191,8 @@
                 <div class="row">
                     <div class="col s1 offset-s4">
                         {% if start | int > 0 %}
-                        <a href="/review/?start={{[0, start | int - limit | int] | max}}&limit={{limit}}&search={{search}}&category={{category}}#review-list">
+                        <a
+                            href="/review/?start={{[0, start | int - limit | int] | max}}&limit={{limit}}&search={{search}}&category={{category}}#review-list">
                             <button class="btn btn-primary">&lt;</button></a>
                         {% endif %}
                     </div>
@@ -192,10 +200,10 @@
                         {{start | int + 1}} - {{[pending_count, start | int + limit | int ] | min}}
                     </div>
                     <div class="col s1">
-                        {% if start | int + limit | int < pending_count %} 
-                        <a href="/review/?start={{[pending_count, start | int + limit | int ] | min}}&limit={{limit}}&search={{search}}&category={{category}}#review-list">
+                        {% if start | int + limit | int < pending_count %} <a
+                            href="/review/?start={{[pending_count, start | int + limit | int ] | min}}&limit={{limit}}&search={{search}}&category={{category}}#review-list">
                             <button class="btn btn-primary">&gt;</button></a>
-                        {% endif %}
+                            {% endif %}
                     </div>
                 </div>
             </div>
