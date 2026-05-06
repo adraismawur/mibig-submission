@@ -141,7 +141,7 @@ def generate_wizard_page(bgc_id: str, form_id: str, show_nav: bool, active_revie
     data = wizard_page.get_data(bgc_id)
 
     form = None
-    if wizard_page.form:
+    if wizard_page.form and not (request.method == "GET" and wizard_page.override_form):
         form = wizard_page.create_form(request.form, data)
     else:
         form = wizard_page.create_form(None, data)
@@ -149,7 +149,7 @@ def generate_wizard_page(bgc_id: str, form_id: str, show_nav: bool, active_revie
     prev_form = get_prev_page(form_id)
     next_form = get_next_page(form_id)
 
-    if request.method == "POST" and form.validate():
+    if request.method == "POST" and (wizard_page.skip_validation or form.validate()):
         try:
             success, response = wizard_page.post_data(bgc_id, form.data)
             if success:
@@ -165,7 +165,7 @@ def generate_wizard_page(bgc_id: str, form_id: str, show_nav: bool, active_revie
         
 
         data = wizard_page.get_data(bgc_id)
-        if wizard_page.form:
+        if wizard_page.form and not wizard_page.override_form:
             form = wizard_page.create_form(request.form, data)
         else:
             form = wizard_page.create_form(None, data)

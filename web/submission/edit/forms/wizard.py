@@ -19,8 +19,11 @@ class WizardPage:
     data_get_endpoint: str = "/entry/<bgc_id>"
     data_get_transform: object = None
     data_set_endpoint: str = "/entry/<bgc_id>"
+    data_set_transform: object = None
     template: str = "wizard/main.html"
     post_redirect: str = None
+    skip_validation: bool = False
+    override_form: bool = False
 
     def create_form(self, request_form, entry):
         return self.form(request_form, data=entry)
@@ -44,10 +47,15 @@ class WizardPage:
     def post_data(self, bgc_id, data: dict[str, any]) -> tuple[bool, object]:
         replaced_api_endpoint = self.data_set_endpoint.replace("<bgc_id>", bgc_id)
 
+        if self.data_set_transform:
+            send_data = self.data_set_transform(data)
+        else:
+            send_data = data
+
         response = requests.post(
             f"{current_app.config['API_BASE']}" + replaced_api_endpoint,
             headers={"Authorization": f"Bearer {session['token']}"},
-            json=data,
+            json=send_data,
         )
 
         if response.status_code == 200:
@@ -62,6 +70,8 @@ def biosynth_class_transform(data):
 
     return data
 
+def biosynth_operon_only(data):
+    return data['operons']
 
 wizard_pages = [
     WizardPage(
@@ -77,7 +87,11 @@ wizard_pages = [
         BioSynthForm,
         data_get_transform = biosynth_class_transform,
         data_get_endpoint="/entry/<bgc_id>/biosynth",
+        data_set_transform = biosynth_operon_only,
+        data_set_endpoint="/entry/<bgc_id>/biosynth/operons",
         template="wizard/biosynth.html",
+        skip_validation=True,
+        override_form=True,
     ),
     WizardPage(
         "compounds",
