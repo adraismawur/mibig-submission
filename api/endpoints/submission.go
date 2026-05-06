@@ -809,7 +809,7 @@ func getExistingMutations(db *gorm.DB, c *gin.Context) {
 	}
 
 	err := db.Table("user_submissions").
-		Where("source_accession = $1", accession).
+		Where("source_accession = $1 AND active = 1", accession).
 		Find(&existingMutations).
 		Error
 
