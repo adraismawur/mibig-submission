@@ -179,6 +179,9 @@
                         {{ submission.category }}
                     </td>
                     <td>
+                        <a href="{{ url_for('review.view_references', bgc_id=submission.accession )}}">
+                            <button class="btn btn-primary">View references</button>
+                        </a>
                         <a
                             href="{{ url_for('review.claim_review', bgc_id=submission.accession, category=submission.category )}}">
                             <button class="btn btn-primary">Claim for review</button>
