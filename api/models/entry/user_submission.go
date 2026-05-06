@@ -161,11 +161,13 @@ func GetEntryAccessionByLociAccession(db *gorm.DB, locusAccession string, start 
 		LocusAccession string
 		Start          int
 		End            int
+		Active         bool
 	}
 
 	err := db.Table("locus").
-		Select("entry_accession, accession as locus_accession, start, end").
-		Joins("inner join locations on locus.id = locations.locus_id").
+		Select("user_submissions.entry_accession, accession as locus_accession, start, end, active").
+		Joins("left join user_submissions on locus.entry_accession = user_submissions.entry_accession").
+		Joins("left join locations on locus.id = locations.locus_id").
 		Where("locus.accession = ?", locusAccession).
 		Find(&existingSubmissionsWithLocusAccession).
 		Error
@@ -183,6 +185,10 @@ func GetEntryAccessionByLociAccession(db *gorm.DB, locusAccession string, start 
 			return nil, errors.New("unexpected error in existing submission check: locus accession does not match")
 		}
 
+		if !existingSubmission.Active {
+			continue
+		}
+
 		existingSubmissionAccession := existingSubmission.EntryAccession
 
 		if existingSubmission.Start == -1 && existingSubmission.End == -1 {
@@ -190,6 +196,10 @@ func GetEntryAccessionByLociAccession(db *gorm.DB, locusAccession string, start 
 		}
 
 		if start == -1 && end == -1 {
+			return &existingSubmissionAccession, nil
+		}
+
+		if start == 0 && end == 0 {
 			return &existingSubmissionAccession, nil
 		}
 
