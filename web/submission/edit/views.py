@@ -217,6 +217,22 @@ def edit_bgc(bgc_id: str, form_id: str) -> Union[str, response.Response]:
 
     return generate_wizard_page(bgc_id, form_id, show_nav)
 
+@bp_edit.route("/references/<bgc_id>", methods=["GET"])
+def view_references(bgc_id: str):
+    response = requests.get(
+        f"{current_app.config['API_BASE']}/review/{bgc_id}/references/",
+        headers={"Authorization": f"Bearer {session['token']}"}
+    )
+
+    references = {}
+
+    if response.status_code != 200:
+        flash('Error getting references: ' + response.json()['error'])
+    else:
+        references = response.json()
+
+    return render_template("edit/list_references.html", references=references, bgc_id=bgc_id)
+
 @bp_edit.route("/<bgc_id>/lock/request/<category>", methods=["GET", "POST"])
 @login_required
 def request_lock(bgc_id: str, category: str):

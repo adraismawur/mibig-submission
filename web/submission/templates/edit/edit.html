@@ -10,9 +10,13 @@ Editing {{ bgc_id }}
 <div class="form-wrapper">
     <div class="form-group center-align">
         {% set fully_locked = "full" in lock_info %}
+        <h4>You are editing {{ bgc_id }}</h4>
+        <a href="{{url_for('edit.view_references', bgc_id=bgc_id)}}">
+            <button class="btn btn-primary">View entry references</button>
+        </a>
 
         {% if not fully_locked %}
-        <h4>What would you like to edit?</h4>
+        <h5>What would you like to edit?</h5>
         <table>
             <thead>
                 <th>Category</th>
@@ -64,15 +68,15 @@ Editing {{ bgc_id }}
                         {% endif %}
                     </td>
                     <td>
+                        <a href="{{url_for('edit.view_review_comments', bgc_id=bgc_id, category=lock_key)}}">
+                            <button class="btn btn-primary">View review comment history</button>
+                        </a>
                         {% if not (in_review and not requested_changes) and locked and lock['is_owner'] and not
                         fully_locked %}
                         <a href="{{url_for('edit.release_lock', bgc_id=bgc_id, category=lock_key)}}">
                             <button class="btn btn-primary orange">Release</button>
                         </a>
                         {% endif %}
-                        <a href="{{url_for('edit.view_review_comments', bgc_id=bgc_id, category=lock_key)}}">
-                            <button class="btn btn-primary">View review comment history</button>
-                        </a>
                         {% if not locked and not (in_review and not requested_changes) %}
                         <a href="{{url_for('edit.promote_bgc', bgc_id=bgc_id, category=lock_key)}}">
                             <button class="btn btn-primary green">Request review</button>
