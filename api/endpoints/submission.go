@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -24,12 +25,13 @@ func init() {
 type ExistingSubmissionSubState string
 
 const (
-	Incomplete    ExistingSubmissionSubState = "incomplete"
-	Unlocked                                 = "unlocked"
-	Locked                                   = "locked"
-	PendingReview                            = "pending review"
-	BeingReviewed                            = "being reviewed"
-	Accepted                                 = "accepted"
+	Incomplete       ExistingSubmissionSubState = "incomplete"
+	Unlocked                                    = "unlocked"
+	Locked                                      = "locked"
+	PendingReview                               = "pending review"
+	BeingReviewed                               = "being reviewed"
+	RequestedChanges                            = "requested changes"
+	Accepted                                    = "accepted"
 )
 
 type SubmissionInfo struct {
@@ -64,6 +66,13 @@ func SubmissionEndpoint(db *gorm.DB) Endpoint {
 				Path:   "/reviews/pending",
 				Handler: func(c *gin.Context) {
 					getPendingReviews(db, c)
+				},
+			},
+			{
+				Method: "GET",
+				Path:   "/reviews/accepted",
+				Handler: func(c *gin.Context) {
+					getAcceptedReviews(db, c)
 				},
 			},
 			{
@@ -374,6 +383,8 @@ func getSubmissions(db *gorm.DB, c *gin.Context) {
 			fallthrough
 		case BeingReviewed:
 			fallthrough
+		case RequestedChanges:
+			fallthrough
 		case Accepted:
 			q.Where(
 				fmt.Sprintf(
@@ -617,6 +628,105 @@ func getPendingReviews(db *gorm.DB, c *gin.Context) {
 	err = q.Select("submission_reviews.*, user_submissions.type, user_submissions.source_accession").
 		Joins("JOIN user_submissions ON user_submissions.entry_accession = submission_reviews.accession").
 		Where(fmt.Sprintf("submission_reviews.state = $%d", clauseIdx), entry.PendingReview).
+		Count(&reviewCount).
+		Offset(start).
+		Limit(limit).
+		Find(&reviews).
+		Error
+
+	if err != nil {
+		slog.Error("[endpoints] [submission] Could not find reviews", "user_id", user.ID, "error", err)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	type ResponseReview struct {
+		ReviewInfo
+		Taxonomy string   `json:"taxonomy"`
+		Class    []string `json:"class"`
+	}
+
+	var response struct {
+		Reviews     []ResponseReview `json:"reviews"`
+		ReviewCount int64            `json:"review_count"`
+	}
+
+	var accessions []string
+	for _, review := range reviews {
+		accessions = append(accessions, review.Accession)
+	}
+
+	taxMap, classMap := fetch_maps(db, accessions)
+
+	response.ReviewCount = reviewCount
+	response.Reviews = make([]ResponseReview, 0)
+	for _, review := range reviews {
+		response.Reviews = append(response.Reviews, ResponseReview{
+			ReviewInfo: review,
+			Taxonomy:   taxMap[review.Accession],
+			Class:      classMap[review.Accession],
+		})
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
+func getAcceptedReviews(db *gorm.DB, c *gin.Context) {
+
+	type ReviewInfo struct {
+		entry.SubmissionReview
+		Type            string `json:"type"`
+		SourceAccession string `json:"source_accession"`
+	}
+
+	var reviews []ReviewInfo
+
+	user, err := models.GetUserFromContext(c)
+
+	if !models.GetIsUserRole(user, models.Reviewer) {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "user is not a reviewer"})
+		return
+	}
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	start, err := strconv.Atoi(c.Query("start"))
+
+	if err != nil {
+		start = 0
+	}
+
+	limit, err := strconv.Atoi(c.Query("limit"))
+
+	if err != nil {
+		limit = 10
+	}
+
+	search := c.Query("search")
+	category := c.Query("category")
+
+	q := db.Session(&gorm.Session{})
+	q = db.Table("submission_reviews")
+
+	clauseIdx := 1
+
+	if search != "" {
+		q.Where(fmt.Sprintf("user_submissions.entry_accession LIKE $%d OR user_submissions.source_accession LIKE $%d OR user_submissions.entry_accession IN (SELECT entry_accession FROM taxonomies WHERE name LIKE $%d) OR user_submissions.entry_accession IN (SELECT entry_accession FROM biosyntheses WHERE biosyntheses.id IN (SELECT biosynthesis_id FROM biosynthetic_classes WHERE class LIKE $%d))", clauseIdx, clauseIdx+1, clauseIdx+2, clauseIdx+3), "%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%")
+		clauseIdx += 4
+	}
+
+	if category != "" {
+		q.Where(fmt.Sprintf("submission_reviews.category = $%d", clauseIdx), category)
+		clauseIdx += 1
+	}
+
+	var reviewCount int64
+	err = q.Select("submission_reviews.*, user_submissions.type, user_submissions.source_accession").
+		Joins("JOIN user_submissions ON user_submissions.entry_accession = submission_reviews.accession").
+		Where(fmt.Sprintf("submission_reviews.state = $%d", clauseIdx), entry.Accepted).
 		Count(&reviewCount).
 		Offset(start).
 		Limit(limit).
@@ -909,13 +1019,20 @@ func promoteSubmission(db *gorm.DB, c *gin.Context) {
 	var promotionRequest struct {
 		Accession string
 		Category  entry.Category
-		Notes     string
+		Comment   string
 	}
 
 	err := c.ShouldBindJSON(&promotionRequest)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "could not bind json: " + err.Error()})
+		return
+	}
+
+	user, err := models.GetUserFromContext(c)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "could not get user from context: " + err.Error()})
 		return
 	}
 
@@ -944,21 +1061,71 @@ func promoteSubmission(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	newReview := entry.SubmissionReview{
-		Accession:      promotionRequest.Accession,
-		Category:       promotionRequest.Category,
-		State:          entry.PendingReview,
-		SubmitterNotes: promotionRequest.Notes,
-	}
+	var existingReview entry.SubmissionReview
 
-	err = db.
-		Omit("User").
-		Save(&newReview).
+	err = db.Table("submission_reviews").
+		Where("accession = $1 AND category = $2", promotionRequest.Accession, promotionRequest.Category).
+		Find(&existingReview).
 		Error
 
 	if err != nil {
-		slog.Error("[endpoints] [submission] Failed to update user submission", "error", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user submission: " + err.Error()})
+		slog.Error("[endpoints] [submission] Failed to execute existing submission finding query", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find user submission"})
+		return
+	}
+
+	var reviewId uint64
+	var reviewCommentState entry.ReviewCommentState
+
+	// no existing review
+	if existingReview.ID == 0 {
+		newReview := entry.SubmissionReview{
+			Accession: promotionRequest.Accession,
+			Category:  promotionRequest.Category,
+			State:     entry.PendingReview,
+		}
+
+		err = db.
+			Omit("User").
+			Save(&newReview).
+			Error
+
+		if err != nil {
+			slog.Error("[endpoints] [submission] Failed to create submission review", "error", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create submission review: " + err.Error()})
+			return
+		}
+
+		reviewId = newReview.ID
+		reviewCommentState = entry.FirstReviewRequest
+	} else {
+		// update existing review
+		existingReview.State = entry.PendingReview
+
+		err = db.Save(&existingReview).Error
+
+		if err != nil {
+			slog.Error("[endpoints] [submission] Failed to create submission review", "error", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create submission review: " + err.Error()})
+			return
+		}
+
+		reviewId = existingReview.ID
+		reviewCommentState = entry.NewReviewRequested
+	}
+
+	newComment := entry.SubmissionReviewComment{
+		ReviewID:      reviewId,
+		UserID:        user.ID,
+		ReviewProcess: reviewCommentState,
+		Comment:       promotionRequest.Comment,
+	}
+
+	err = db.Create(&newComment).Error
+
+	if err != nil {
+		slog.Error("[endpoints] [submission] Failed to create review comment", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create review comment: " + err.Error()})
 		return
 	}
 
@@ -1107,7 +1274,10 @@ func cancelReview(db *gorm.DB, c *gin.Context) {
 
 		submissionReview.State = entry.PendingReview
 
-		transactionErr = tx.Save(&submissionReview).Error
+		transactionErr = tx.
+			Omit("UserID").
+			Save(&submissionReview).
+			Error
 
 		if transactionErr != nil {
 			slog.Error("[endpoints] [submission] Failed to update review", "error", err.Error())
@@ -1140,6 +1310,7 @@ func acceptSubmission(db *gorm.DB, c *gin.Context) {
 	var acceptRequest struct {
 		Accession string
 		Category  lock.LockingCategory
+		Comment   string
 	}
 
 	err = c.ShouldBindJSON(&acceptRequest)
@@ -1189,7 +1360,10 @@ func acceptSubmission(db *gorm.DB, c *gin.Context) {
 
 		submissionReview.State = entry.Accepted
 
-		transactionErr = tx.Save(&submissionReview).Error
+		transactionErr = tx.
+			Omit("UserID").
+			Save(&submissionReview).
+			Error
 
 		if transactionErr != nil {
 			slog.Error("[endpoints] [submission] Failed to update review", "error", err.Error())
@@ -1205,11 +1379,25 @@ func acceptSubmission(db *gorm.DB, c *gin.Context) {
 			return transactionErr
 		}
 
+		newComment := entry.SubmissionReviewComment{
+			ReviewID:      submissionReview.ID,
+			UserID:        user.ID,
+			ReviewProcess: entry.ReviewApproval,
+			Comment:       acceptRequest.Comment,
+		}
+
+		transactionErr = tx.Create(&newComment).Error
+
+		if transactionErr != nil {
+			slog.Error("[endpoints] [submission] Failed to create review comment", "error", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create review comment: " + err.Error()})
+			return transactionErr
+		}
+
 		return nil
 	})
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -1217,7 +1405,104 @@ func acceptSubmission(db *gorm.DB, c *gin.Context) {
 }
 
 func requestSubmissionChanges(db *gorm.DB, c *gin.Context) {
+	var err error
 
+	var rfcRequest struct {
+		Accession string
+		Category  lock.LockingCategory
+		Comment   string
+	}
+
+	err = c.ShouldBindJSON(&rfcRequest)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	user, err := models.GetUserFromContext(c)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "could not get user from context: " + err.Error()})
+		return
+	}
+
+	err = db.Session(&gorm.Session{FullSaveAssociations: true}).Transaction(func(tx *gorm.DB) error {
+
+		exists, transactionErr := entry.GetEntryExists(tx, rfcRequest.Accession)
+
+		if transactionErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": transactionErr.Error()})
+			return transactionErr
+		}
+
+		if !exists {
+			c.JSON(http.StatusNotFound, gin.H{"error": "entry not found"})
+			return errors.New("entry not found")
+		}
+
+		var submissionReview entry.SubmissionReview
+
+		transactionErr = tx.
+			Where("accession = $1 AND category = $2", rfcRequest.Accession, rfcRequest.Category).
+			First(&submissionReview).Error
+
+		if transactionErr != nil {
+			slog.Error("[endpoints] [submission] Failed to find user submission", "error", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find user submission"})
+			return transactionErr
+		}
+
+		if submissionReview.State != entry.Reviewing {
+			slog.Error("[endpoints] [submission] Review is not being reviewed")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Review is not being reviewed"})
+			return errors.New("review is not being reviewed")
+		}
+
+		submissionReview.State = entry.RFC
+
+		transactionErr = tx.
+			Omit("UserID").
+			Save(&submissionReview).
+			Error
+
+		if transactionErr != nil {
+			slog.Error("[endpoints] [submission] Failed to update review", "error", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update review"})
+			return transactionErr
+		}
+
+		transactionErr = lock.ReleaseLock(tx, rfcRequest.Accession, rfcRequest.Category, *user)
+
+		if transactionErr != nil {
+			slog.Error("[endpoints] [submission] Failed to clear submission locks", "error", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to clear submission locks"})
+			return transactionErr
+		}
+
+		newComment := entry.SubmissionReviewComment{
+			ReviewID:      submissionReview.ID,
+			UserID:        user.ID,
+			ReviewProcess: entry.RequestForChange,
+			Comment:       rfcRequest.Comment,
+		}
+
+		transactionErr = tx.Create(&newComment).Error
+
+		if transactionErr != nil {
+			slog.Error("[endpoints] [submission] Failed to create review comment", "error", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create review comment: " + err.Error()})
+			return transactionErr
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return
+	}
+
+	c.Status(http.StatusOK)
 }
 
 func redraftSubmission(db *gorm.DB, c *gin.Context) {
@@ -1226,45 +1511,87 @@ func redraftSubmission(db *gorm.DB, c *gin.Context) {
 	var redraftRequest struct {
 		Accession string
 		Category  lock.LockingCategory
+		Comment   string
 	}
 
 	err = c.ShouldBindJSON(&redraftRequest)
-
-	exists, err := entry.GetEntryExists(db, redraftRequest.Accession)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	if !exists {
-		c.JSON(http.StatusNotFound, gin.H{"error": "entry not found"})
-		return
-	}
-
-	var submissionReview entry.SubmissionReview
-
-	err = db.
-		Where("accession = $1 AND category = $2", redraftRequest.Accession, redraftRequest.Category).
-		First(&submissionReview).Error
+	user, err := models.GetUserFromContext(c)
 
 	if err != nil {
-		slog.Error("[endpoints] [submission] Failed to find user submission", "error", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find user submission"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "could not get user from context: " + err.Error()})
 		return
 	}
 
-	if submissionReview.State != entry.PendingReview {
-		slog.Error("[endpoints] [submission] Review is not pending")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Review is not pending"})
-		return
-	}
+	err = db.Session(&gorm.Session{FullSaveAssociations: true}).Transaction(func(tx *gorm.DB) error {
 
-	err = db.Delete(&submissionReview).Error
+		exists, transactionErr := entry.GetEntryExists(tx, redraftRequest.Accession)
+
+		if transactionErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return transactionErr
+		}
+
+		if !exists {
+			c.JSON(http.StatusNotFound, gin.H{"error": "entry not found"})
+			return errors.New("entry not found")
+		}
+
+		var submissionReview entry.SubmissionReview
+
+		transactionErr = tx.
+			Where("accession = $1 AND category = $2", redraftRequest.Accession, redraftRequest.Category).
+			First(&submissionReview).Error
+
+		if transactionErr != nil {
+			slog.Error("[endpoints] [submission] Failed to find user submission", "error", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find user submission"})
+			return transactionErr
+		}
+
+		if submissionReview.State != entry.PendingReview {
+			slog.Error("[endpoints] [submission] Review is not pending")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Review is not pending"})
+			return errors.New("review is not pending")
+		}
+
+		submissionReview.State = entry.Draft
+
+		transactionErr = tx.
+			Omit("UserID").
+			Save(&submissionReview).
+			Error
+
+		if transactionErr != nil {
+			slog.Error("[endpoints] [submission] Failed to update review", "error", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update review"})
+			return transactionErr
+		}
+
+		newComment := entry.SubmissionReviewComment{
+			ReviewID:      submissionReview.ID,
+			UserID:        user.ID,
+			ReviewProcess: entry.Redrafted,
+			Comment:       redraftRequest.Comment,
+		}
+
+		transactionErr = tx.Create(&newComment).Error
+
+		if transactionErr != nil {
+			slog.Error("[endpoints] [submission] Failed to create review comment", "error", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create review comment: " + err.Error()})
+			return transactionErr
+		}
+
+		return nil
+	})
 
 	if err != nil {
-		slog.Error("[endpoints] [submission] Failed to update review", "error", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update review"})
 		return
 	}
 

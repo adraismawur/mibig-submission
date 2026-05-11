@@ -24,15 +24,16 @@ Editing {{ bgc_id }}
             <tbody>
                 {% for lock_key in lock_keys %}
                 {% set locked = (lock_key in lock_info) or fully_locked %}
-                {% set in_review = lock_key in review_info %}
+                {% set in_review = lock_key in review_info and review_info[lock_key]['state'] != 'draft' %}
                 {% set lock = lock_info[lock_key] if lock_key in lock_info else lock_info["full"] %}
                 {% set review = review_info[lock_key] if lock_key in review_info %}
+                {% set requested_changes = false if not review else review['state'] == 'requested changes' %}
                 <tr>
                     <td>
                         {{ readable_category_map[lock_key] }}
                     </td>
                     <td>
-                        {{ review['state'] if in_review else"Locked" if locked else "Editable" }}
+                        {{ review['state'] if in_review else "Locked" if locked else "Editable" }}
                     </td>
                     <td>
                         <!-- great piece of template code. no comments. totally readable and sane -->
@@ -44,13 +45,14 @@ Editing {{ bgc_id }}
                         {{ lock['unlocks_at'] if locked and not in_review else ""}}
                     </td>
                     <td>
-                        {% if not locked and not in_review %}
+                        {% if not locked and not (in_review and not requested_changes) %}
                         <a
                             href="{{ url_for('edit.request_lock', bgc_id=bgc_id, category=lock_key) if not fully_locked }}">
                             <button class="btn btn-primary" {{ "disabled" if fully_locked }}>Request lock</button>
                         </a>
                         {% endif %}
-                        {% if not in_review and (locked and lock['is_owner'] and not fully_locked) %}
+                        {% if not (in_review and not requested_changes) and (locked and lock['is_owner'] and not
+                        fully_locked) %}
                         <a href="{{url_for('edit.edit_bgc', bgc_id=bgc_id, form_id=lock_key)}}">
                             <button class="btn btn-primary">Edit</button>
                         </a>
@@ -62,12 +64,16 @@ Editing {{ bgc_id }}
                         {% endif %}
                     </td>
                     <td>
-                        {% if not in_review and locked and lock['is_owner'] and not fully_locked %}
+                        {% if not (in_review and not requested_changes) and locked and lock['is_owner'] and not
+                        fully_locked %}
                         <a href="{{url_for('edit.release_lock', bgc_id=bgc_id, category=lock_key)}}">
                             <button class="btn btn-primary orange">Release</button>
                         </a>
                         {% endif %}
-                        {% if not locked and not in_review %}
+                        <a href="{{url_for('edit.view_review_comments', bgc_id=bgc_id, category=lock_key)}}">
+                            <button class="btn btn-primary">View review comment history</button>
+                        </a>
+                        {% if not locked and not (in_review and not requested_changes) %}
                         <a href="{{url_for('edit.promote_bgc', bgc_id=bgc_id, category=lock_key)}}">
                             <button class="btn btn-primary green">Request review</button>
                         </a>

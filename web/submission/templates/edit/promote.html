@@ -24,9 +24,12 @@ Promoting {{ bgc_id }}
 
                 <br>
 
+                <h6>Please enter comments for the reviewer below</h6>
+
+                {{ macros.simple_divsubform(form.comment) }}
 
             </div>
-            <div class="row ">
+            <div class="row">
                 <div class="col ">
                     <input type="submit" class="btn green" value="Confirm" data-method="post" />
                 </div>

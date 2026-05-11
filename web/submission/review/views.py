@@ -15,6 +15,7 @@ import requests
 from submission.review import bp_review
 from submission.edit.forms.form_collection import FormCollection
 from submission.models import Entry
+from submission.utils.custom_forms import ReviewCommentForm
 
 
 readable_category_map = {
@@ -67,6 +68,54 @@ def list_submissions():
         category=category,
     )
 
+
+@bp_review.route("/accepted", methods=["GET", "POST"])
+@login_required
+def list_accepted_submissions():
+    # get the list of submissions that are marked ready for review
+    search = request.args.get("search") or ""
+    category = request.args.get("category") or ""
+    start = request.args.get("start") or 0
+    limit = request.args.get("limit") or 10
+
+    pending_response = requests.get(
+        f"{current_app.config['API_BASE']}/reviews/accepted?start={start}&limit={limit}&search={search}&category={category}",
+        headers={"Authorization": f"Bearer {session['token']}"},
+    ).json()
+
+    accepted_count = pending_response["review_count"]
+    accepted_submissions = pending_response["reviews"]
+
+    return render_template(
+        "review/list_accepted_submissions.html",
+        accepted_submissions=accepted_submissions,
+        accepted_count=accepted_count,
+        start=start,
+        limit=limit,
+        search=search,
+        category=category,
+    )
+
+@bp_review.route("/review_comments/<bgc_id>/<category>")
+@login_required
+def view_review_comments(bgc_id: str, category: str):
+    redirect = request.args.get('redirect')
+
+
+    comment_endpoint = f"/review/{bgc_id}/{category}/comments"
+    response = requests.get(
+        f"{current_app.config['API_BASE']}" + comment_endpoint,
+        headers={"Authorization": f"Bearer {session['token']}"},
+    )
+
+    if response.status_code != 200:
+        flash("Could not retrieve review comments", 'error')
+        comments = []
+    else:
+        comments = response.json()
+
+    return render_template("review/view_review_comments.html", bgc_id=bgc_id, comments=comments, redirect=redirect)
+
 @bp_review.route("/claim_review/<bgc_id>/<category>", methods=["GET", "POST"])
 @login_required
 def claim_review(bgc_id: str, category: str):
@@ -107,16 +156,50 @@ def cancel_review(bgc_id: str, category: str):
 
     return render_template("review/cancel_review.html", bgc_id=bgc_id, category=readable_category_map[category])
 
+@bp_review.route("/rfc/<bgc_id>/<category>", methods=["GET", "POST"])
+@login_required
+def rfc(bgc_id: str, category: str):
+
+    if request.form:
+        form = ReviewCommentForm(request.form)
+    else:
+        form = ReviewCommentForm()
+        
+    if request.method == "POST":
+        response = requests.post(
+            f"{current_app.config['API_BASE']}/submission/rfc/",
+            headers={"Authorization": f"Bearer {session['token']}"},
+            json={
+                "accession": bgc_id,
+                "category": category,
+                "comment": form.data['comment']
+            }
+        )
+
+        if response.status_code != 200:
+            flash(response.json()["error"], "error")
+
+        return redirect(url_for("review.list_submissions"))
+
+    return render_template("review/rfc.html", bgc_id=bgc_id, category=readable_category_map[category], form=form)
+
 @bp_review.route("/approve/<bgc_id>/<category>", methods=["GET", "POST"])
 @login_required
 def approve(bgc_id: str, category: str):
+
+    if request.form:
+        form = ReviewCommentForm(request.form)
+    else:
+        form = ReviewCommentForm()
+
     if request.method == "POST":
         response = requests.post(
             f"{current_app.config['API_BASE']}/submission/accept/",
             headers={"Authorization": f"Bearer {session['token']}"},
             json={
                 "accession": bgc_id,
-                "category": category
+                "category": category,
+                "comment": form.data['comment']
             }
         )
 
@@ -129,10 +212,13 @@ def approve(bgc_id: str, category: str):
         "review/approve.html",
         bgc_id=bgc_id,
         readable_category=readable_category_map[category],
+        form=form,
     )
 
-@bp_review.route("/review/references/<bgc_id>", methods=["GET"])
+@bp_review.route("/references/<bgc_id>", methods=["GET"])
 def view_references(bgc_id: str):
+    redirect = request.args.get('redirect')
+    
     response = requests.get(
         f"{current_app.config['API_BASE']}/review/{bgc_id}/references/",
         headers={"Authorization": f"Bearer {session['token']}"}
@@ -145,5 +231,5 @@ def view_references(bgc_id: str):
     else:
         references = response.json()
 
-    return render_template("review/list_references.html", references=references)
+    return render_template("review/list_references.html", references=references, redirect=redirect)
 

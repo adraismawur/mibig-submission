@@ -160,3 +160,7 @@ class FunctionEvidenceForm(Form):
         widget=TextInputWithSuggestions(post_url="/edit/get_db_references"),
         validators=[validators.InputRequired(), ValidateCitations()],
     )
+
+
+class ReviewCommentForm(Form):
+    comment = StringField("Comment")

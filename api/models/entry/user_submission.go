@@ -55,19 +55,37 @@ type UserSubmission struct {
 }
 
 type SubmissionReview struct {
-	ID             uint64      `json:"db_id"`
-	Accession      string      `json:"accession" gorm:"uniqueIndex:compositeReviewIndex"`
-	Category       Category    `json:"category" gorm:"uniqueIndex:compositeReviewIndex"`
-	State          ReviewState `json:"state"`
-	UserID         uint64      `json:"db_reviewer_id"`
-	User           models.User `json:"reviewer"`
-	SubmitterNotes string      `json:"submitter_notes"`
-	ReviewerNotes  string      `json:"reviewer_notes"`
+	ID        uint64      `json:"db_id"`
+	Accession string      `json:"accession" gorm:"uniqueIndex:compositeReviewIndex"`
+	Category  Category    `json:"category" gorm:"uniqueIndex:compositeReviewIndex"`
+	State     ReviewState `json:"state"`
+	UserID    uint64      `json:"db_reviewer_id"`
+	User      models.User `json:"reviewer"`
+}
+
+type ReviewCommentState string
+
+const (
+	FirstReviewRequest ReviewCommentState = "First review request"
+	RequestForChange   ReviewCommentState = "Changes requested"
+	NewReviewRequested ReviewCommentState = "New review requested"
+	ReviewApproval     ReviewCommentState = "Review approved"
+	Redrafted          ReviewCommentState = "Review request cancelled"
+)
+
+type SubmissionReviewComment struct {
+	ID            uint64             `json:"db_id"`
+	ReviewID      uint64             `json:"db_review_id"`
+	UserID        uint64             `json:"db_user_id"`
+	ReviewProcess ReviewCommentState `json:"review_process"`
+	CreatedAt     time.Time          `json:"created_at"`
+	Comment       string             `json:"comment"`
 }
 
 func init() {
 	models.Models = append(models.Models, UserSubmission{})
 	models.Models = append(models.Models, SubmissionReview{})
+	models.Models = append(models.Models, SubmissionReviewComment{})
 }
 
 func CreateNewUserSubmission(db *gorm.DB, minimalEntry MinimalEntry, user models.User) (*Entry, error) {

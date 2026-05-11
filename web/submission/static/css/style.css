@@ -6,6 +6,7 @@ body {
   --locked: #CC6677;
   --pending-review: #DDCC77;
   --being-reviewed: #44AA99;
+  --changes-requested: #a744aa;
   --accepted: #117733;
   --mat-teal: #2bbbad;
 }
@@ -165,6 +166,10 @@ select {
   background-color: var(--being-reviewed)
 }
 
+.col-orderable.changes.requested::before {
+  background-color: var(--changes-requested)
+}
+
 .col-orderable.accepted::before {
   background-color: var(--accepted)
 }
@@ -206,6 +211,10 @@ td:has(.status) {
 
 .status.being.reviewed {
   background-color: var(--being-reviewed)
+}
+
+.status.changes.requested {
+  background-color: var(--changes-requested)
 }
 
 .status.accepted {

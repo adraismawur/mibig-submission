@@ -39,6 +39,7 @@ from submission.edit.forms.wizard import (
 )
 from submission.models.users import Role
 from submission.utils import Storage, draw_smiles_svg, draw_smarts_svg
+from submission.utils.custom_forms import ReviewCommentForm
 from submission.utils.custom_validators import is_valid_bgc_id
 from submission.utils.custom_errors import ReferenceNotFound
 from submission.models import Entry, NPAtlas, Substrate
@@ -253,7 +254,7 @@ def release_lock(bgc_id: str, category: str):
         else:
             if request.form.get("promote"):
                 # pass on the POST request to mark for review
-                return redirect(url_for("edit.promote_bgc", bgc_id=bgc_id, category=category), code=307)
+                return redirect(url_for("edit.promote_bgc", bgc_id=bgc_id, category=category))
             
             flash("Lock released successfully")
 
@@ -283,6 +284,11 @@ def view_json(bgc_id: str):
 @login_required
 def redraft_bgc(bgc_id: str, category: str):
 
+    if request.form:
+        form = ReviewCommentForm(request.form)
+    else:
+        form = ReviewCommentForm()
+
     entry_json = Entry.get_text(bgc_id)
 
     if request.method == "POST":
@@ -292,7 +298,8 @@ def redraft_bgc(bgc_id: str, category: str):
             headers={"Authorization": f"Bearer {session['token']}"},
             json={
                 "accession": bgc_id,
-                "category": category
+                "category": category,
+                "comment": form.data['comment']
             }
         )
 
@@ -303,7 +310,7 @@ def redraft_bgc(bgc_id: str, category: str):
         return redirect(url_for("edit.edit_bgc_redirect", bgc_id=bgc_id))
 
 
-    return render_template("edit/redraft.html", bgc_id=bgc_id, entry_json=entry_json, category=readable_category_map[category])
+    return render_template("edit/redraft.html", bgc_id=bgc_id, entry_json=entry_json, category=readable_category_map[category], form=form)
 
 
 @bp_edit.route("/promote/<bgc_id>/<category>", methods=["GET", "POST"])
@@ -311,6 +318,11 @@ def redraft_bgc(bgc_id: str, category: str):
 def promote_bgc(bgc_id: str, category: str):
 
     # entry_json = Entry.get_text(bgc_id)
+
+    if request.form:
+        form = ReviewCommentForm(request.form)
+    else:
+        form = ReviewCommentForm()
 
     if request.method == "POST":
         # clear locks first
@@ -330,7 +342,8 @@ def promote_bgc(bgc_id: str, category: str):
             headers={"Authorization": f"Bearer {session['token']}"},
             json={
                 "accession": bgc_id,
-                "category": category
+                "category": category,
+                "comment": form.data['comment']
             }
         )
 
@@ -343,6 +356,7 @@ def promote_bgc(bgc_id: str, category: str):
         "edit/promote.html",
         bgc_id=bgc_id,
         category=readable_category_map[category],
+        form=form
         # entry_json=entry_json,
     )
 
@@ -366,6 +380,23 @@ def discard_bgc(bgc_id: str):
         return redirect(url_for("main.index"))
 
     return render_template("edit/discard.html", bgc_id=bgc_id, entry_json=entry_json)
+
+@bp_edit.route("/review_comments/<bgc_id>/<category>")
+@login_required
+def view_review_comments(bgc_id: str, category: str):
+    comment_endpoint = f"/review/{bgc_id}/{category}/comments"
+    response = requests.get(
+        f"{current_app.config['API_BASE']}" + comment_endpoint,
+        headers={"Authorization": f"Bearer {session['token']}"},
+    )
+
+    if response.status_code != 200:
+        flash("Could not retrieve review comments", 'error')
+        comments = []
+    else:
+        comments = response.json()
+
+    return render_template("edit/view_review_comments.html", bgc_id=bgc_id, comments=comments)
 
 
 @bp_edit.route("/render_smiles_form", methods=["POST"])

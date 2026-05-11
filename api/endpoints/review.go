@@ -24,6 +24,13 @@ func ReviewEndpoint(db *gorm.DB) Endpoint {
 				},
 			},
 			{
+				Method: "GET",
+				Path:   "/review/:accession/:category/comments",
+				Handler: func(c *gin.Context) {
+					getReviewComments(db, c)
+				},
+			},
+			{
 				Method: "POST",
 				Path:   "/review",
 				Handler: func(c *gin.Context) {
@@ -46,6 +53,30 @@ func ReviewEndpoint(db *gorm.DB) Endpoint {
 			},
 		},
 	}
+}
+
+func getReviewComments(db *gorm.DB, c *gin.Context) {
+	accession := c.Param("accession")
+	category := c.Param("category")
+
+	if accession == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Missing accession"})
+		return
+	}
+
+	var comments []entry.SubmissionReviewComment
+
+	err := db.Table("submission_review_comments").
+		Where("review_id IN (SELECT id FROM submission_reviews WHERE accession = $1 AND category = $2)", accession, category).
+		Find(&comments).
+		Error
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error})
+		return
+	}
+
+	c.JSON(http.StatusOK, comments)
 }
 
 func getEntryReferences(db *gorm.DB, c *gin.Context) {

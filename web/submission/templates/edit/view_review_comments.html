@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block header %}
+{{ bgc_id }} review comments
+{% endblock %}
+
+{% block body %}
+
+<div class="form-wrapper">
+    <h4>List of review comments:</h4>
+
+    <form method="post" class="container">
+        <div class="form-group row">
+            {% if comments | length == 0 %}
+            <h5>There is no comment history for this entry</h5>
+            {% endif %}
+            {% for comment in comments | reverse %}
+            <div class="row">
+                <h6>
+                    <b>{{ comment['review_process'] }}</b>
+                    {{ comment['created_at'] }}
+                </h6>
+
+                {{ comment['comment'] or 'no comment' }}
+            </div>
+            {% endfor %}
+            <div class="col col-auto">
+                <a href="{{ url_for('edit.edit_bgc_redirect', bgc_id=bgc_id) }}"><button class="btn btn-primary"
+                        type="button">Back</button></a>
+            </div>
+        </div>
+    </form>
+
+</div>
+{% endblock %}

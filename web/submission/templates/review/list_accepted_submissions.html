@@ -6,102 +6,6 @@
 
 <div class="content">
     <div class="form-wrapper">
-        <h3>Currently reviewing:</h3>
-        <div class="form-group subgroup">
-            {% if reviewing | length > 0 %}
-            <table class="table">
-                <thead class="table-header">
-                    <th>
-                        Submission ID
-                    </th>
-                    <th>
-                        Type
-                    </th>
-                    <th>
-                        Biosynthetic class
-                    </th>
-                    <th>
-                        Organism
-                    </th>
-                    <th>
-                        Category
-                    </th>
-                    <th>
-                        Edit
-                    </th>
-                    <th>
-                        Review options
-                    </th>
-                </thead>
-                {% for submission in reviewing %}
-                <tr>
-                    <td>
-                        {{ submission.accession }}
-                    </td>
-                    <td>
-                        {{ submission.type }}
-                    </td>
-                    <td>
-                        {{"-".join(submission.class)}}
-                    </td>
-                    <td>
-                        {{submission.taxonomy}}
-                    </td>
-                    <td>
-                        {{ submission.category }}
-                    </td>
-                    <td>
-                        <a
-                            href="{{ url_for('edit.edit_bgc', bgc_id=submission.accession, form_id=submission.category )}}">
-                            <button class="btn btn-primary">Edit</button>
-                        </a>
-                    </td>
-                    <td>
-                        <div class="row">
-                            <a
-                                href="{{ url_for('review.view_references', bgc_id=submission.accession, redirect='review.list_submissions' )}}">
-                                <button class="btn btn-primary">View references</button>
-                            </a>
-                            {% if submission.type == "new submission" %}
-                            <a href="{{ url_for('edit.view_json', bgc_id=submission.accession )}}">
-                                <button class="btn btn-primary">View as JSON</button>
-                            </a>
-                            {% else %}
-                            <a
-                                href="{{ url_for('diff.view_diff', left=submission.source_accession, right=submission.accession )}}">
-                                <button class="btn btn-primary">View diff with original</button>
-                            </a>
-                            {% endif %}
-                            <a
-                                href="{{url_for('review.view_review_comments', bgc_id=submission.accession, category=submission.category, redirect='review.list_submissions')}}">
-                                <button class="btn btn-primary">View review comment history</button>
-                            </a>
-                        </div>
-                        <div class="row">
-                            <a
-                                href="{{ url_for('review.cancel_review', bgc_id=submission.accession, category=submission.category )}}">
-                                <button class="btn btn-primary red">Cancel review</button>
-                            </a>
-                            <a
-                                href="{{ url_for('review.rfc', bgc_id=submission.accession, category=submission.category )}}">
-                                <button class="btn btn-primary purple">Request changes</button>
-                            </a>
-                            <a
-                                href="{{ url_for('review.approve', bgc_id=submission.accession, category=submission.category )}}">
-                                <button class="btn btn-primary green">Approve</button>
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </table>
-            {% else %}
-            <h5>You are not reviewing any submissions or mutations</h5>
-            {% endif %}
-        </div>
-
-
-        <h3>Pending review:</h3>
         <div id="review-list" class="form-group subgroup">
             <div class="row">
                 <div class="col s3">
@@ -168,9 +72,12 @@
                     <th>
                         Edit
                     </th>
+                    <th>
+
+                    </th>
                 </thead>
-                {% if pending_count > 0 %}
-                {% for submission in pending_submissions %}
+                {% if accepted_count > 0 %}
+                {% for submission in accepted_submissions %}
                 <tr>
                     <td>
                         {{ submission.accession }}
@@ -190,15 +97,11 @@
                     </td>
                     <td>
                         <a
-                            href="{{ url_for('review.view_references', bgc_id=submission.accession, redirect='review.list_submissions' )}}">
+                            href="{{ url_for('review.view_references', bgc_id=submission.accession, redirect='review.list_accepted_submissions' )}}">
                             <button class="btn btn-primary">View references</button>
                         </a>
                         <a
-                            href="{{ url_for('review.claim_review', bgc_id=submission.accession, category=submission.category )}}">
-                            <button class="btn btn-primary">Claim for review</button>
-                        </a>
-                        <a
-                            href="{{url_for('review.view_review_comments', bgc_id=submission.accession, category=submission.category, redirect='review.list_submissions')}}">
+                            href="{{url_for('review.view_review_comments', bgc_id=submission.accession, category=submission.category, redirect='review.list_accepted_submissions')}}">
                             <button class="btn btn-primary">View review comment history</button>
                         </a>
                     </td>
@@ -215,11 +118,11 @@
                         {% endif %}
                     </div>
                     <div class="col s2 center-align">
-                        {{start | int + 1}} - {{[pending_count, start | int + limit | int ] | min}}
+                        {{start | int + 1}} - {{[accepted_count, start | int + limit | int ] | min}}
                     </div>
                     <div class="col s1">
-                        {% if start | int + limit | int < pending_count %} <a
-                            href="/review/?start={{[pending_count, start | int + limit | int ] | min}}&limit={{limit}}&search={{search}}&category={{category}}#review-list">
+                        {% if start | int + limit | int < accepted_count %} <a
+                            href="/review/?start={{[accepted_count, start | int + limit | int ] | min}}&limit={{limit}}&search={{search}}&category={{category}}#review-list">
                             <button class="btn btn-primary">&gt;</button></a>
                             {% endif %}
                     </div>

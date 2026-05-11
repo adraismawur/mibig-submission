@@ -23,7 +23,12 @@ Approving {{ bgc_id }}
                     {{ entry_json }}
                 </span> -->
 
-                <h6>This will prevent any further review of this category on this entry, and mark it for merging into the MIBiG database</h6>
+                <h6>This will prevent any further review of this category on this entry, and mark it for merging into
+                    the MIBiG database</h6>
+
+                <h6>Please enter comments for this approval below</h6>
+
+                {{ macros.simple_divsubform(form.comment) }}
 
 
 
