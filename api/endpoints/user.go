@@ -11,6 +11,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 const UserPath = "/user"
@@ -393,7 +394,7 @@ func passwordResetChallenge(db *gorm.DB, c *gin.Context) {
 
 		transactionErr := tx.
 			Model(&models.PasswordChallenge{}).
-			Where("email = $1 AND challenge = $2", request.Email, request.Challenge).
+			Where("lower(email) = $1 AND challenge = $2", strings.ToLower(request.Email), request.Challenge).
 			Find(&matchingChallenge).
 			Error
 
