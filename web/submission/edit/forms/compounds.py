@@ -45,7 +45,7 @@ class BioActivityAssayMeasurementSubForm(Form):
 class BioActivityAssayTestSystemSubForm(Form):
     db_id = IntegerField(widget=HiddenInput())
     cell_line = StringField()
-    organism = IntegerField()
+    organism = IntegerField(label="Organism NCBI Taxonomy ID *")
     strain = StringField()
 
 
