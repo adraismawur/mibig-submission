@@ -27,3 +27,6 @@ class FinalizeForm(Form):
         description="Please embargo my gene cluster information, pending publication of the results. "
         "For newly characterized gene clusters only. Please notify us upon publication so that the embargo can be lifted."
     )
+    comment = StringField(
+        description="Add a freeform comment to this entry"
+    )

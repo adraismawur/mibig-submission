@@ -45,6 +45,7 @@ type Entry struct {
 	Taxonomy         taxonomy.Taxonomy         `json:"taxonomy" gorm:"ForeignKey:EntryAccession"`
 	GeneInformation  *gene.GeneInformation     `json:"genes,omitempty" gorm:"ForeignKey:EntryAccession"`
 	LegacyReferences pq.StringArray            `json:"legacy_references,omitempty" gorm:"type:text[]"`
+	Comment          string                    `json:"comment"`
 
 	// internal data starts here
 

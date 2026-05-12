@@ -11,6 +11,7 @@ type FinalDetails struct {
 	Accession    string              `json:"accession" gorm:"primaryKey"`
 	Completeness consts.Completeness `json:"completeness"`
 	Embargo      bool                `json:"embargo"`
+	Comment      string              `json:"comment"`
 }
 
 func UpdateFinalDetails(db *gorm.DB, details FinalDetails) error {
