@@ -263,6 +263,7 @@ func UpdateOrCreateGeneDeletion(db *gorm.DB, entryAccession string, deletion *Ge
 
 		err = tx.
 			Model(&returnDeletion).
+			Where("id = $1", deletion.ID).
 			Save(&deletion).
 			Error
 

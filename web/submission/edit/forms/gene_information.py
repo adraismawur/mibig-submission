@@ -136,7 +136,7 @@ class AnnotationForm(Form):
         )
 
     db_id = IntegerField(widget=HiddenInput())
-    gene_information_id = IntegerField(widget=HiddenInput())
+    db_gene_information_id = IntegerField(widget=HiddenInput())
     accession = GeneIdField("Gene *", validators=[validators.InputRequired()])
     name = StringField("Gene name", description="Commonly used gene name (e.g. scbA)")
     product = StringField(
