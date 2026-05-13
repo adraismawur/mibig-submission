@@ -91,6 +91,14 @@ func UpdateBiosynthesisPath(db *gorm.DB, path BiosyntheticPathway) error {
 			return err
 		}
 
+		for _, product := range path.Products {
+			err = tx.Save(&product).Error
+
+			if err != nil {
+				return err
+			}
+		}
+
 		return nil
 	})
 
