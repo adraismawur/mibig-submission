@@ -44,7 +44,6 @@ from submission.utils.custom_validators import is_valid_bgc_id
 from submission.utils.custom_errors import ReferenceNotFound
 from submission.models import Entry, NPAtlas, Substrate
 
-
 readable_category_map = {
     "locitax": "Loci and taxonomy information",
     "biosynth": "Biosynthetic information",
@@ -53,6 +52,7 @@ readable_category_map = {
     "finalize": "Completeness and embargo",
     "full": "Full entry",
 }
+
 
 def get_antismash_json(bgc_id: str):
 
@@ -94,7 +94,7 @@ def edit_bgc_redirect(bgc_id: str):
     lock_info = {}
 
     for lock in entry_locks:
-        lock['unlocks_at'] = datetime.fromtimestamp(lock['unlocks_at'])
+        lock["unlocks_at"] = datetime.fromtimestamp(lock["unlocks_at"])
         lock_info[lock["category"]] = lock
 
     lock_keys = [
@@ -122,7 +122,7 @@ def edit_bgc_redirect(bgc_id: str):
     review_info = {}
 
     for review in entry_reviews:
-        review_info[review['category']] = review
+        review_info[review["category"]] = review
 
     return render_template(
         "edit/edit.html",
@@ -134,7 +134,9 @@ def edit_bgc_redirect(bgc_id: str):
     )
 
 
-def generate_wizard_page(bgc_id: str, form_id: str, show_nav: bool, active_review: bool=False):
+def generate_wizard_page(
+    bgc_id: str, form_id: str, show_nav: bool, active_review: bool = False
+):
     # instantiate associated form
     wizard_page = get_wizard_page(form_id)
 
@@ -163,7 +165,6 @@ def generate_wizard_page(bgc_id: str, form_id: str, show_nav: bool, active_revie
 
         if wizard_page.post_redirect:
             return redirect(url_for(**wizard_page.post_redirect))
-        
 
         data = wizard_page.get_data(bgc_id)
         if wizard_page.form and not wizard_page.override_form:
@@ -208,7 +209,7 @@ def edit_bgc(bgc_id: str, form_id: str) -> Union[str, response.Response]:
 
     show_nav = lock_response.json()["full"]
 
-    # we already know the user owns the lock on this section so we can just check if 
+    # we already know the user owns the lock on this section so we can just check if
     # this entry is currently being reviewed by the user
     if current_user.has_role(Role.REVIEWER):
         review_response = Entry.check_review(bgc_id, form_id)
@@ -217,21 +218,25 @@ def edit_bgc(bgc_id: str, form_id: str) -> Union[str, response.Response]:
 
     return generate_wizard_page(bgc_id, form_id, show_nav)
 
+
 @bp_edit.route("/references/<bgc_id>", methods=["GET"])
 def view_references(bgc_id: str):
     response = requests.get(
         f"{current_app.config['API_BASE']}/review/{bgc_id}/references/",
-        headers={"Authorization": f"Bearer {session['token']}"}
+        headers={"Authorization": f"Bearer {session['token']}"},
     )
 
     references = {}
 
     if response.status_code != 200:
-        flash('Error getting references: ' + response.json()['error'])
+        flash("Error getting references: " + response.json()["error"])
     else:
         references = response.json()
 
-    return render_template("edit/list_references.html", references=references, bgc_id=bgc_id)
+    return render_template(
+        "edit/list_references.html", references=references, bgc_id=bgc_id
+    )
+
 
 @bp_edit.route("/<bgc_id>/lock/request/<category>", methods=["GET", "POST"])
 @login_required
@@ -270,8 +275,10 @@ def release_lock(bgc_id: str, category: str):
         else:
             if request.form.get("promote"):
                 # pass on the POST request to mark for review
-                return redirect(url_for("edit.promote_bgc", bgc_id=bgc_id, category=category))
-            
+                return redirect(
+                    url_for("edit.promote_bgc", bgc_id=bgc_id, category=category)
+                )
+
             flash("Lock released successfully")
 
         return redirect(url_for("edit.edit_bgc_redirect", bgc_id=bgc_id))
@@ -315,8 +322,8 @@ def redraft_bgc(bgc_id: str, category: str):
             json={
                 "accession": bgc_id,
                 "category": category,
-                "comment": form.data['comment']
-            }
+                "comment": form.data["comment"],
+            },
         )
 
         if response.status_code != 200:
@@ -325,8 +332,13 @@ def redraft_bgc(bgc_id: str, category: str):
 
         return redirect(url_for("edit.edit_bgc_redirect", bgc_id=bgc_id))
 
-
-    return render_template("edit/redraft.html", bgc_id=bgc_id, entry_json=entry_json, category=readable_category_map[category], form=form)
+    return render_template(
+        "edit/redraft.html",
+        bgc_id=bgc_id,
+        entry_json=entry_json,
+        category=readable_category_map[category],
+        form=form,
+    )
 
 
 @bp_edit.route("/promote/<bgc_id>/<category>", methods=["GET", "POST"])
@@ -351,7 +363,6 @@ def promote_bgc(bgc_id: str, category: str):
         #     flash(response.json()["error"], "error")
         #     return redirect(url_for("edit.edit_bgc_redirect", bgc_id=bgc_id))
 
-
         submission_endpoint = "/submission/promote"
         response = requests.post(
             f"{current_app.config['API_BASE']}" + submission_endpoint,
@@ -359,8 +370,8 @@ def promote_bgc(bgc_id: str, category: str):
             json={
                 "accession": bgc_id,
                 "category": category,
-                "comment": form.data['comment']
-            }
+                "comment": form.data["comment"],
+            },
         )
 
         if response.status_code != 200:
@@ -372,7 +383,7 @@ def promote_bgc(bgc_id: str, category: str):
         "edit/promote.html",
         bgc_id=bgc_id,
         category=readable_category_map[category],
-        form=form
+        form=form,
         # entry_json=entry_json,
     )
 
@@ -397,6 +408,7 @@ def discard_bgc(bgc_id: str):
 
     return render_template("edit/discard.html", bgc_id=bgc_id, entry_json=entry_json)
 
+
 @bp_edit.route("/review_comments/<bgc_id>/<category>")
 @login_required
 def view_review_comments(bgc_id: str, category: str):
@@ -407,12 +419,14 @@ def view_review_comments(bgc_id: str, category: str):
     )
 
     if response.status_code != 200:
-        flash("Could not retrieve review comments", 'error')
+        flash("Could not retrieve review comments", "error")
         comments = []
     else:
         comments = response.json()
 
-    return render_template("edit/view_review_comments.html", bgc_id=bgc_id, comments=comments)
+    return render_template(
+        "edit/view_review_comments.html", bgc_id=bgc_id, comments=comments
+    )
 
 
 @bp_edit.route("/render_smiles_form", methods=["POST"])
@@ -493,6 +507,7 @@ def edit_biosynth_operons(bgc_id: str) -> Union[str, response.Response]:
         reviewed=reviewed,
     )
 
+
 @bp_edit.route("/<bgc_id>/biosynth/new_class/<class_type>", methods=["GET", "POST"])
 @login_required
 def create_biosynth_class(
@@ -530,7 +545,7 @@ def create_biosynth_class(
     antismash_json = get_antismash_json(bgc_id)
 
     return render_template(
-        "wizard/biosynth_class_new.html",
+        "wizard/biosynth/biosynth_class_new.html",
         bgc_id=bgc_id,
         form=form,
         choices=choices,
@@ -585,7 +600,7 @@ def edit_biosynth_class(
     antismash_json = get_antismash_json(bgc_id)
 
     return render_template(
-        "wizard/biosynth_class_edit.html",
+        "wizard/biosynth/biosynth_class_edit.html",
         bgc_id=bgc_id,
         class_type=class_type,
         form=form,
@@ -606,7 +621,7 @@ def remove_biosynth_class(bgc_id: str, class_id: int):
         return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="biosynth"))
 
     return render_template(
-        "wizard/biosynth_class_remove.html",
+        "wizard/biosynth/biosynth_class_remove.html",
         bgc_id=bgc_id,
         class_id=class_id,
         class_text=class_text,
@@ -647,7 +662,7 @@ def create_biosynth_module(bgc_id: str, module: str) -> Union[str, response.Resp
     antismash_json = get_antismash_json(bgc_id)
 
     return render_template(
-        "wizard/biosynth_module_new.html",
+        "wizard/biosynth/biosynth_module_new.html",
         bgc_id=bgc_id,
         form=form,
         choices=choices,
@@ -699,7 +714,7 @@ def edit_biosynth_module(
     antismash_json = get_antismash_json(bgc_id)
 
     return render_template(
-        "wizard/biosynth_module_edit.html",
+        "wizard/biosynth/biosynth_module_edit.html",
         bgc_id=bgc_id,
         module=module,
         form=form,
@@ -733,14 +748,16 @@ def remove_biosynth_module(bgc_id: str, module_id: int):
         return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="biosynth"))
 
     return render_template(
-        "wizard/biosynth_module_remove.html",
+        "wizard/biosynth/biosynth_module_remove.html",
         bgc_id=bgc_id,
         name=module_id,
         module_text=module_text,
     )
 
 
-@bp_edit.route("/<bgc_id>/biosynth/new_path/<biosynth_id>/path", methods=["GET", "POST"])
+@bp_edit.route(
+    "/<bgc_id>/biosynth/new_path/<biosynth_id>/path", methods=["GET", "POST"]
+)
 @login_required
 def create_biosynth_path(
     bgc_id: str, biosynth_id: int
@@ -768,11 +785,12 @@ def create_biosynth_path(
     antismash_json = get_antismash_json(bgc_id)
 
     return render_template(
-        "wizard/biosynth_path_new.html",
+        "wizard/biosynth/biosynth_path_new.html",
         bgc_id=bgc_id,
         form=form,
         antismash_json=antismash_json,
     )
+
 
 @bp_edit.route("/<bgc_id>/biosynth/modification_domains/<module_id>")
 @login_required
@@ -783,16 +801,20 @@ def list_modification_domains(bgc_id: str, module_id: int):
         flash(f"Failed to get modification domain list: {error}", "error")
 
     antismash_json = get_antismash_json(bgc_id)
-    
+
     return render_template(
-        "wizard/biosynth_mod_domain_list.html", 
+        "wizard/biosynth/biosynth_mod_domain_list.html",
         bgc_id=bgc_id,
         module_id=module_id,
         modification_domains=modification_domains,
         antismash_json=antismash_json,
     )
 
-@bp_edit.route("/<bgc_id>/biosynth/modification_domains/<module_id>/new/<domain_type>", methods=["GET", "POST"])
+
+@bp_edit.route(
+    "/<bgc_id>/biosynth/modification_domains/<module_id>/new/<domain_type>",
+    methods=["GET", "POST"],
+)
 @login_required
 def create_modification_domain(bgc_id: str, module_id: int, domain_type: str):
     choices = [
@@ -818,21 +840,25 @@ def create_modification_domain(bgc_id: str, module_id: int, domain_type: str):
 
     if request.method == "POST":
         data = form.data
-        data['type'] = data['domain_type']
+        data["type"] = data["domain_type"]
 
         success, error = Entry.create_modification_domain(bgc_id, module_id, data)
 
         if success:
             flash("Successfully created modification domain")
-            return redirect(url_for("edit.list_modification_domains", bgc_id=bgc_id, module_id=module_id), code=302)
+            return redirect(
+                url_for(
+                    "edit.list_modification_domains", bgc_id=bgc_id, module_id=module_id
+                ),
+                code=302,
+            )
         else:
             flash(f"Error creating modification domain: {error}", "error")
 
     antismash_json = get_antismash_json(bgc_id)
 
-
     return render_template(
-        "wizard/biosynth_mod_domain_new.html",
+        "wizard/biosynth/biosynth_mod_domain_new.html",
         bgc_id=bgc_id,
         module_id=module_id,
         choices=choices,
@@ -841,27 +867,41 @@ def create_modification_domain(bgc_id: str, module_id: int, domain_type: str):
         antismash_json=antismash_json,
     )
 
-@bp_edit.route("/<bgc_id>/biosynth/modification_domains/<module_id>/edit/<modification_domain_id>/<domain_type>", methods=["GET", "POST"])
+
+@bp_edit.route(
+    "/<bgc_id>/biosynth/modification_domains/<module_id>/edit/<modification_domain_id>/<domain_type>",
+    methods=["GET", "POST"],
+)
 @login_required
-def edit_modification_domain(bgc_id: str, module_id: int, modification_domain_id: int, domain_type: str):
-    
-    modification_domain, error = Entry.get_modification_domain(bgc_id, modification_domain_id)
+def edit_modification_domain(
+    bgc_id: str, module_id: int, modification_domain_id: int, domain_type: str
+):
+
+    modification_domain, error = Entry.get_modification_domain(
+        bgc_id, modification_domain_id
+    )
 
     if error is not None:
         flash(f"Error getting modification domain data: {error}", "error")
-        return redirect(url_for("edit.list_modification_domains", bgc_id=bgc_id, module_id=module_id), code=302)
+        return redirect(
+            url_for(
+                "edit.list_modification_domains", bgc_id=bgc_id, module_id=module_id
+            ),
+            code=302,
+        )
 
     if request.form:
         form = getattr(FormCollection, domain_type)(request.form)
     else:
         form = getattr(FormCollection, domain_type)(data=modification_domain)
 
-
     if request.method == "POST":
         data = form.data
-        data['type'] = data['domain_type']
+        data["type"] = data["domain_type"]
 
-        data, error = Entry.update_modification_domain(bgc_id, modification_domain_id, data)
+        data, error = Entry.update_modification_domain(
+            bgc_id, modification_domain_id, data
+        )
 
         if error is not None:
             flash(f"Error creating modification domain: {error}", "error")
@@ -871,36 +911,54 @@ def edit_modification_domain(bgc_id: str, module_id: int, modification_domain_id
 
     antismash_json = get_antismash_json(bgc_id)
 
-
     return render_template(
-        "wizard/biosynth_mod_domain_edit.html",
+        "wizard/biosynth/biosynth_mod_domain_edit.html",
         bgc_id=bgc_id,
         module_id=module_id,
         form=form,
         antismash_json=antismash_json,
     )
 
-@bp_edit.route("/<bgc_id>/biosynth/modification_domains/<module_id>/remove/<modification_domain_id>", methods=["GET", "POST"])
+
+@bp_edit.route(
+    "/<bgc_id>/biosynth/modification_domains/<module_id>/remove/<modification_domain_id>",
+    methods=["GET", "POST"],
+)
 @login_required
-def remove_modification_domain(bgc_id: str, module_id: int, modification_domain_id: int):
-    modification_domain_text, error = Entry.get_modification_domain(bgc_id, modification_domain_id, pretty=True)
+def remove_modification_domain(
+    bgc_id: str, module_id: int, modification_domain_id: int
+):
+    modification_domain_text, error = Entry.get_modification_domain(
+        bgc_id, modification_domain_id, pretty=True
+    )
 
     if error is not None:
         flash(f"Error getting modification domain data: {error}", "error")
-        return redirect(url_for("edit.list_modification_domains", bgc_id=bgc_id, module_id=module_id), code=302)
-
+        return redirect(
+            url_for(
+                "edit.list_modification_domains", bgc_id=bgc_id, module_id=module_id
+            ),
+            code=302,
+        )
 
     if request.method == "POST":
-        success, error = Entry.remove_modification_domain(bgc_id, modification_domain_id)
+        success, error = Entry.remove_modification_domain(
+            bgc_id, modification_domain_id
+        )
 
         if success:
             flash("Successfully removed modification domain")
-            return redirect(url_for("edit.list_modification_domains", bgc_id=bgc_id, module_id=module_id), code=302)
+            return redirect(
+                url_for(
+                    "edit.list_modification_domains", bgc_id=bgc_id, module_id=module_id
+                ),
+                code=302,
+            )
         else:
             flash(f"Error removing modification domain: {error}", "error")
 
     return render_template(
-        "wizard/biosynth_mod_domain_remove.html",
+        "wizard/biosynth/biosynth_mod_domain_remove.html",
         bgc_id=bgc_id,
         module_id=module_id,
         modification_domain_text=modification_domain_text,
@@ -944,7 +1002,7 @@ def edit_biosynth_path(bgc_id: str, path_id: int) -> Union[str, response.Respons
     antismash_json = get_antismash_json(bgc_id)
 
     return render_template(
-        "wizard/biosynth_path_edit.html",
+        "wizard/biosynth/biosynth_path_edit.html",
         bgc_id=bgc_id,
         form=form,
         is_reviewer=current_user.has_role(Role.REVIEWER),
@@ -964,7 +1022,7 @@ def remove_biosynth_path(bgc_id: str, path_id: int):
         return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="biosynth"))
 
     return render_template(
-        "wizard/biosynth_path_remove.html",
+        "wizard/biosynth/biosynth_path_remove.html",
         bgc_id=bgc_id,
         path_id=path_id,
         path_text=path_text,
@@ -1076,7 +1134,9 @@ def render_gene_information_edit(
 
             if error is None:
                 flash("Update successful")
-                return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="gene_information"))
+                return redirect(
+                    url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="gene_information")
+                )
             else:
                 flash(error, "error")
 
@@ -1431,8 +1491,7 @@ def query_product():
     row = (
         lambda name, idx: f"<tr {html_params(id=idx, **row_kw)}><td>{name}</td><td>{idx}</td></tr>"
     )
-    return Markup(
-        f"""<thead>
+    return Markup(f"""<thead>
                   <tr>
                   <th>Compound Name</th>
                   <th>NPAtlas ID</th>
@@ -1442,8 +1501,7 @@ def query_product():
                   {"".join([row(n, i) for n,i in result])}
                   <tr></tr>
                   </tbody>
-                  """
-    )
+                  """)
 
 
 @bp_edit.route("/append_product", methods=["POST"])

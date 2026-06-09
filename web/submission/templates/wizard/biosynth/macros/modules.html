@@ -1,0 +1,68 @@
+{% macro render_module_list(bgc_id, modules) %}
+<table class="table">
+    <tbody id="module-table">
+        <tr>
+            <th></th>
+            <th>Name</th>
+            <th>Genes</th>
+            <th>Type</th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+        </tr>
+        {% for module in modules %}
+        <tr>
+            <td>
+                {% if not loop.first %}
+                <a
+                    href="{{ url_for('edit.move_biosynth_module', bgc_id=bgc_id, id_from=module['db_id'].data, id_to=form.modules[loop.index0 - 1]['db_id'].data) }}">
+                    <button type="button" class="btn btn-primary" type="button">{{ m.icon('chevron-up') |
+                        safe}}</button>
+                </a>
+                {% endif %}
+                {% if not loop.last %}
+                <a
+                    href="{{ url_for('edit.move_biosynth_module', bgc_id=bgc_id, id_from=module['db_id'].data, id_to=form.modules[loop.index0 + 1]['db_id'].data) }}">
+                    <button type="button" class="btn btn-primary" type="button">{{ m.icon('chevron-down') |
+                        safe}}</button>
+                </a>
+                {% endif %}
+            </td>
+            <td>
+                {{module['name'].data}}
+            </td>
+            <td>
+                {% set gene_list = [] %}
+                {% for gene in module.genes.data %}
+                {{gene}}
+                {% endfor %}
+            </td>
+            <td>
+                {{module['type'].data}}
+            </td>
+            <td>
+            </td>
+            <td>
+                <a
+                    href="{{ url_for('edit.edit_biosynth_module', bgc_id=bgc_id, module_id=module['db_id'].data, module=module['type'].data.replace('-', '_')) }}">
+                    <button type="button" class="btn btn-primary" type="button">Edit general
+                        information</button>
+                </a>
+                <a
+                    href="{{ url_for('edit.list_modification_domains', bgc_id=bgc_id, module_id=module['db_id'].data) }}">
+                    <button type="button" class="btn btn-primary" type="button">Edit Modification
+                        domains</button>
+                </a>
+            </td>
+            <td>
+                <a
+                    href="{{ url_for('edit.remove_biosynth_module', bgc_id=bgc_id, module_id=module['db_id'].data) }}">
+                    <button type="button" class="btn red" type="button">X</button>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endmacro %}

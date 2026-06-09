@@ -65,13 +65,15 @@ class WizardPage:
 
 
 def biosynth_class_transform(data):
-    for class_entry in data['classes']:
-        class_entry['class_'] = class_entry['class']
+    for class_entry in data["classes"]:
+        class_entry["class_"] = class_entry["class"]
 
     return data
 
+
 def biosynth_operon_only(data):
-    return data['operons']
+    return data["operons"]
+
 
 wizard_pages = [
     WizardPage(
@@ -85,11 +87,11 @@ wizard_pages = [
         "biosynth",
         "biosynthetic information",
         BioSynthForm,
-        data_get_transform = biosynth_class_transform,
+        data_get_transform=biosynth_class_transform,
         data_get_endpoint="/entry/<bgc_id>/biosynth",
-        data_set_transform = biosynth_operon_only,
+        data_set_transform=biosynth_operon_only,
         data_set_endpoint="/entry/<bgc_id>/biosynth/operons",
-        template="wizard/biosynth.html",
+        template="wizard/biosynth/biosynth.html",
         skip_validation=True,
         override_form=True,
     ),
