@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 	"log/slog"
 	"net/http"
+	"time"
 )
 
 func init() {
@@ -29,9 +30,13 @@ func applicationEndpoint(db *gorm.DB) Endpoint {
 }
 
 func getState(db *gorm.DB, c *gin.Context) {
-	var state models.ApplicationState
 
-	err := db.First(&state).Error
+	var stateResponse struct {
+		State         models.ApplicationState          `json:"state"`
+		Announcements []models.ApplicationAnnouncement `json:"announcements"`
+	}
+
+	err := db.First(&stateResponse.State).Error
 
 	if err != nil {
 		slog.Error("Could not get application state")
@@ -39,5 +44,15 @@ func getState(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, state)
+	now := time.Now().Unix() * 1000
+
+	err = db.Where("expires_at > ?", now).Find(&stateResponse.Announcements).Error
+
+	if err != nil {
+		slog.Error("Could not get application announcements")
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, stateResponse)
 }

@@ -1,8 +1,11 @@
 {% extends 'base.html' %}
 
 {% import 'macros.html' as macros %}
+{% import 'main/macros.html' as main_macros %}
 
 {% block body %}
+
+{{ main_macros.render_announcements(application_state['announcements']) }}
 
 <div class="content">
     <div class="form-wrapper">
@@ -20,17 +23,18 @@
             <li>If you have any remaining questions while filling out the form or if you experience technical
                 difficulties, please do let us know</li>
         </ul>
+
         <h4>What do you want to do?</h4>
-        {{ macros.list_user_actions(current_user, application_state) }}
+        {{ macros.list_user_actions(current_user, application_state['state']) }}
 
 
         {% if current_user.is_submitter() %}
         <h4>Edit an existing submission or mutation</h4>
         {{ macros.list_submissions(existing_submissions, submission_start, submission_limit, submission_search,
-        submission_count, active_filters, application_state) }}
+        submission_count, active_filters, application_state['state']) }}
 
         <h4>Create a mutation for an existing entry</h4>
-        {{ macros.list_existing_entries(existing_entries, entry_start, entry_limit, entry_search, entry_count, application_state) }}
+        {{ macros.list_existing_entries(existing_entries, entry_start, entry_limit, entry_search, entry_count, application_state['state']) }}
 
         {% endif %}
     </div>
