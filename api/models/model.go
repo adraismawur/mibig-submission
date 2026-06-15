@@ -4,6 +4,7 @@ package models
 import (
 	"gorm.io/gorm"
 	"log/slog"
+	"time"
 )
 
 var Models []interface{}
@@ -35,19 +36,24 @@ func Populate(db *gorm.DB) error {
 
 	var count int64
 
-	err := db.Table("database_meta").Count(&count).Error
+	err := db.Table("application_states").Count(&count).Error
 
 	if err != nil {
-		slog.Error("[db] Error getting database meta count")
+		slog.Error("[db] Error getting database state count")
 		return err
 	}
 
-	var meta DatabaseMeta
+	var state ApplicationState
 
 	if count == 0 {
-		meta = DatabaseMeta{}
+		state = ApplicationState{
+			FirstTimeSetupDone:       false,
+			LastGroundTruthDownload:  time.Time{},
+			NewSubmissionsEnabled:    true,
+			SubmissionReviewsEnabled: true,
+		}
 	} else {
-		err = db.Table("database_meta").First(&meta).Error
+		err = db.Table("application_states").First(&state).Error
 
 		if err != nil {
 			slog.Error("[db] Populate error: ", "error", err)
@@ -55,7 +61,7 @@ func Populate(db *gorm.DB) error {
 		}
 	}
 
-	if meta.FirstTimeSetupDone {
+	if state.FirstTimeSetupDone {
 		return nil
 	}
 
@@ -70,9 +76,9 @@ func Populate(db *gorm.DB) error {
 		}
 	}
 
-	meta.FirstTimeSetupDone = true
+	state.FirstTimeSetupDone = true
 
-	err = db.Create(&meta).Error
+	err = db.Create(&state).Error
 
 	if err != nil {
 		slog.Error("[db] Error saving metadata: ", "error", err)

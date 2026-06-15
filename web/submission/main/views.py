@@ -46,15 +46,12 @@ def index():
 
     submission_search = request.args.get("submission_search") or ""
 
-
-    submissions_api_path = (
-        f"{current_app.config['API_BASE']}/submission?start={submission_start}&limit={submission_limit}&search={submission_search}"
-    )
+    submissions_api_path = f"{current_app.config['API_BASE']}/submission?start={submission_start}&limit={submission_limit}&search={submission_search}"
 
     # apply any section status filters
 
     active_filters: dict[str, str] = {}
-    for section in ["locitax","biosynth","compounds","gene_information","finalize"]:
+    for section in ["locitax", "biosynth", "compounds", "gene_information", "finalize"]:
         if state_filter := request.args.get(section):
             active_filters[section] = state_filter
             submissions_api_path += f"&{section}={state_filter}"
@@ -66,7 +63,6 @@ def index():
 
     existing_submissions = response["submissions"]
     submission_count = response["record_count"]
-
 
     # all entries
 
@@ -83,6 +79,10 @@ def index():
     existing_entries = response["entries"]
     entry_count = response["record_count"]
 
+    application_state_api_path = f"{current_app.config['API_BASE']}/application/state"
+
+    application_state = requests.get(application_state_api_path).json()
+
     return render_template(
         "main/index.html",
         form=form,
@@ -98,6 +98,7 @@ def index():
         entry_limit=entry_limit,
         entry_search=entry_search,
         entry_count=entry_count,
+        application_state=application_state,
     )
 
 
@@ -128,7 +129,7 @@ def profile():
             return redirect(url_for("auth.login"))
 
         form = UserDetailsEditForm(data=response.json())
-        
+
     if request.method == "POST":
         # current_user.info["name"] = request.form["name"]
         # current_user.info["call_name"] = request.form["call_name"]
@@ -152,7 +153,6 @@ def profile():
         flash("Updated your user details")
 
         return redirect(url_for("main.profile"))
-    
 
     return render_template("main/profile.html", form=form)
 
@@ -169,6 +169,7 @@ def submitter():
 @auth_role(Role.REVIEWER)
 def reviewer():
     return render_template("main/reviewer.html.j2", name=current_user.info.name)
+
 
 @bp_main.route("/register", methods=["GET", "POST"])
 @login_required
@@ -188,14 +189,13 @@ def register_first_time():
         )
 
         if response.status_code == 200:
-        
+
             current_user.info = UserInfo.from_json(form)
 
             login_user(current_user)
 
-            return(redirect(url_for('main.index')))
-        
-        flash("Error updating user details: " + response.json()['error'], "error")
-        
-    return render_template('main/register.html', form=form)
+            return redirect(url_for("main.index"))
 
+        flash("Error updating user details: " + response.json()["error"], "error")
+
+    return render_template("main/register.html", form=form)

@@ -21,16 +21,16 @@
                 difficulties, please do let us know</li>
         </ul>
         <h4>What do you want to do?</h4>
-        {{ macros.list_user_actions(current_user) }}
+        {{ macros.list_user_actions(current_user, application_state) }}
 
 
         {% if current_user.is_submitter() %}
         <h4>Edit an existing submission or mutation</h4>
         {{ macros.list_submissions(existing_submissions, submission_start, submission_limit, submission_search,
-        submission_count, active_filters) }}
+        submission_count, active_filters, application_state) }}
 
         <h4>Create a mutation for an existing entry</h4>
-        {{ macros.list_existing_entries(existing_entries, entry_start, entry_limit, entry_search, entry_count) }}
+        {{ macros.list_existing_entries(existing_entries, entry_start, entry_limit, entry_search, entry_count, application_state) }}
 
         {% endif %}
     </div>

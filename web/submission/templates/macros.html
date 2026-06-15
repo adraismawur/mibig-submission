@@ -143,7 +143,7 @@
         </fieldset>
         {% endmacro %}
 
-        {% macro list_user_actions(current_user) %}
+        {% macro list_user_actions(current_user, application_state) %}
         <div class="form-group subgroup">
             <table class="table">
                 <thead class="table-header">
@@ -152,17 +152,40 @@
                 </thead>
                 {% if current_user.is_submitter() %}
                 <tr>
-                    <td><a href="{{url_for('new.new_entry')}}"><button class="btn btn-primary">New
-                                submission</button></a></td>
-                    <td>Create a new draft submission</td>
+                    <td>
+                    {% if application_state.new_submissions_enabled %}
+                        <a href="{{url_for('new.new_entry')}}"><button class="btn btn-primary">New
+                                    submission</button></a>
+                    {% else %}
+                        <button class="btn btn-primary" disabled>New
+                                    submission</button></td>
+                    {% endif %}
+                    </td>
+                    {% if application_state.new_submissions_enabled %}
+                        <td>Create a new draft submission</td>
+                    {% else %}
+                        <td>Adding new submissions is currently disabled</td>
+                    {% endif %}
                 </tr>
                 {% endif %}
                 {% if current_user.is_reviewer() %}
                 <tr>
-                    <td><a href="{{url_for('review.list_submissions')}}"><button
+                    <td>
+                    {% if application_state.submission_reviews_enabled %}
+                        <a href="{{url_for('review.list_submissions')}}"><button
                                 class="btn btn-primary">Review</button></a>
+                    {% else %}
+                        <button class="btn btn-primary" disabled>Review</button></td>
+                    {% endif %}
                     </td>
-                    <td>Review pending submissions and mutations</td>
+                    {% if application_state.submission_reviews_enabled %}
+                        <td>Review pending submissions and mutations</td>
+                    {% else %}
+                        <td>Reviewing submissions is currently disabled</td>
+                    {% endif %}
+                    <td>
+                    </td>
+                    <td></td>
                 </tr>
                 {% endif %}
                 {% if current_user.is_reviewer() %}
@@ -186,7 +209,7 @@
         {% endmacro %}
 
         {% macro list_submissions(existing_submissions, submission_start, submission_limit, submission_search,
-        submission_count, active_filters) %}
+        submission_count, active_filters, application_state) %}
 
         <div id="submission-list" class="form-group subgroup">
             <div class="">
@@ -334,13 +357,21 @@
                     <td><span class="status {{submission.sub_states.gene_information}}"></span>
                     </td>
                     <td>
-                        <a href="{{url_for('edit.edit_bgc_redirect', bgc_id=submission.accession)}}"><button
-                                class="btn btn-primary">Edit</button></a>
+                        {% if application_state.new_submissions_enabled %}
+                            <a href="{{url_for('edit.edit_bgc_redirect', bgc_id=submission.accession)}}"><button
+                                    class="btn btn-primary">Edit</button></a>
+                        {% else %}
+                            <button class="btn btn-primary" disabled>Edit</button>
+                        {% endif %}
                     </td>
                     <td>
                         {% if submission.owner %}
-                        <a href="{{url_for('edit.discard_bgc', bgc_id=submission.accession)}}"><button
-                                class="btn btn-primary red">Discard</button></a>
+                            {% if application_state.new_submissions_enabled %}
+                                <a href="{{url_for('edit.discard_bgc', bgc_id=submission.accession)}}"><button
+                                    class="btn btn-primary red">Discard</button></a>
+                            {% else %}
+                                <button class="btn btn-primary red" disabled>Discard</button>
+                            {% endif %}
                         {% endif %}
                     </td>
                 </tr>
@@ -388,7 +419,7 @@
         {% endmacro %}
 
 
-        {% macro list_existing_entries(existing_entries, entry_start, entry_limit, entry_search, entry_count) %}
+        {% macro list_existing_entries(existing_entries, entry_start, entry_limit, entry_search, entry_count, application_state) %}
 
         <div id="existing-entry" class="form-group subgroup">
             <div class="">
@@ -421,8 +452,14 @@
                     <td>{{ entry.accession }}</td>
                     <td>{{ entry.status }}</td>
                     <td>{{ entry.completeness }}</td>
-                    <td><a href="{{url_for('new.create_bgc_mutation', bgc_id=entry.accession)}}"><button
-                                class="btn btn-primary">Edit</button></a></td>
+                    <td>
+                        {% if application_state.new_submissions_enabled %}
+                        <a href="{{url_for('new.create_bgc_mutation', bgc_id=entry.accession)}}"><button
+                                class="btn btn-primary">Edit</button></a>
+                        {% else %}
+                        <button class="btn btn-primary" disabled>Edit</button>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </table>
