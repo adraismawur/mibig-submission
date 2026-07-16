@@ -23,14 +23,14 @@ from submission import mail
 from submission.auth import bp_auth
 from submission.models import User, Token
 from submission.models.users import UserRole
-from .forms.login import LoginForm, UserEmailForm, PasswordResetForm
+from .forms.login import LoginForm, NewUserForm, UserEmailForm, PasswordResetForm
 
 
 @bp_auth.route("/login", methods=["GET"])
 def login() -> str:
     """Renders login form"""
     form = LoginForm(request.form)
-    return render_template("auth/login.html.j2", form=form)
+    return render_template("auth/login.html", form=form)
 
 
 @bp_auth.route("/login", methods=["POST"])
@@ -96,7 +96,7 @@ def login_post() -> response.Response:
 @login_required
 def logout() -> response.Response:
     """Logs out current user and redirects to the login page"""
-    session['token'] = None
+    session["token"] = None
     logout_user()
     return redirect(url_for("auth.login"))
 
@@ -107,7 +107,7 @@ def password_email() -> Union[str, response.Response]:
     form = UserEmailForm(request.form)
     if request.method == "POST" and form.validate():
         email = form.email.data
-        
+
         response = requests.post(
             f"{current_app.config['API_BASE']}/user/password/reset",
             json={"email": email},
@@ -115,11 +115,16 @@ def password_email() -> Union[str, response.Response]:
 
         if response.status_code != 200:
             if response.status_code == 500:
-                flash("could not request password reset email. Please try again later", "error")
+                flash(
+                    "could not request password reset email. Please try again later",
+                    "error",
+                )
             else:
-                flash("If your email exists in the system, an email has been sent with a link to reset your password")
+                flash(
+                    "If your email exists in the system, an email has been sent with a link to reset your password"
+                )
             return render_template("auth/pw_reset_request.html", form=form)
-        
+
         data = response.json()
 
         socket.setdefaulttimeout(5)
@@ -134,7 +139,9 @@ def password_email() -> Union[str, response.Response]:
                 body=f"Hello, click this link {current_app.config['BASE_URL']}/auth/reset/{data['email']}/{data['challenge']}",
             )
         )
-        flash("If your email exists in the system, an email has been sent with a link to reset your password")
+        flash(
+            "If your email exists in the system, an email has been sent with a link to reset your password"
+        )
         return redirect(url_for("auth.login"))
 
     return render_template("auth/pw_reset_request.html", form=form)
@@ -150,8 +157,8 @@ def reset_password(email: str, token_id: str) -> Union[str, response.Response]:
 
     form = PasswordResetForm(request.form)
 
-    form['email'].data = email
-    form['challenge'].data = token_id
+    form["email"].data = email
+    form["challenge"].data = token_id
 
     if request.method == "POST" and form.validate():
         response = requests.post(
@@ -162,11 +169,28 @@ def reset_password(email: str, token_id: str) -> Union[str, response.Response]:
         if response.status_code != 200:
             flash("could not reset password", "error")
             return render_template("auth/pw_reset.html", form=form)
-        
+
         flash("Password reset successfully")
-        
 
         flash("Successfully changed password")
         return redirect(url_for("auth.login"))
 
     return render_template("auth/pw_reset.html", form=form)
+
+
+@bp_auth.route("/newuser", methods=["GET", "POST"])
+def create_new_user():
+    form = NewUserForm(request.form)
+
+    if request.method == "POST":
+        response = requests.put(
+            f"{current_app.config['API_BASE']}/user", json=form.data
+        )
+
+        if response.status_code == 200:
+            flash(
+                "A mail has been sent with an activation link for your account. Please check your inbox"
+            )
+            return redirect(url_for("auth.login"))
+
+    return render_template("auth/new_user.html", form=form)

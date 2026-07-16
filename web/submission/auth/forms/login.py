@@ -37,3 +37,15 @@ class PasswordResetForm(Form):
         validators=[validators.EqualTo("new_password", "Password mismatch!")],
     )
     submit = SubmitField("Save password")
+
+
+class NewUserForm(Form):
+    email = StringField()
+    password = PasswordField("Password")
+    config = PasswordField(
+        "Confirm password",
+        validators=[
+            validators.EqualTo("password", "Password mismatch!"),
+        ],
+    )
+    # submit = SubmitField("Register")

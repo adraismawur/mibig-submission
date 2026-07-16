@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros %}
+
+{% block body %}
+
+<div class="content">
+    <div class="form-wrapper container">
+        <form method="post">
+            {{ macros.simple_divform_inner(form, is_reviewer=False) }}
+            <div class="container">
+                <div class="form-group row">
+                    <input type="submit" class="btn btn-primary btn-wide green" value="Create new user" method="post">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

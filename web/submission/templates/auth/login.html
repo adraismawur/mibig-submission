@@ -9,9 +9,12 @@
         <h3>Log in to the MIBiG Submission system</h3>
         {{ macros.simple_divform(form) }}
 
-        <div style="margin: 15px">
-            <a class="btn btn-light" href="/auth/reset-my-password">Reset my password</a>
+        <div class="form-group">
+            <a class="btn btn-light" href="{{url_for('auth.password_email')}}">Reset my password</a>
+            <a class="btn btn-light" href="{{url_for('auth.create_new_user')}}">Create an account</a>
         </div>
+
+        
 
     </div>
 </div>
