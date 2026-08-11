@@ -18,6 +18,20 @@ type AcetyltransferaseDomain struct {
 	Evidence   []DomainSubstrateEvidence `json:"evidence,omitempty" gorm:"many2many:acetyltransferase_evidences;"`
 }
 
+func NewAcetyltransferaseDomain() AcetyltransferaseDomain {
+	return AcetyltransferaseDomain{
+		ID:         0,
+		Type:       "",
+		Subtype:    "",
+		Gene:       "",
+		LocationID: 0,
+		Location:   DomainLocation{},
+		Inactive:   false,
+		Substrates: []DomainSubstrate{},
+		Evidence:   []DomainSubstrateEvidence{},
+	}
+}
+
 type AdenylationDomain struct {
 	ID                    uint64                    `json:"db_id"`
 	Type                  string                    `json:"type"`

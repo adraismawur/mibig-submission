@@ -25,6 +25,21 @@ func GetEntryBiosynthesis(db *gorm.DB, accession string) (*Biosynthesis, error) 
 		Table("biosyntheses").
 		Where("entry_accession = $1", accession).
 		Preload("Classes").
+		Preload("Modules.IntegratedMonomers").
+		Preload("Modules.IntegratedMonomers.Evidence").
+		Preload("Modules.Carriers.Location").
+		Preload("Modules.Carriers.Evidence").
+		Preload("Modules.ModificationDomains.Location").
+		Preload("Modules.ModificationDomains.Substrates").
+		Preload("Modules.ModificationDomains.Evidence").
+		Preload("Modules.CDomain.Location").
+		Preload("Modules.ADomain.Location").
+		Preload("Modules.ADomain.Evidence").
+		Preload("Modules.ADomain.Substrates").
+		Preload("Modules.ATDomain.Location").
+		Preload("Modules.ATDomain.Substrates").
+		Preload("Modules.ATDomain.Evidence").
+		Preload("Modules.KSDomain.Location").
 		Preload("Paths.Products").
 		Preload("Operons").
 		First(&biosynth).

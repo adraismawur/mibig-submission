@@ -67,9 +67,10 @@ type ModificationDomain struct {
 }
 
 type DomainSubstrate struct {
-	Name      string `json:"name"`
-	Details   string `json:"details,omitempty"`
-	Structure string `json:"structure,omitempty"`
+	Name          string `json:"name"`
+	Details       string `json:"details,omitempty"`
+	Structure     string `json:"structure,omitempty"`
+	Proteinogenic *bool  `json:"proteinogenic,omitempty"`
 }
 
 type DomainSubstrateEvidence struct {

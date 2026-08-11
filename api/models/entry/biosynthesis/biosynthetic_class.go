@@ -42,7 +42,7 @@ type RippPrecursorCrosslink struct {
 type RippPrecursor struct {
 	ID                         uint64                   `json:"db_id"`
 	BiosyntheticClassID        uint64                   `json:"db_class_id"`
-	Gene                       string                   `json:"gene""`
+	Gene                       string                   `json:"gene"`
 	CoreSequence               string                   `json:"core_sequence"`
 	LeaderCleavageLocationID   uint64                   `json:"db_leader_cleavage_location_id"`
 	LeaderCleavageLocation     *CleavageLocation        `json:"leader_cleavage_location,omitempty"`

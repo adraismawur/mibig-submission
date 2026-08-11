@@ -28,8 +28,8 @@ type RippPrecursorCrosslink struct {
 }
 
 type RippPrecursor struct {
-	Gene string `json:"gene""`
-	//CoreSequence             string                   `json:"core_sequence"`
+	Gene                     string                   `json:"gene""`
+	CoreSequence             string                   `json:"core_sequence"`
 	LeaderCleavageLocation   *CleavageLocation        `json:"leader_cleavage_location,omitempty"`
 	FollowerCleavageLocation *CleavageLocation        `json:"follower_cleavage_location,omitempty"`
 	Crosslinks               []RippPrecursorCrosslink `json:"crosslinks,omitempty" gorm:"foreignKey:RippPrecursorID"`
@@ -67,7 +67,7 @@ type BiosyntheticClass struct {
 	RIPPType   *string         `json:"ripp_type,omitempty"`
 	Details    *string         `json:"details,omitempty"`
 	Peptidases pq.StringArray  `json:"peptidases,omitempty" gorm:"type:text[]"`
-	Precursors []RippPrecursor `json:"precursors,omitempty" gorm:"foreignKey:BiosyntheticClassID"`
+	Precursors []RippPrecursor `json:"precursors" gorm:"foreignKey:BiosyntheticClassID"`
 
 	// saccharide
 	GlycosylTransferases []GlycosylTransferase  `json:"glycosyltransferases,omitempty" gorm:"foreignKey:BiosyntheticClassID"`

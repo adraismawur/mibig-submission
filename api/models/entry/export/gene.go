@@ -11,20 +11,20 @@ type GeneLocation struct {
 }
 
 type GeneAddition struct {
-	Accession   string       `json:"accession"`
+	Accession   string       `json:"id"`
 	Location    GeneLocation `json:"location" gorm:"ForeignKey:GeneID"`
 	Translation string       `json:"translation"`
 }
 
 type GeneDeletion struct {
-	Accession string `json:"accession"`
+	Accession string `json:"id"`
 	Reason    string `json:"reason"`
 }
 
 type GeneAnnotation struct {
-	Accession string `json:"accession"` // Accession is the gene ID, e.g. 'AEK75497.1'. This is confusing, but GeneID here is internal to the API
-	Name      string `json:"name"`      // Name is the actual gene name, e.g. 'abyA1'
-	Product   string `json:"product"`   // Product is the product of this gene, e.g. '3-oxoacyl-ACP synthase III'
+	Accession string `json:"id"`      // Accession is the gene ID, e.g. 'AEK75497.1'. This is confusing, but GeneID here is internal to the API
+	Name      string `json:"name"`    // Name is the actual gene name, e.g. 'abyA1'
+	Product   string `json:"product"` // Product is the product of this gene, e.g. '3-oxoacyl-ACP synthase III'
 }
 
 type GeneInformation struct {

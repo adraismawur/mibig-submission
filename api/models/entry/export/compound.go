@@ -14,12 +14,13 @@ type CompoundEvidence struct {
 }
 
 type Compound struct {
-	Name          string             `json:"name"`
-	Evidence      []CompoundEvidence `json:"evidence" gorm:"foreignKey:CompoundID"`
-	BioActivities []BioActivities    `json:"bioactivities,omitempty" gorm:"foreignKey:CompoundID"`
-	Structure     string             `json:"structure"`
-	DatabaseIDs   pq.StringArray     `json:"databaseIds" gorm:"type:text[]"`
-	Moieties      pq.StringArray     `json:"moieties,omitempty" gorm:"type:text[]"`
-	Mass          float64            `json:"mass"`
-	Formula       string             `json:"formula"`
+	Name             string             `json:"name"`
+	Evidence         []CompoundEvidence `json:"evidence" gorm:"foreignKey:CompoundID"`
+	BioActivities    []BioActivities    `json:"bioactivities,omitempty" gorm:"foreignKey:CompoundID"`
+	Structure        string             `json:"structure"`
+	PartialStructure bool               `json:"partial_structure"`
+	DatabaseIDs      pq.StringArray     `json:"databaseIds" gorm:"type:text[]"`
+	Moieties         pq.StringArray     `json:"moieties,omitempty" gorm:"type:text[]"`
+	Mass             float64            `json:"mass"`
+	Formula          string             `json:"formula"`
 }
