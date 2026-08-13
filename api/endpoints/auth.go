@@ -51,6 +51,11 @@ func login(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	if !user.Active {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Account has not yet been activated"})
+		return
+	}
+
 	if !models.CheckPassword(loginRequest.Password, user.Password) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return

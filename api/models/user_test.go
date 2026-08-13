@@ -22,10 +22,10 @@ func TestMain(m *testing.M) {
 	for i := 0; i < numTestUsers; i++ {
 		userRoles := []UserRole{{Role: Admin}}
 		user := User{
-			Email:    GenerateRandomEmail(),
-			Password: "test",
-			Active:   true,
-			Roles:    userRoles,
+			Email:               GenerateRandomEmail(),
+			Password:            "test",
+			FirstTimeRegistered: true,
+			Roles:               userRoles,
 		}
 		testDb.Create(&user)
 
@@ -68,10 +68,10 @@ func TestCreateUser(t *testing.T) {
 func TestGetUser(t *testing.T) {
 	testRoles := []UserRole{{Role: Admin}}
 	user := User{
-		Email:    "test@localhost",
-		Password: "test",
-		Active:   true,
-		Roles:    testRoles,
+		Email:               "test@localhost",
+		Password:            "test",
+		FirstTimeRegistered: true,
+		Roles:               testRoles,
 	}
 	testDb.Create(&user)
 
@@ -86,7 +86,7 @@ func TestGetUser(t *testing.T) {
 	assert.Equal(t, user.Email, user2.Email)
 	assert.Equal(t, len(user.Roles), len(user2.Roles))
 	assert.Equal(t, user.Roles[0], user2.Roles[0])
-	assert.Equal(t, user.Active, user2.Active)
+	assert.Equal(t, user.FirstTimeRegistered, user2.FirstTimeRegistered)
 	// important: do not return the password
 	assert.Equal(t, "", user2.Password)
 
@@ -107,7 +107,7 @@ func TestGetUsers(t *testing.T) {
 		assert.Equal(t, expectedUser.Email, user.Email)
 		assert.Equal(t, len(expectedUser.Roles), len(user.Roles))
 		assert.Equal(t, expectedUser.Roles[0].Role, user.Roles[0].Role)
-		assert.Equal(t, expectedUser.Active, user.Active)
+		assert.Equal(t, expectedUser.FirstTimeRegistered, user.FirstTimeRegistered)
 		// important: do not return the password
 		assert.Equal(t, "", user.Password)
 	}
@@ -147,11 +147,11 @@ func TestUpdateUserFull(t *testing.T) {
 	}
 
 	user := User{
-		Email:    "test@localhost",
-		Password: "$2a$10$wOLM7A7gHgQXKKnyZX2J.uWi41KZKd.vfzKqa.w.9hUVFGVk.4LB.",
-		Active:   true,
-		Roles:    testRoles,
-		Info:     testInfo,
+		Email:               "test@localhost",
+		Password:            "$2a$10$wOLM7A7gHgQXKKnyZX2J.uWi41KZKd.vfzKqa.w.9hUVFGVk.4LB.",
+		FirstTimeRegistered: true,
+		Roles:               testRoles,
+		Info:                testInfo,
 	}
 
 	err := testDb.Create(&user).Error
@@ -179,11 +179,11 @@ func TestUpdateUserFull(t *testing.T) {
 	}
 
 	expectedUser := User{
-		ID:     user.ID,
-		Email:  user.Email + "_update",
-		Active: false,
-		Roles:  expectedRoles,
-		Info:   expectedInfos,
+		ID:                  user.ID,
+		Email:               user.Email + "_update",
+		FirstTimeRegistered: false,
+		Roles:               expectedRoles,
+		Info:                expectedInfos,
 	}
 
 	err = UpdateUser(testDb, int(user.ID), expectedUser)
@@ -202,7 +202,7 @@ func TestUpdateUserFull(t *testing.T) {
 
 	// assert base changes
 	assert.Equal(t, expectedUser.Email, actualUser.Email)
-	assert.Equal(t, expectedUser.Active, actualUser.Active)
+	assert.Equal(t, expectedUser.FirstTimeRegistered, actualUser.FirstTimeRegistered)
 
 	// assert role changes
 	assert.Equal(t, len(expectedUser.Roles), len(actualUser.Roles))

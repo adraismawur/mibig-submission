@@ -16,9 +16,9 @@ func TestParseToken(t *testing.T) {
 
 	expectedToken := Token{
 		User: User{
-			ID:     0,
-			Email:  "test@localhost",
-			Active: false,
+			ID:                  0,
+			Email:               "test@localhost",
+			FirstTimeRegistered: false,
 			Roles: []UserRole{
 				{
 					Role: Admin,

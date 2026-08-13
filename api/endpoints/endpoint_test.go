@@ -12,9 +12,10 @@ var testDb *gorm.DB
 const numTestUsers = 10
 
 var adminTestUser = models.User{
-	Email:    "testadmin@localhost",
-	Password: test_utils.TestPassword,
-	Active:   true,
+	Email:               "testadmin@localhost",
+	Password:            test_utils.TestPassword,
+	Active:              true,
+	FirstTimeRegistered: true,
 	Roles: []models.UserRole{
 		{
 			Role: models.Admin,
@@ -23,9 +24,10 @@ var adminTestUser = models.User{
 	Info: models.UserInfo{},
 }
 var submitterTestUser = models.User{
-	Email:    "testsub@localhost",
-	Password: "$2a$10$wOLM7A7gHgQXKKnyZX2J.uWi41KZKd.vfzKqa.w.9hUVFGVk.4LB.",
-	Active:   true,
+	Email:               "testsub@localhost",
+	Password:            "$2a$10$wOLM7A7gHgQXKKnyZX2J.uWi41KZKd.vfzKqa.w.9hUVFGVk.4LB.",
+	Active:              true,
+	FirstTimeRegistered: true,
 	Roles: []models.UserRole{
 		{
 			Role: models.Submitter,
@@ -48,9 +50,10 @@ func TestMain(m *testing.M) {
 	// create some random test users
 	for i := 0; i < numTestUsers; i++ {
 		user := models.User{
-			Email:    models.GenerateRandomEmail(),
-			Password: "test",
-			Active:   true,
+			Email:               models.GenerateRandomEmail(),
+			Password:            "test",
+			Active:              true,
+			FirstTimeRegistered: true,
 			Roles: []models.UserRole{
 				{
 					Role: models.Admin,

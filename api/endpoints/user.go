@@ -34,7 +34,21 @@ func UserEndpoint(db *gorm.DB) Endpoint {
 				Method: http.MethodPut,
 				Path:   UserPath,
 				Handler: func(c *gin.Context) {
-					createUser(db, c)
+					createUser(db, c, false)
+				},
+			},
+			{
+				Method: http.MethodPost,
+				Path:   UserPath + "/create",
+				Handler: func(c *gin.Context) {
+					createUser(db, c, true)
+				},
+			},
+			{
+				Method: http.MethodPost,
+				Path:   UserPath + "/activate",
+				Handler: func(c *gin.Context) {
+					activateUser(db, c)
 				},
 			},
 			{
@@ -97,7 +111,7 @@ func UserEndpoint(db *gorm.DB) Endpoint {
 	}
 }
 
-func createUser(db *gorm.DB, c *gin.Context) {
+func createUser(db *gorm.DB, c *gin.Context, createChallenge bool) {
 	// bind json
 	var request models.User
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -152,7 +166,79 @@ func createUser(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User created"})
+	if !createChallenge {
+		c.JSON(http.StatusOK, gin.H{"message": "User created"})
+		return
+	}
+
+	// from here on we can create the challenge
+	randomString := util.RandomString(10)
+	newChallenge := models.ActivationChallenge{
+		Email:     request.Email,
+		Challenge: randomString,
+	}
+
+	err = db.
+		Create(&newChallenge).
+		Error
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate password challenge"})
+		return
+	}
+
+	c.JSON(http.StatusOK, newChallenge)
+}
+
+func activateUser(db *gorm.DB, c *gin.Context) {
+	var challengeRequest models.ActivationChallenge
+
+	err := c.ShouldBindJSON(&challengeRequest)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = db.Transaction(func(tx *gorm.DB) error {
+		var matchedChallenge models.ActivationChallenge
+
+		transactionErr := db.Model(&models.ActivationChallenge{}).
+			Where("challenge = ?", challengeRequest.Challenge).
+			Where("email = ?", challengeRequest.Email).
+			Find(&matchedChallenge).
+			Error
+
+		if transactionErr != nil {
+			return transactionErr
+		}
+
+		var user models.User
+
+		transactionErr = db.Model(&models.User{}).
+			Where("email = ?", challengeRequest.Email).
+			Find(&user).
+			Error
+
+		if transactionErr != nil {
+			return transactionErr
+		}
+
+		transactionErr = db.Delete(matchedChallenge).Error
+
+		user.Active = true
+
+		db.Save(&user)
+
+		return nil
+	})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.Status(http.StatusOK)
 }
 
 func getUsers(db *gorm.DB, c *gin.Context) {
@@ -454,9 +540,9 @@ func registerFirstTimeUser(db *gorm.DB, c *gin.Context) {
 
 		transactionErr = tx.
 			Model(&user).
-			Select("active").
+			Select("first_time_registered").
 			Where("id = $1", user.ID).
-			Update("active", true).
+			Update("first_time_registered", true).
 			Error
 
 		if transactionErr != nil {

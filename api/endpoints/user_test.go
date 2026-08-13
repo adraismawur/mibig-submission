@@ -16,7 +16,7 @@ func TestCreateUserBadData(t *testing.T) {
 	c.Request.Method = "POST"
 	c.Request.URL.Path = "/user"
 
-	createUser(testDb, c)
+	createUser(testDb, c, false)
 
 	assert.Equal(t, http.StatusBadRequest, c.Writer.Status(), "Status code should be 400")
 }
@@ -27,7 +27,7 @@ func TestCreateUserNoEmail(t *testing.T) {
 	c.Request.Method = "POST"
 	c.Request.URL.Path = "/user"
 
-	createUser(testDb, c)
+	createUser(testDb, c, false)
 
 	assert.Equal(t, http.StatusBadRequest, c.Writer.Status(), "Status code should be 400")
 
@@ -41,7 +41,7 @@ func TestCreateUserNoPassword(t *testing.T) {
 	c.Request.Method = "POST"
 	c.Request.URL.Path = "/user"
 
-	createUser(testDb, c)
+	createUser(testDb, c, false)
 
 	assert.Equal(t, http.StatusOK, c.Writer.Status(), "Status code should be 200")
 
@@ -55,7 +55,7 @@ func TestCreateUserInvalidRole(t *testing.T) {
 	c.Request.Method = "POST"
 	c.Request.URL.Path = "/user"
 
-	createUser(testDb, c)
+	createUser(testDb, c, false)
 
 	assert.Equal(t, http.StatusBadRequest, c.Writer.Status(), "Status code should be 400")
 }
@@ -66,7 +66,7 @@ func TestCreateUserAlreadyExists(t *testing.T) {
 	c.Request.Method = "POST"
 	c.Request.URL.Path = "/user"
 
-	createUser(testDb, c)
+	createUser(testDb, c, false)
 
 	assert.Equal(t, http.StatusBadRequest, c.Writer.Status(), "Status code should be 400")
 
@@ -81,7 +81,7 @@ func TestCreateUser(t *testing.T) {
 	c.Request.Method = "POST"
 	c.Request.URL.Path = "/user"
 
-	createUser(testDb, c)
+	createUser(testDb, c, false)
 
 	assert.Equal(t, http.StatusOK, c.Writer.Status(), "Status code should be 200")
 	assert.Contains(t, r.Body.String(), "User created", "Response should contain 'User created'")

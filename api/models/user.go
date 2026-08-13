@@ -20,13 +20,14 @@ const (
 
 // User model that represents a singular user
 type User struct {
-	ID        uint64     `json:"db_id"`
-	Anonymous bool       `json:"anonymous"`
-	Email     string     `json:"email" gorm:"unique"`
-	Password  string     `json:"password,omitempty"`
-	Active    bool       `json:"active"`
-	Roles     []UserRole `json:"roles" gorm:"foreignKey:UserID"`
-	Info      UserInfo   `json:"info,omitempty"  gorm:"foreignKey:UserID"`
+	ID                  uint64     `json:"db_id"`
+	Anonymous           bool       `json:"anonymous"`
+	Email               string     `json:"email" gorm:"unique"`
+	Password            string     `json:"password,omitempty"`
+	FirstTimeRegistered bool       `json:"first_time_registered"`
+	Active              bool       `json:"active"`
+	Roles               []UserRole `json:"roles" gorm:"foreignKey:UserID"`
+	Info                UserInfo   `json:"info,omitempty"  gorm:"foreignKey:UserID"`
 }
 
 // LoginRequest type that represents a user request given by a client through a POST request
@@ -36,6 +37,12 @@ type LoginRequest struct {
 }
 
 type PasswordChallenge struct {
+	ID        uint64 `json:"-"`
+	Email     string `json:"email"`
+	Challenge string `json:"challenge"`
+}
+
+type ActivationChallenge struct {
 	ID        uint64 `json:"-"`
 	Email     string `json:"email"`
 	Challenge string `json:"challenge"`
@@ -67,6 +74,7 @@ func init() {
 	Models = append(Models, &UserRole{})
 	Models = append(Models, &UserInfo{})
 	Models = append(Models, &PasswordChallenge{})
+	Models = append(Models, &ActivationChallenge{})
 
 	// password is 'changeme'
 	defaultPassword, err := bcrypt.GenerateFromPassword([]byte("changeme"), bcrypt.DefaultCost)
@@ -79,9 +87,10 @@ func init() {
 	InitData = append(InitData, InitDataEntry{
 		Table: "users",
 		Model: &User{
-			Email:    "admin@localhost",
-			Password: string(defaultPassword),
-			Active:   false,
+			Email:               "admin@localhost",
+			Password:            string(defaultPassword),
+			Active:              true,
+			FirstTimeRegistered: true,
 			Roles: []UserRole{
 				{
 					Role: Admin,
@@ -108,9 +117,10 @@ func init() {
 	InitData = append(InitData, InitDataEntry{
 		Table: "users",
 		Model: &User{
-			Email:    "reviewer@localhost",
-			Password: string(defaultPassword),
-			Active:   false,
+			Email:               "reviewer@localhost",
+			Password:            string(defaultPassword),
+			Active:              true,
+			FirstTimeRegistered: true,
 			Roles: []UserRole{
 				{
 					Role: Reviewer,
@@ -131,9 +141,10 @@ func init() {
 	InitData = append(InitData, InitDataEntry{
 		Table: "users",
 		Model: &User{
-			Email:    "submitter@localhost",
-			Password: string(defaultPassword),
-			Active:   false,
+			Email:               "submitter@localhost",
+			Password:            string(defaultPassword),
+			Active:              true,
+			FirstTimeRegistered: true,
 			Roles: []UserRole{
 				{
 					Role: Submitter,
@@ -163,11 +174,11 @@ func CreateUser(db *gorm.DB, email string, password string, roles []UserRole) er
 	}
 
 	user := User{
-		Email:    email,
-		Password: string(hashedPassword),
-		Active:   false,
-		Roles:    roles,
-		Info:     UserInfo{},
+		Email:               email,
+		Password:            string(hashedPassword),
+		FirstTimeRegistered: false,
+		Roles:               roles,
+		Info:                UserInfo{},
 	}
 
 	if err := db.Create(&user).Error; err != nil {
