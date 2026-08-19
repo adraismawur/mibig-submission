@@ -177,12 +177,12 @@ func ParseEntry(jsonString []byte) (*Entry, error) {
 	entry := Entry{}
 
 	if err := json.Unmarshal(jsonString, &entry); err != nil {
-		slog.Warn("[entry] Failed to unmarshal annotation JSON. Attempting to recover...", "error", err.Error())
+		slog.Warn("[entry] Failed to unmarshal annotation JSON. Attempting to recover...", "error", err.Error(), "entry", entry.Accession)
 
 		err = ParseEntryFallback(jsonString, &entry)
 
 		if err != nil {
-			slog.Error("[entry] Failed to unmarshal annotation JSON using fallback.", "error", err.Error())
+			slog.Error("[entry] Failed to unmarshal annotation JSON using fallback.", "error", err.Error(), "entry", entry.Accession)
 			return nil, err
 		}
 	}
