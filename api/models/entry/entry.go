@@ -12,7 +12,6 @@ import (
 	"github.com/adraismawur/mibig-submission/util"
 	"github.com/goccy/go-json"
 	"github.com/lib/pq"
-	"github.com/mitchellh/mapstructure"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"log/slog"
@@ -82,14 +81,89 @@ func ParseEntryFallback(entryJson []byte, entry *Entry) error {
 			b := bioactivity.(map[string]interface{})
 			nameType := reflect.TypeOf(b["name"])
 			if nameType.Kind() != reflect.String {
-				slog.Warn("[entry] Found fix: bad bioactivity name")
+				slog.Warn("[entry] Found fix: bad bioactivity name", "entry", entry.Accession)
 				actualName := b["name"].(map[string]interface{})["activity"]
 				b["name"] = actualName
 			}
 		}
 	}
 
-	err = mapstructure.Decode(&entryMap, &entry)
+	// second problem: some ripp precursor core sequences are arrays of strings
+	// most cases have an array with one tring, but some are arrays of multiple strings.
+	// convert these latter ones into multiple precursors
+	if entryMap["biosynthesis"] == nil {
+		return nil
+	}
+
+	biosynth := entryMap["biosynthesis"].(map[string]interface{})
+
+	classes := biosynth["classes"].([]interface{})
+
+	for _, class := range classes {
+		c := class.(map[string]interface{})
+
+		var additionalPrecursors []interface{}
+
+		precursors, ok := c["precursors"].([]interface{})
+		if !ok {
+			continue
+		}
+
+		if len(precursors) == 0 {
+			continue
+		}
+
+		for i, _ := range precursors {
+			p := precursors[i].(map[string]interface{})
+			structureType := reflect.TypeOf(p["core_sequence"])
+			if structureType.Kind() != reflect.String {
+				pArray := p["core_sequence"].([]interface{})
+				if len(pArray) <= 1 {
+					slog.Warn("[entry] Found fix: bad ripp precursor core_sequence, single element", "entry", entry.Accession)
+					p["core_sequence"] = pArray[0].(interface{})
+					slog.Warn("[entry] Corrected to " + p["core_sequence"].(string))
+				} else {
+					slog.Warn("Found fix: bad ripp precursor core_sequence, multiple elements", "entry", entry.Accession)
+					for _, coreSequence := range pArray[1:] {
+						newPrecursor := map[string]interface{}{}
+
+						if p["gene"] != nil {
+							newPrecursor["gene"] = p["gene"]
+						}
+						if p["leader_cleavage_location"] != nil {
+							newPrecursor["leader_cleavage_location"] = p["leader_cleavage_location"]
+						}
+						if p["follower_cleavage_location"] != nil {
+							newPrecursor["follower_cleavage_location"] = p["follower_cleavage_location"]
+						}
+						if p["crosslinks"] != nil {
+							newPrecursor["crosslinks"] = p["crosslinks"]
+						}
+						if p["recognition_motif"] != nil {
+							newPrecursor["recognition_motif"] = p["recognition_motif"]
+						}
+
+						newPrecursor["core_sequence"] = coreSequence
+
+						additionalPrecursors = append(additionalPrecursors, newPrecursor)
+					}
+
+					asd := pArray[0]
+
+					p["core_sequence"] = asd
+				}
+			}
+		}
+		for _, precursor := range additionalPrecursors {
+			c["precursors"] = append(precursors, precursor)
+		}
+	}
+
+	j, err := json.Marshal(entryMap)
+	//var tempEntryMap map[string]any
+	err = json.Unmarshal(j, &entry)
+
+	//err = mapstructure.Decode(&tempEntryMap, &entry)
 
 	if err != nil {
 		return err
