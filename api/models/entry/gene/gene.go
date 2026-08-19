@@ -51,14 +51,21 @@ type GeneMutationPhenotypeAnnotation struct {
 	References pq.StringArray `json:"references" gorm:"type:text[]"`
 }
 
+type GeneFunctionAnnotationFunction struct {
+	ID      uint64 `json:"db_id"`
+	Name    string `json:"name"`
+	Details string `json:"details"`
+}
+
 type GeneFunctionAnnotation struct {
 	ID                  uint64                           `json:"db_id"`
 	GeneAnnotationID    uint64                           `json:"db_gene_annotation_id"`
-	Function            string                           `json:"function"`
+	FunctionID          uint64                           `json:"function_id"`
+	Function            *GeneFunctionAnnotationFunction  `json:"function"`
 	Details             string                           `json:"details"`
 	Evidence            []GeneFunctionAnnotationEvidence `json:"evidence" gorm:"foreignKey:GeneFunctionAnnotationID"`
 	MutationPhenotypeID uint64                           `json:"db_mutation_phenotype_id"`
-	MutationPhenotype   *GeneMutationPhenotypeAnnotation `json:"mutation_phenotype"`
+	MutationPhenotype   *GeneMutationPhenotypeAnnotation `json:"mutation_phenotype,omitempty"`
 }
 
 type GeneAnnotation struct {
@@ -88,6 +95,7 @@ func init() {
 	models.Models = append(models.Models, &GeneFunctionAnnotationEvidence{})
 	models.Models = append(models.Models, &GeneMutationPhenotypeAnnotation{})
 	models.Models = append(models.Models, &GeneFunctionAnnotation{})
+	models.Models = append(models.Models, &GeneFunctionAnnotationFunction{})
 }
 
 func GetEntryGeneInformation(db *gorm.DB, accession string) (*GeneInformation, error) {

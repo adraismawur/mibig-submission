@@ -1,5 +1,7 @@
 package export
 
+import "github.com/lib/pq"
+
 type ExonLocation struct {
 	From uint64 `json:"from"`
 	To   uint64 `json:"to"`
@@ -19,6 +21,29 @@ type GeneAddition struct {
 type GeneDeletion struct {
 	Accession string `json:"id"`
 	Reason    string `json:"reason"`
+}
+
+type GeneFunctionAnnotationEvidence struct {
+	Method     string         `json:"method"`
+	References pq.StringArray `json:"references" gorm:"type:text[]"`
+}
+
+type GeneMutationPhenotypeAnnotation struct {
+	Phenotype  string         `json:"phenotype"`
+	Details    string         `json:"details"`
+	References pq.StringArray `json:"references" gorm:"type:text[]"`
+}
+
+type GeneFunctionAnnotationFunction struct {
+	Name    string `json:"name"`
+	Details string `json:"details"`
+}
+
+type GeneFunctionAnnotation struct {
+	Function          *GeneFunctionAnnotationFunction  `json:"function"`
+	Details           string                           `json:"details"`
+	Evidence          []GeneFunctionAnnotationEvidence `json:"evidence" gorm:"foreignKey:GeneFunctionAnnotationID"`
+	MutationPhenotype *GeneMutationPhenotypeAnnotation `json:"mutation_phenotype"`
 }
 
 type GeneAnnotation struct {
