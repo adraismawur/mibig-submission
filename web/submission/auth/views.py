@@ -86,7 +86,7 @@ def login_post() -> response.Response:
 
     login_user(user, remember=remember)
 
-    if user.active:
+    if user.first_time_registered:
         return redirect(url_for("main.index"))
     else:
         return redirect(url_for("main.register_first_time"))
@@ -131,7 +131,6 @@ def password_email() -> Union[str, response.Response]:
 
         mail.connect()
 
-        # TODO: send email
         mail.send(
             Message(
                 subject="Change your MIBiG password",
@@ -183,14 +182,51 @@ def create_new_user():
     form = NewUserForm(request.form)
 
     if request.method == "POST":
-        response = requests.put(
-            f"{current_app.config['API_BASE']}/user", json=form.data
+        response = requests.post(
+            f"{current_app.config['API_BASE']}/user/create", json=form.data
         )
 
-        if response.status_code == 200:
-            flash(
-                "A mail has been sent with an activation link for your account. Please check your inbox"
+        if response.status_code != 200:
+            if response.status_code < 400 or response.status_code >= 500:
+                flash("An unexpected error occurred. Please contact the developers")
+            else:
+                flash(response.json()["error"])
+            return redirect(url_for("auth.create_new_user"))
+
+        data = response.json()
+
+        mail.connect()
+
+        mail.send(
+            Message(
+                subject="Activate your MIBiG submission portal account",
+                recipients=[form.email.data],
+                body=f"Hello, someone created an account for the MIBiG submission portal using your email.\
+                      Click this link: {url_for('auth.activate_user', _external=True, email=data['email'], challenge=data['challenge'])}",
             )
-            return redirect(url_for("auth.login"))
+        )
+
+        flash(
+            "A mail has been sent with an activation link for your account. Please check your inbox"
+        )
+        return redirect(url_for("auth.login"))
 
     return render_template("auth/new_user.html", form=form)
+
+
+@bp_auth.route("/newuser/activate/<email>/<challenge>")
+def activate_user(email: str, challenge: str):
+    response = requests.post(
+        f"{current_app.config['API_BASE']}/user/activate",
+        json={
+            "email": email,
+            "challenge": challenge,
+        },
+    )
+
+    if response.status_code != 200:
+        flash(response.json()["error"], "error")
+    else:
+        flash("Account activated successfully. Please try logging in now.")
+
+    return redirect(url_for("auth.login"))

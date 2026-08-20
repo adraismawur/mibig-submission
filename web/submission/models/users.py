@@ -85,17 +85,25 @@ class User(UserMixin):
     id: int
     email: str
     active: bool
+    first_time_registered: bool
 
     roles: list[UserRole]
 
     info: UserInfo
 
     def __init__(
-        self, id: int, email: str, active: bool, roles: list[UserRole], info: UserInfo
+        self,
+        id: int,
+        email: str,
+        active: bool,
+        first_time_registered: bool,
+        roles: list[UserRole],
+        info: UserInfo,
     ):
         self.id = id
         self.email = email
         self.active = active
+        self.first_time_registered = first_time_registered
         self.roles = roles
         self.info = info
 
@@ -115,6 +123,7 @@ class User(UserMixin):
             json_dict["db_id"],
             json_dict["email"],
             json_dict["active"],
+            json_dict["first_time_registered"],
             roles,
             info,
         )
@@ -164,6 +173,7 @@ class User(UserMixin):
             {
                 "email": self.email,
                 "active": self.active,
+                "first_time_registered": self.first_time_registered,
                 "roles": [r.asdict() for r in self.roles],
                 "info": self.info.asdict(),
             }
