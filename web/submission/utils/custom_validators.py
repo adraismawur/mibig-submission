@@ -82,6 +82,32 @@ class RequiredIf(validators.InputRequired):
             super(RequiredIf, self).__call__(form, field)
 
 
+class RequiredIfValue(validators.InputRequired):
+    """Input required validator only if another field is filled
+
+    Arguments:
+        other_field_name (str): name of field to check
+        other_field_value (any): value of field to check
+    """
+
+    other_field_value = None
+
+    def __init__(self, other_field_name, other_field_value, *args, **kwargs):
+        self.other_field_name = other_field_name
+        self.other_field_value = other_field_value
+        super(RequiredIfValue, self).__init__(*args, **kwargs)
+        self.field_flags.pop("required")
+
+    def __call__(self, form, field):
+        other_field = form._fields.get(self.other_field_name)
+        if other_field is None:
+            raise Exception(f"no field named {self.other_field_name} in form")
+        if other_field.data == self.other_field_value:
+            super(RequiredIf, self).__call__(form, field)
+        if bool(other_field.data):
+            super(RequiredIf, self).__call__(form, field)
+
+
 class ValidateSingleInput(validators.Regexp):
     def __init__(
         self,

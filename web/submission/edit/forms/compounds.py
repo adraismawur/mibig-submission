@@ -27,6 +27,7 @@ from submission.utils.custom_widgets import (
     ProductInputSearch,
 )
 from submission.utils.custom_validators import (
+    RequiredIfValue,
     ValidateCitations,
     ValidateSingleInput,
     validate_genbank,
@@ -144,7 +145,28 @@ class BioactivitySubForm(Form):
 class CompoundEvidence(Form):
     db_id = IntegerField(widget=HiddenInput(), default=0, validators=None)
     db_compound_id = IntegerField(widget=HiddenInput(), default=0)
-    method = StringField()
+    method = SelectField(
+        "Method",
+        choices=[
+            "NMR",
+            "Mass spectrometry",
+            "MS/MS",
+            "X-ray crystallography",
+            "Chemical derivatisation",
+            "Total synthesis",
+            "Experimental values match with authentic standard",
+            "Other",
+        ]
+    )
+    details = StringField(
+        "Details (required if method is 'Other')",
+        validators=[
+            RequiredIfValue(
+                'method',
+                'Other',
+                message="This field is required when method is 'Other'.",
+            )
+        ])
     references = ReferenceField(
         label="Citation(s) *",
         description=Markup(
