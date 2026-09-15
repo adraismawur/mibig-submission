@@ -59,7 +59,7 @@ Editing {{ bgc_id }}
         <p class="form-label fw-bold">Modules</p>
         {% if form.modules | length > 0 %}
         {{ macros.descr(form.modules) }}
-        {{ module_macros.render_module_list(bgc_id, form.modules) }}
+        {{ module_macros.render_module_list(bgc_id, form.modules, form) }}
         {% else %}
         <div>No biosynthetic modules yet. Add new biosynthetic modules using the button below</div>
         {% endif %}

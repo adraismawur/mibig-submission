@@ -1,4 +1,5 @@
-{% macro render_module_list(bgc_id, modules) %}
+{% import 'macros.html' as m %}
+{% macro render_module_list(bgc_id, modules, form) %}
 <table class="table">
     <tbody id="module-table">
         <tr>
@@ -56,8 +57,7 @@
                 </a>
             </td>
             <td>
-                <a
-                    href="{{ url_for('edit.remove_biosynth_module', bgc_id=bgc_id, module_id=module['db_id'].data) }}">
+                <a href="{{ url_for('edit.remove_biosynth_module', bgc_id=bgc_id, module_id=module['db_id'].data) }}">
                     <button type="button" class="btn red" type="button">X</button>
                 </a>
             </td>
