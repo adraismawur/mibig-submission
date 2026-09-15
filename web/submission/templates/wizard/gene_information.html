@@ -27,7 +27,7 @@ Editing {{ bgc_id }}
                 {% for gene_to_add in form.to_add %}
                 <tr>
                     <td>
-                        {{gene_to_add['accession'].data}}
+                        {{gene_to_add['id'].data}}
                     </td>
                     <td>
                         <a
@@ -62,7 +62,7 @@ Editing {{ bgc_id }}
                 {% for gene_to_delete in form.to_delete %}
                 <tr>
                     <td>
-                        {{gene_to_delete['accession'].data}}
+                        {{gene_to_delete['id'].data}}
                     </td>
                     <td>
                         <a
@@ -99,7 +99,7 @@ Editing {{ bgc_id }}
                 {% for gene_annotation in form.annotations %}
                 <tr>
                     <td>
-                        {{gene_annotation['accession'].data}}
+                        {{gene_annotation['id'].data}}
                     </td>
                     <td>
                         {{gene_annotation['name'].data}}
