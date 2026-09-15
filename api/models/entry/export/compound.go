@@ -10,6 +10,7 @@ type BioActivities struct {
 
 type CompoundEvidence struct {
 	Method     string         `json:"method"`
+	Details    string         `json:"details"`
 	References pq.StringArray `json:"references" gorm:"type:text[]"`
 }
 

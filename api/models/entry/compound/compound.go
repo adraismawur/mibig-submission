@@ -47,6 +47,7 @@ type CompoundEvidence struct {
 	ID         uint64         `json:"db_id"`
 	CompoundID uint64         `json:"db_compound_id"`
 	Method     string         `json:"method"`
+	Details    string         `json:"details"`
 	References pq.StringArray `json:"references" gorm:"type:text[]"`
 }
 
