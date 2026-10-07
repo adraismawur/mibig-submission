@@ -21,6 +21,7 @@ const (
 // User model that represents a singular user
 type User struct {
 	ID                  uint64     `json:"db_id"`
+	AnonymizedID        string     `json:"anonymized_id"`
 	Anonymous           bool       `json:"anonymous"`
 	Email               string     `json:"email" gorm:"unique"`
 	Password            string     `json:"password,omitempty"`
