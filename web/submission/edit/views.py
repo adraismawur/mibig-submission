@@ -1038,9 +1038,14 @@ def create_compound(bgc_id: str):
         form = CompoundsSubForm()
 
     if request.method == "POST":
-        Entry.create_compound(bgc_id, form.data)
-        flash("Compound created")
-        return redirect(url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="compounds"))
+        success, response = Entry.create_compound(bgc_id, form.data)
+        if success:
+            flash("Compound created")
+            return redirect(
+                url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="compounds")
+            )
+        else:
+            flash(f"Failed to create compound: {response.json()['error']}", "error")
 
     antismash_json = get_antismash_json(bgc_id)
 
@@ -1067,8 +1072,8 @@ def edit_compound(bgc_id: str, compound_id: int):
         form = CompoundsSubForm(request.form)
 
     if request.method == "POST":
-        response = Entry.update_compound(bgc_id, form.data)
-        if response.status_code == 200:
+        success, response = Entry.update_compound(bgc_id, form.data)
+        if success:
             flash("Compound updated successfully")
             compoundData = Entry.get_compound(bgc_id, compound_id)
 

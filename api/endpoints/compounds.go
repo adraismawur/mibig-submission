@@ -115,6 +115,15 @@ func createEntryCompound(db *gorm.DB, c *gin.Context) {
 		return
 	}
 
+	for _, evidence := range newCompound.Evidence {
+		if evidence.Method == "Other" && evidence.Details == "" {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"error": "evidence with method 'Other' is missing details",
+			})
+			return
+		}
+	}
+
 	newCompound.EntryAccession = accession
 
 	err = db.Create(&newCompound).Error
@@ -148,6 +157,15 @@ func updateEntryCompound(db *gorm.DB, c *gin.Context) {
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	for _, evidence := range newCompound.Evidence {
+		if evidence.Method == "Other" && evidence.Details == "" {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"error": "evidence with method 'Other' is missing details",
+			})
+			return
+		}
 	}
 
 	newCompound.EntryAccession = accession

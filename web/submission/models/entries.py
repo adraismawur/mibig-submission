@@ -431,11 +431,18 @@ class Entry(db.Model):
         compound_data["mass"] = float(compound_data["mass"])
         request_url = f"{current_app.config['API_BASE']}/entry/{bgc_id}/compounds/{compound_data['db_id']}"
 
-        for bioactivity in compound_data['bioactivities']:
-            for assay in bioactivity['assays']:
-                assay['measurement']['concentration'] = float(assay['measurement']['concentration'])
-                assay['measurement']['error'] = float(assay['measurement']['error'])
-                assay['measurement']['replicates'] = float(assay['measurement']['replicates'])
+        for evidence in compound_data["evidence"]:
+            evidence["details"] = evidence["details"].strip()
+
+        for bioactivity in compound_data["bioactivities"]:
+            for assay in bioactivity["assays"]:
+                assay["measurement"]["concentration"] = float(
+                    assay["measurement"]["concentration"]
+                )
+                assay["measurement"]["error"] = float(assay["measurement"]["error"])
+                assay["measurement"]["replicates"] = float(
+                    assay["measurement"]["replicates"]
+                )
 
         response = requests.post(
             request_url,
@@ -443,16 +450,27 @@ class Entry(db.Model):
             json=compound_data,
         )
 
-        return response
+        success = response.status_code == 200
 
-    def create_compound(bgc_id: str, compound_data: dict[any]):
+        return success, response
+
+    def create_compound(
+        bgc_id: str, compound_data: dict[any]
+    ) -> tuple[bool, str | None]:
         compound_data["mass"] = float(compound_data["mass"])
 
-        for bioactivity in compound_data['bioactivities']:
-            for assay in bioactivity['assays']:
-                assay['measurement']['concentration'] = float(assay['measurement']['concentration'])
-                assay['measurement']['error'] = float(assay['measurement']['error'])
-                assay['measurement']['replicates'] = float(assay['measurement']['replicates'])
+        for evidence in compound_data["evidence"]:
+            evidence["details"] = evidence["details"].strip()
+
+        for bioactivity in compound_data["bioactivities"]:
+            for assay in bioactivity["assays"]:
+                assay["measurement"]["concentration"] = float(
+                    assay["measurement"]["concentration"]
+                )
+                assay["measurement"]["error"] = float(assay["measurement"]["error"])
+                assay["measurement"]["replicates"] = float(
+                    assay["measurement"]["replicates"]
+                )
 
         request_url = f"{current_app.config['API_BASE']}/entry/{bgc_id}/compounds"
 
@@ -462,7 +480,9 @@ class Entry(db.Model):
             json=compound_data,
         )
 
-        return response.json()
+        success = response.status_code == 200
+
+        return success, response
 
     def get_compound_text(bgc_id: str, compound_id: int):
         response = requests.get(
@@ -690,7 +710,6 @@ class Entry(db.Model):
             },
         )
         return response
-
 
     def request_lock(bgc_id: str, category: str):
         lock_endpoint = "/lock/request/"
