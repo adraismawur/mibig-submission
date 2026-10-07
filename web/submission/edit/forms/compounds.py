@@ -156,17 +156,18 @@ class CompoundEvidence(Form):
             "Total synthesis",
             "Experimental values match with authentic standard",
             "Other",
-        ]
+        ],
     )
     details = StringField(
         "Details (required if method is 'Other')",
         validators=[
             RequiredIfValue(
-                'method',
-                'Other',
+                "method",
+                "Other",
                 message="This field is required when method is 'Other'.",
             )
-        ])
+        ],
+    )
     references = ReferenceField(
         label="Citation(s) *",
         description=Markup(
@@ -203,7 +204,14 @@ class CompoundsSubForm(Form):
             label="Add database",
         ),
     )
-    mass = DecimalField("Exact Mass", default=0, places=None)
+    mass = DecimalField(
+        "Exact Mass",
+        default=0,
+        places=None,
+        validators=[
+            validators.NumberRange(0.01, message="Mass must be greater than zero")
+        ],
+    )
     formula = StringField("Molecular Formula")
 
 
