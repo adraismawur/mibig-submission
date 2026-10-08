@@ -111,6 +111,13 @@ class ModuleLocationForm(Form):
     to = IntegerField()
 
 
+class DomainForm(Form):
+    db_id = IntegerField()
+    type = StringField()
+    subtype = StringField()
+    location = FormField(ModuleLocationForm)
+
+
 class BiosynthModuleForm(Form):
     db_id = IntegerField(widget=HiddenInput())
     db_biosynth_id = IntegerField(widget=HiddenInput(), default=0)
@@ -118,6 +125,11 @@ class BiosynthModuleForm(Form):
         StringField(default="Gene ID"),
         widget=FieldListAddBtn(label="Add gene"),
     )
+    modification_domains = FieldList(FormField(DomainForm))
+    a_domain = FormField(DomainForm)
+    c_domain = FormField(DomainForm)
+    ks_domain = FormField(DomainForm)
+    at_domain = FormField(DomainForm)
     name = StringField()
     type = SelectField(choices=module_types)
     active = BooleanField()

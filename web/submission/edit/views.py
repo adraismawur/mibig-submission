@@ -816,7 +816,14 @@ def list_modification_domains(bgc_id: str, module_id: int):
     methods=["GET", "POST"],
 )
 @login_required
-def create_modification_domain(bgc_id: str, module_id: int, domain_type: str):
+def create_domain(bgc_id: str, module_id: int, domain_type: str):
+    non_md = [
+        "adenylation",
+        "condensation",
+        "acyltransferase",
+        "ketosynthase",
+    ]
+
     choices = [
         {"label": "Aminotransferase", "value": "aminotransferase"},
         {"label": "Cyclase", "value": "cyclase"},
@@ -842,7 +849,7 @@ def create_modification_domain(bgc_id: str, module_id: int, domain_type: str):
         data = form.data
         data["type"] = data["domain_type"]
 
-        success, error = Entry.create_modification_domain(bgc_id, module_id, data)
+        success, error = Entry.create_domain(bgc_id, module_id, data)
 
         if success:
             flash("Successfully created modification domain")
@@ -861,6 +868,7 @@ def create_modification_domain(bgc_id: str, module_id: int, domain_type: str):
         "wizard/biosynth/biosynth_mod_domain_new.html",
         bgc_id=bgc_id,
         module_id=module_id,
+        non_md=non_md,
         choices=choices,
         domain_type=domain_type,
         form=form,
@@ -869,17 +877,22 @@ def create_modification_domain(bgc_id: str, module_id: int, domain_type: str):
 
 
 @bp_edit.route(
-    "/<bgc_id>/biosynth/modification_domains/<module_id>/edit/<modification_domain_id>/<domain_type>",
+    "/<bgc_id>/biosynth/modification_domains/<module_id>/edit/<domain_id>/<domain_type>",
     methods=["GET", "POST"],
 )
 @login_required
-def edit_modification_domain(
-    bgc_id: str, module_id: int, modification_domain_id: int, domain_type: str
-):
+def edit_domain(bgc_id: str, module_id: int, domain_id: int, domain_type: str):
+    module_dependent_types = [
+        "adenylation",
+        "condensation",
+        "acyltransferase",
+        "ketosynthase",
+    ]
 
-    modification_domain, error = Entry.get_modification_domain(
-        bgc_id, modification_domain_id
-    )
+    if domain_type in module_dependent_types:
+        domain_data, error = Entry.get_domain(bgc_id, domain_id, domain_type)
+    else:
+        domain_data, error = Entry.get_domain(bgc_id, domain_id, "modification_domain")
 
     if error is not None:
         flash(f"Error getting modification domain data: {error}", "error")
@@ -893,15 +906,16 @@ def edit_modification_domain(
     if request.form:
         form = getattr(FormCollection, domain_type)(request.form)
     else:
-        form = getattr(FormCollection, domain_type)(data=modification_domain)
+        form = getattr(FormCollection, domain_type)(data=domain_data)
 
     if request.method == "POST":
         data = form.data
         data["type"] = data["domain_type"]
 
-        data, error = Entry.update_modification_domain(
-            bgc_id, modification_domain_id, data
-        )
+        if domain_type in module_dependent_types:
+            data, error = Entry.update_domain(bgc_id, domain_id, domain_type, data)
+        else:
+            data, error = Entry.update_domain(bgc_id, domain_data, data)
 
         if error is not None:
             flash(f"Error creating modification domain: {error}", "error")
@@ -928,7 +942,7 @@ def edit_modification_domain(
 def remove_modification_domain(
     bgc_id: str, module_id: int, modification_domain_id: int
 ):
-    modification_domain_text, error = Entry.get_modification_domain(
+    modification_domain_text, error = Entry.get_domain(
         bgc_id, modification_domain_id, pretty=True
     )
 
@@ -942,9 +956,7 @@ def remove_modification_domain(
         )
 
     if request.method == "POST":
-        success, error = Entry.remove_modification_domain(
-            bgc_id, modification_domain_id
-        )
+        success, error = Entry.remove_domain(bgc_id, modification_domain_id)
 
         if success:
             flash("Successfully removed modification domain")

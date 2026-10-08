@@ -64,9 +64,18 @@ class WizardPage:
         return False, response.json()
 
 
-def biosynth_class_transform(data):
+def biosynth_transform(data):
     for class_entry in data["classes"]:
         class_entry["class_"] = class_entry["class"]
+
+    for module in data["modules"]:
+        if "modification_domains" not in module:
+            continue
+
+        for modification_domain in module["modification_domains"]:
+            modification_domain["location"]["from_"] = modification_domain["location"][
+                "from"
+            ]
 
     return data
 
@@ -87,7 +96,7 @@ wizard_pages = [
         "biosynth",
         "biosynthetic information",
         BioSynthForm,
-        data_get_transform=biosynth_class_transform,
+        data_get_transform=biosynth_transform,
         data_get_endpoint="/entry/<bgc_id>/biosynth",
         data_set_transform=biosynth_operon_only,
         data_set_endpoint="/entry/<bgc_id>/biosynth/operons",

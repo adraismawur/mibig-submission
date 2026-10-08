@@ -25,16 +25,20 @@ from submission.edit.forms.biosynthesis_modules import (
     ModuleOtherForm,
 )
 from submission.edit.forms.biosynthesis_domains import (
+    AcyltransferaseForm,
+    AdenylationDomain,
     AminotransferaseDomain,
+    CondensationDomain,
     CyclaseDomain,
     DehydrataseDomain,
     EnoylreductaseDomain,
     EpimeraseDomain,
     HydroxylaseDomain,
     KetoreductaseDomain,
+    KetosynthaseForm,
     MethyltransferaseDomain,
     OtherDomain,
-    OxidaseDomain
+    OxidaseDomain,
 )
 from submission.edit.forms.tailoring import TailoringMultipleForm
 from submission.edit.forms.gene_information import (
@@ -70,6 +74,12 @@ class FormCollection:
     pks_iterative = PKSIterativeForm
     pks_modular = PKSModularForm
     pks_trans_at = PKSTransForm
+
+    # Biosynthesis module specific domains
+    adenylation = AdenylationDomain
+    condensation = CondensationDomain
+    acetyltransferase = AcyltransferaseForm
+    ketosynthase = KetosynthaseForm
 
     # Biosynthesis module modification domains
     aminotransferase = AminotransferaseDomain

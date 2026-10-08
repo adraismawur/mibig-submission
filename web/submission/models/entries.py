@@ -298,8 +298,10 @@ class Entry(db.Model):
 
         return (None, response.json()["error"])
 
-    def get_modification_domain(bgc_id: str, modification_domain_id: int, pretty=False):
-        url = f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/modification_domain/{modification_domain_id}"
+    def get_domain(
+        bgc_id: str, modification_domain_id: int, domain_type: str, pretty=False
+    ):
+        url = f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/{domain_type}/{modification_domain_id}"
 
         if pretty:
             url = url + "?pretty=true"
@@ -319,9 +321,9 @@ class Entry(db.Model):
 
         return (None, response.json()["error"])
 
-    def create_modification_domain(bgc_id: str, module_id: int, data):
+    def create_domain(bgc_id: str, module_id: int, domain_type: str, data):
         response = requests.post(
-            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/modification_domain/add/{module_id}",
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/{domain_type}/add/{module_id}",
             headers={"Authorization": f"Bearer {session['token']}"},
             json=data,
         )
@@ -331,9 +333,9 @@ class Entry(db.Model):
 
         return (False, response.json()["error"])
 
-    def update_modification_domain(bgc_id: str, modification_domain_id: int, data):
+    def update_domain(bgc_id: str, domain_id: int, domain_type: str, data):
         response = requests.post(
-            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/modification_domain/{modification_domain_id}",
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/{domain_type}/{domain_id}",
             headers={"Authorization": f"Bearer {session['token']}"},
             json=data,
         )
@@ -344,9 +346,9 @@ class Entry(db.Model):
 
         return (None, response.json()["error"])
 
-    def remove_modification_domain(bgc_id: str, modification_domain_id: int):
+    def remove_domain(bgc_id: str, domain_id: int, domain_type: str):
         response = requests.delete(
-            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/modification_domain/{modification_domain_id}",
+            f"{current_app.config['API_BASE']}/entry/{bgc_id}/biosynth/{domain_type}/{domain_id}",
             headers={"Authorization": f"Bearer {session['token']}"},
         )
 

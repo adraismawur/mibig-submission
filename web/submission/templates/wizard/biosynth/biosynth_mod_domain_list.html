@@ -46,7 +46,7 @@ Editing {{ bgc_id }}
         {% else %}
         <div>No modification domains yet. Add new modification domains using the button below</div>
         {% endif %}
-        <a href="{{url_for('edit.create_modification_domain', bgc_id=bgc_id, module_id=module_id, domain_type='new')}}">
+        <a href="{{url_for('edit.create_domain', bgc_id=bgc_id, module_id=module_id, domain_type='new')}}">
             <button class="btn btn-primary" type="button">Add new modification domain</button>
         </a>
     </div>

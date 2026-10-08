@@ -23,7 +23,6 @@ func GetEntryBiosynthesis(db *gorm.DB, accession string) (*Biosynthesis, error) 
 
 	err := db.
 		Table("biosyntheses").
-		Where("entry_accession = $1", accession).
 		Preload("Classes").
 		Preload("Modules.IntegratedMonomers").
 		Preload("Modules.IntegratedMonomers.Evidence").
@@ -42,20 +41,13 @@ func GetEntryBiosynthesis(db *gorm.DB, accession string) (*Biosynthesis, error) 
 		Preload("Modules.KSDomain.Location").
 		Preload("Paths.Products").
 		Preload("Operons").
+		Where("entry_accession = $1", accession).
 		First(&biosynth).
 		Error
 
 	if err != nil {
 		return nil, err
 	}
-
-	modules, err := GetEntryBiosynthesisModulesById(db, biosynth.ID)
-
-	if err != nil {
-		return nil, err
-	}
-
-	biosynth.Modules = *modules
 
 	return &biosynth, nil
 }
