@@ -1,0 +1,21 @@
+{% macro render_domain(bgc_id, module_id, domain, form) %}
+    {% set type = domain['type'].data %}
+
+    {% set abbreviation_dict = {
+        'adenylation': 'A',
+        'condensation': 'C',
+        'ketosynthase': 'KS',
+        'acyltransferase': 'AT',
+        'ketoreductase': 'KR',
+        'methyltransferase': 'MT',
+        'dehydratase': 'DH',
+        'enoylreductase': 'ER',
+        'oxidase': 'OX'
+    } %}
+
+    {% set abbreviation = abbreviation_dict[type] %}
+
+    <a style="color: inherit;" href="{{ url_for('edit.edit_domain', bgc_id=bgc_id, module_id=module_id, domain_id=domain['db_id'].data, domain_type=type) }}">
+        <button type="button" class="btn domain domain-{{type}}" tooltip data-tooltip="Type: {{domain['type'].data}}<br>Location: {{domain['location']['from_'].data}} - {{domain['location']['to'].data}}<br>Subtype: {{domain['subtype'].data if domain['subtype'].data else 'Undefined'}}">{{abbreviation}}</button>
+    </a>
+{% endmacro %}

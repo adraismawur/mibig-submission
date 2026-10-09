@@ -69,13 +69,19 @@ def biosynth_transform(data):
         class_entry["class_"] = class_entry["class"]
 
     for module in data["modules"]:
-        if "modification_domains" not in module:
-            continue
+        for key, prop in module.items():
+            if type(prop) not in [dict, list]:
+                continue
 
-        for modification_domain in module["modification_domains"]:
-            modification_domain["location"]["from_"] = modification_domain["location"][
-                "from"
-            ]
+            if key == "modification_domains":
+                for modification_domain in prop:
+                    modification_domain["location"]["from_"] = modification_domain[
+                        "location"
+                    ]["from"]
+                continue
+
+            if "location" in prop:
+                prop["location"]["from_"] = prop["location"]["from"]
 
     return data
 

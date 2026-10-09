@@ -1,4 +1,5 @@
 {% import 'macros.html' as m %}
+{% import 'wizard/biosynth/macros/domain.html' as d %}
 {% macro render_module_list(bgc_id, modules, form) %}
 <div>
     <div class="container" style="margin: 5px; width: 100%;">
@@ -37,123 +38,35 @@
                         </a>
                     </div>
                 </div>
-                {% if module['a_domain'].data['type']  %}
-                {% set domain = module['a_domain'] %}
-                    <div class="row form-group">
-                        <div class="col s1">
-                            <button class="btn btn-small" tooltip data-tooltip="Adenylation domain">A</h6>
-                        </div>
-                        <div class="col s8">
-                            <h6>
-                                Type: {{domain['type'].data}},
-                                Location: {{domain['location']['from_'].data}} - {{domain['location']['to'].data}},
-                                Subtype: {{domain['subtype'].data if domain['subtype'] else 'Undefined'}} 
-                            </h6>
-                        </div>
-                        <div class="col s3">
-                            <a href="{{ url_for('edit.edit_domain', bgc_id=bgc_id, module_id=module['db_id'].data, domain_id=domain['db_id'].data, domain_type='adenylation') }}">
-                                <button type="button" class="btn btn-primary" type="button">Edit domain</button>
-                            </a>
-                            <a href="{{ url_for('edit.remove_biosynth_module', bgc_id=bgc_id, module_id=module['db_id'].data) }}">
-                                <button type="button" class="btn red" type="button">X</button>
-                            </a>
-                        </div>
+                <div class="row">
+                    <div class="col s12">
+                        {% if module['c_domain'].data['type']  %}
+                        {% set domain = module['c_domain'] %}
+                            {{ d.render_domain(bgc_id, module["db_id"].data, domain, form) }}
+                        {% endif %}
+                        {% if module['a_domain'].data['type']  %}
+                        {% set domain = module['a_domain'] %}
+                            {{ d.render_domain(bgc_id, module["db_id"].data, domain, form) }}
+                        {% endif %}
+                        {% if module['ks_domain'].data['type']  %}
+                        {% set domain = module['ks_domain'] %}
+                            {{ d.render_domain(bgc_id, module["db_id"].data, domain, form) }}
+                        {% endif %}
+                        {% if module['at_domain'].data['type']  %}
+                        {% set domain = module['at_domain'] %}
+                            {{ d.render_domain(bgc_id, module["db_id"].data, domain, form) }}
+                        {% endif %}
+                        {% if module['modification_domains'] %}
+                            {% for modification_domain in module['modification_domains'] %}
+                                {{ d.render_domain(bgc_id, module["db_id"].data, modification_domain, form) }}
+                            {% endfor %}
+                        {% endif %}
+                        <a
+                            href="{{ url_for('edit.create_domain', bgc_id=bgc_id, module_id=module['db_id'].data, domain_type='new') }}">
+                            <button type="button" class="btn btn-primary" type="button"><b>+</b></button>
+                        </a>
                     </div>
-                {% endif %}
-                {% if module['c_domain'].data['type']  %}
-                {% set domain = module['c_domain'] %}
-                    <div class="row form-group">
-                        <div class="col s1">
-                            <button class="btn btn-small" tooltip data-tooltip="Condensation domain">C</h6>
-                        </div>
-                        <div class="col s8">
-                            <h6>
-                                Type: {{domain['type'].data}},
-                                Location: {{domain['location']['from_'].data}} - {{domain['location']['to'].data}},
-                                Subtype: {{domain['subtype'].data if domain['subtype'] else 'Undefined'}} 
-                            </h6>
-                        </div>
-                        <div class="col s3">
-                            <a href="{{ url_for('edit.edit_domain', bgc_id=bgc_id, module_id=module['db_id'].data, domain_id=domain['db_id'].data, domain_type='condensation') }}">
-                                <button type="button" class="btn btn-primary" type="button">Edit domain</button>
-                            </a>
-                            <a href="{{ url_for('edit.remove_biosynth_module', bgc_id=bgc_id, module_id=module['db_id'].data) }}">
-                                <button type="button" class="btn red" type="button">X</button>
-                            </a>
-                        </div>
-                    </div>
-                {% endif %}
-                {% if module['ks_domain'].data['type']  %}
-                {% set domain = module['ks_domain'] %}
-                    <div class="row form-group">
-                        <div class="col s1">
-                            <button class="btn btn-small" tooltip data-tooltip="Ketosynthase domain">KS</h6>
-                        </div>
-                        <div class="col s8">
-                            <h6>
-                                Type: {{domain['type'].data}},
-                                Location: {{domain['location']['from_'].data}} - {{domain['location']['to'].data}},
-                                Subtype: {{domain['subtype'].data if domain['subtype'] else 'Undefined'}} 
-                            </h6>
-                        </div>
-                        <div class="col s3">
-                            <a href="{{ url_for('edit.edit_domain', bgc_id=bgc_id, module_id=module['db_id'].data, domain_id=domain['db_id'].data, domain_type='ketosynthase') }}">
-                                <button type="button" class="btn btn-primary" type="button">Edit domain</button>
-                            </a>
-                            <a href="{{ url_for('edit.remove_biosynth_module', bgc_id=bgc_id, module_id=module['db_id'].data) }}">
-                                <button type="button" class="btn red" type="button">X</button>
-                            </a>
-                        </div>
-                    </div>
-                {% endif %}
-                {% if module['at_domain'].data['type']  %}
-                {% set domain = module['at_domain'] %}
-                    <div class="row form-group">
-                        <div class="col s1">
-                            <button class="btn btn-small" tooltip data-tooltip="Acyltransferase domain">AT</h6>
-                        </div>
-                        <div class="col s8">
-                            <h6>
-                                Type: {{domain['type'].data}},
-                                Location: {{domain['location']['from_'].data}} - {{domain['location']['to'].data}},
-                                Subtype: {{domain['subtype'].data if domain['subtype'] else 'Undefined'}} 
-                            </h6>
-                        </div>
-                        <div class="col s3">
-                            <a href="{{ url_for('edit.edit_biosynth_module', bgc_id=bgc_id, module_id=module['db_id'].data, domain_id=domain['db_id'].data, domain_type='acyltransferase') }}">
-                                <button type="button" class="btn btn-primary" type="button">Edit domain</button>
-                            </a>
-                            <a href="{{ url_for('edit.remove_biosynth_module', bgc_id=bgc_id, module_id=module['db_id'].data) }}">
-                                <button type="button" class="btn red" type="button">X</button>
-                            </a>
-                        </div>
-                    </div>
-                {% endif %}
-                {% if module['modification_domains'] %}
-                    {% for modification_domain in module['modification_domains'].data %}
-                        <div class="row form-group">
-                            <div class="col s1">
-                                <button class="btn btn-small" tooltip data-tooltip="Modification domain">MD</h6>
-                            </div>
-                            <div class="col s8">
-                                <h6>
-                                    Type: {{modification_domain['type']}},
-                                    Location: {{modification_domain['location']['from_']}} - {{modification_domain['location']['to']}},
-                                    Subtype: {{modification_domain['subtype'] if modification_domain['subtype'] else 'Undefined'}} 
-                                </h6>
-                            </div>
-                            <div class="col s3">
-                                <a
-                                    href="{{ url_for('edit.edit_domain', bgc_id=bgc_id, module_id=module['db_id'].data, domain_id=modification_domain['db_id'], domain_type=modification_domain['type']) }}">
-                                    <button type="button" class="btn btn-primary" type="button">Edit domain</button>
-                                </a>
-                                <a href="{{ url_for('edit.remove_biosynth_module', bgc_id=bgc_id, module_id=module['db_id'].data) }}">
-                                    <button type="button" class="btn red" type="button">X</button>
-                                </a>
-                            </div>
-                        </div>
-                    {% endfor %}
-                {% endif %}
+                </div>
             </div>
         </div>
     {% endfor %}

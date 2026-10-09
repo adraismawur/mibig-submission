@@ -1266,3 +1266,48 @@ input:focus+ul.suggestions li {
 .htmx-indicator {
   opacity: 0;
 }
+
+
+.domain {
+    background-color: rgb(218,218,218) !important;
+    color: black !important;
+}
+.domain-adenylation {
+    background-color: rgb(188,127,245) !important;
+}
+.domain-transport {
+    background-color: rgb(129,190,247) !important;
+}
+.domain-condensation {
+    background-color: rgb(129,129,247) !important;
+}
+.domain-epimerase {
+    background-color: rgb(129,129,247) !important;
+}
+.domain-docking {
+    background-color: rgb(128,128,245) !important;
+}
+.domain-terminal {
+    background-color: rgb(245,196,242) !important;
+}
+.domain-ketosynthase {
+    background-color: rgb(129,247,129) !important;
+    color: black !important;
+}
+.domain-acyltransferase {
+    background-color: rgb(247,129,129) !important;
+}
+.domain-dehydratase {
+    background-color: rgb(247,190,129) !important;
+    color: black !important;
+}
+.domain-mod-enoylreductase {
+    background-color: rgb(129,247,243) !important;
+}
+.domain-ketoreductase {
+    background-color: rgb(128,246,128) !important;
+    color: black !important;
+}
+.domain-mod-sh {
+    background-color: yellow !important;
+}
