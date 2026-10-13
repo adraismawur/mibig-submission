@@ -71,7 +71,7 @@ class AdenylationDomain(Form):
         proteinogenic = BooleanField("proteinogenic?")
         structure = smiles_field_factory(label="Structure (SMILES)")
 
-    _type = HiddenField("adenylation")
+    domain_type = HiddenField("adenylation")
     gene = GeneIdField("Gene")
     location = FormField(location_form_factory(location_default=-1))
     inactive = BooleanField("Inactive?")
@@ -111,7 +111,9 @@ class AminotransferaseDomain(Form):
     db_location_id = IntegerField(widget=HiddenInput(), default=0)
     domain_type = StringField(widget=HiddenInput(), default="aminotransferase")
     gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
-    location = FormField(location_form_factory(required=True, location_default=-1), label="Location *")
+    location = FormField(
+        location_form_factory(required=True, location_default=-1), label="Location *"
+    )
     inactive = BooleanField("Inactive?")
 
 
@@ -120,7 +122,9 @@ class CyclaseDomain(Form):
     db_location_id = IntegerField(widget=HiddenInput(), default=0)
     domain_type = StringField(widget=HiddenInput(), default="cyclase")
     gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
-    location = FormField(location_form_factory(required=True, location_default=-1), label="Location *")
+    location = FormField(
+        location_form_factory(required=True, location_default=-1), label="Location *"
+    )
     references = ReferenceField(
         "Citation(s)",
         widget=TextInputWithSuggestions(post_url="/edit/get_db_references"),
@@ -133,7 +137,9 @@ class DehydrataseDomain(Form):
     db_location_id = IntegerField(widget=HiddenInput(), default=0)
     domain_type = StringField(widget=HiddenInput(), default="dehydratase")
     gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
-    location = FormField(location_form_factory(required=True, location_default=-1), label="Location *")
+    location = FormField(
+        location_form_factory(required=True, location_default=-1), label="Location *"
+    )
 
 
 class EnoylreductaseDomain(Form):
@@ -141,7 +147,9 @@ class EnoylreductaseDomain(Form):
     db_location_id = IntegerField(widget=HiddenInput(), default=0)
     domain_type = StringField(widget=HiddenInput(), default="enoylreductase")
     gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
-    location = FormField(location_form_factory(required=True, location_default=-1), label="Location *")
+    location = FormField(
+        location_form_factory(required=True, location_default=-1), label="Location *"
+    )
 
 
 class EpimeraseDomain(Form):
@@ -149,7 +157,9 @@ class EpimeraseDomain(Form):
     db_location_id = IntegerField(widget=HiddenInput(), default=0)
     domain_type = StringField(widget=HiddenInput(), default="epimerase")
     gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
-    location = FormField(location_form_factory(required=True, location_default=-1), label="Location *")
+    location = FormField(
+        location_form_factory(required=True, location_default=-1), label="Location *"
+    )
 
 
 class HydroxylaseDomain(Form):
@@ -157,7 +167,9 @@ class HydroxylaseDomain(Form):
     db_location_id = IntegerField(widget=HiddenInput(), default=0)
     domain_type = StringField(widget=HiddenInput(), default="hydroxylase")
     gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
-    location = FormField(location_form_factory(required=True, location_default=-1), label="Location *")
+    location = FormField(
+        location_form_factory(required=True, location_default=-1), label="Location *"
+    )
 
 
 class KetoreductaseDomain(Form):
@@ -165,7 +177,9 @@ class KetoreductaseDomain(Form):
     db_location_id = IntegerField(widget=HiddenInput(), default=0)
     domain_type = StringField(widget=HiddenInput(), default="ketoreductase")
     gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
-    location = FormField(location_form_factory(required=True, location_default=-1), label="Location *")
+    location = FormField(
+        location_form_factory(required=True, location_default=-1), label="Location *"
+    )
     inactive = BooleanField("Inactive?")
     stereochemistry = SelectField(
         "Stereochemistry",
@@ -184,7 +198,9 @@ class MethyltransferaseDomain(Form):
     db_location_id = IntegerField(widget=HiddenInput(), default=0)
     domain_type = StringField(widget=HiddenInput(), default="methyltransferase")
     gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
-    location = FormField(location_form_factory(required=True, location_default=-1), label="Location *")
+    location = FormField(
+        location_form_factory(required=True, location_default=-1), label="Location *"
+    )
     subtype = SelectField(
         "Subtype",
         choices=["C", "N", "O", "other"],
@@ -201,7 +217,9 @@ class OtherDomain(Form):
     domain_type = StringField(widget=HiddenInput(), default="other")
     subtype = StringField("Subtype *", validators=[validators.InputRequired()])
     gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
-    location = FormField(location_form_factory(required=True, location_default=-1), label="Location *")
+    location = FormField(
+        location_form_factory(required=True, location_default=-1), label="Location *"
+    )
 
 
 class OxidaseDomain(Form):
@@ -209,7 +227,9 @@ class OxidaseDomain(Form):
     db_location_id = IntegerField(widget=HiddenInput(), default=0)
     domain_type = StringField(widget=HiddenInput(), default="oxidase")
     gene = GeneIdField("Gene *", validators=[validators.InputRequired()])
-    location = FormField(location_form_factory(required=True, location_default=-1), label="Location *")
+    location = FormField(
+        location_form_factory(required=True, location_default=-1), label="Location *"
+    )
 
 
 modification_domain_types = [
@@ -289,6 +309,7 @@ class MonomerForm(Form):
         min_entries=1,
         widget=FieldListAddBtn(label="Add additional evidence"),
     )
+
 
 class KetosynthaseForm(Form):
     db_id = IntegerField(widget=HiddenInput(), default=0)

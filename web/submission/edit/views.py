@@ -792,27 +792,8 @@ def create_biosynth_path(
     )
 
 
-@bp_edit.route("/<bgc_id>/biosynth/modification_domains/<module_id>")
-@login_required
-def list_modification_domains(bgc_id: str, module_id: int):
-    modification_domains, error = Entry.get_modification_domain_list(bgc_id, module_id)
-
-    if error is not None:
-        flash(f"Failed to get modification domain list: {error}", "error")
-
-    antismash_json = get_antismash_json(bgc_id)
-
-    return render_template(
-        "wizard/biosynth/biosynth_mod_domain_list.html",
-        bgc_id=bgc_id,
-        module_id=module_id,
-        modification_domains=modification_domains,
-        antismash_json=antismash_json,
-    )
-
-
 @bp_edit.route(
-    "/<bgc_id>/biosynth/modification_domains/<module_id>/new/<domain_type>",
+    "/<bgc_id>/biosynth/domain/<module_id>/new/<domain_type>",
     methods=["GET", "POST"],
 )
 @login_required
@@ -854,9 +835,7 @@ def create_domain(bgc_id: str, module_id: int, domain_type: str):
         if success:
             flash("Successfully created modification domain")
             return redirect(
-                url_for(
-                    "edit.list_modification_domains", bgc_id=bgc_id, module_id=module_id
-                ),
+                url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="biosynth"),
                 code=302,
             )
         else:
@@ -865,7 +844,7 @@ def create_domain(bgc_id: str, module_id: int, domain_type: str):
     antismash_json = get_antismash_json(bgc_id)
 
     return render_template(
-        "wizard/biosynth/biosynth_mod_domain_new.html",
+        "wizard/biosynth/biosynth_domain_new.html",
         bgc_id=bgc_id,
         module_id=module_id,
         module_specific_types=module_specific_types,
@@ -877,19 +856,29 @@ def create_domain(bgc_id: str, module_id: int, domain_type: str):
 
 
 @bp_edit.route(
-    "/<bgc_id>/biosynth/modification_domains/<module_id>/edit/<domain_id>/<domain_type>",
+    "/<bgc_id>/biosynth/domain/<module_id>/edit/<domain_id>/<domain_type>",
     methods=["GET", "POST"],
 )
 @login_required
 def edit_domain(bgc_id: str, module_id: int, domain_id: int, domain_type: str):
-    domain_data, error = Entry.get_domain(bgc_id, domain_id, domain_type)
+    module_specific_domain_types = [
+        "adenylation",
+        "condensation",
+        "acyltransferase",
+        "ketosynthase",
+    ]
+
+    if domain_type not in module_specific_domain_types:
+        domain_data, error = Entry.get_domain(
+            bgc_id, module_id, domain_id, "modification_domain"
+        )
+    else:
+        domain_data, error = Entry.get_domain(bgc_id, module_id, domain_id, domain_type)
 
     if error is not None:
-        flash(f"Error getting modification domain data: {error}", "error")
+        flash(f"Error getting domain data: {error}", "error")
         return redirect(
-            url_for(
-                "edit.list_modification_domains", bgc_id=bgc_id, module_id=module_id
-            ),
+            url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="biosynth"),
             code=302,
         )
 
@@ -902,27 +891,30 @@ def edit_domain(bgc_id: str, module_id: int, domain_id: int, domain_type: str):
         data = form.data
         data["type"] = data["domain_type"]
 
-        data, error = Entry.update_domain(bgc_id, domain_id, domain_type, data)
+        data, error = Entry.update_domain(
+            bgc_id, module_id, domain_id, domain_type, data
+        )
 
         if error is not None:
-            flash(f"Error creating modification domain: {error}", "error")
+            flash(f"Error creating domain: {error}", "error")
         else:
-            flash("Successfully edited modification domain")
+            flash("Successfully edited domain")
             form = getattr(FormCollection, domain_type)(data=data)
 
     antismash_json = get_antismash_json(bgc_id)
 
     return render_template(
-        "wizard/biosynth/biosynth_mod_domain_edit.html",
+        "wizard/biosynth/biosynth_domain_edit.html",
         bgc_id=bgc_id,
         module_id=module_id,
+        domain_type=domain_type,
         form=form,
         antismash_json=antismash_json,
     )
 
 
 @bp_edit.route(
-    "/<bgc_id>/biosynth/modification_domains/<module_id>/remove/<domain_id>/<domain_type>",
+    "/<bgc_id>/biosynth/domain/<module_id>/remove/<domain_id>/<domain_type>",
     methods=["GET", "POST"],
 )
 @login_required
@@ -932,9 +924,7 @@ def remove_domain(bgc_id: str, module_id: int, domain_id: int, domain_type: str)
     if error is not None:
         flash(f"Error getting modification domain data: {error}", "error")
         return redirect(
-            url_for(
-                "edit.list_modification_domains", bgc_id=bgc_id, module_id=module_id
-            ),
+            url_for("edit.edit_bgc", bgc_id=bgc_id, form_id="biosynth"),
             code=302,
         )
 
@@ -945,7 +935,9 @@ def remove_domain(bgc_id: str, module_id: int, domain_id: int, domain_type: str)
             flash("Successfully removed modification domain")
             return redirect(
                 url_for(
-                    "edit.list_modification_domains", bgc_id=bgc_id, module_id=module_id
+                    "edit.edit_bgc",
+                    bgc_id=bgc_id,
+                    form_id="biosynth",
                 ),
                 code=302,
             )
@@ -953,7 +945,7 @@ def remove_domain(bgc_id: str, module_id: int, domain_id: int, domain_type: str)
             flash(f"Error removing modification domain: {error}", "error")
 
     return render_template(
-        "wizard/biosynth/biosynth_mod_domain_remove.html",
+        "wizard/biosynth/biosynth_domain_remove.html",
         bgc_id=bgc_id,
         module_id=module_id,
         modification_domain_text=domain_data,
